@@ -1,0 +1,16 @@
+{
+  "name": "Graph-RAG Lab · On-Device Wissensassistent",
+  "short_name": "Graph-RAG Lab",
+  "description": "Vektor-RAG und Graph-RAG auf einem manuell kuratierten, eingefrorenen Wissensgraphen für On-Device-LLMs – Proseminar-Experiment, TU Dortmund.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f0eee6",
+  "theme_color": "#f0eee6",
+  "lang": "de",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

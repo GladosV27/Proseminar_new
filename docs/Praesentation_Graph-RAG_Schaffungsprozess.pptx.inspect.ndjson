@@ -1,0 +1,734 @@
+{"kind":"deck","id":"pr/ddmhkb","name":"Deck"}
+{"kind":"layout","layoutId":"dc3a16ce-edc8-4e5f-afac-dc5fb80b5b35","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"ac2c976a-5365-4803-8eba-6c18ce1e284b","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/xppiv0","slide":1,"title":"PROSEMINAR · SOSE 2026","textShapes":5}
+{"kind":"shape","id":"sh/mtgv65sv","slide":1,"bbox":[0,0,640,720]}
+{"kind":"textbox","id":"sh/nupcza9g","slide":1,"text":"PROSEMINAR · SOSE 2026","textPreview":"PROSEMINAR · SOSE 2026","textChars":22,"textLines":1,"bbox":[76,62,360,24]}
+{"kind":"textbox","id":"sh/wjydczax","slide":1,"text":"Graph-RAG\nauf dem Smartphone","textPreview":"Graph-RAG | auf dem Smartphone","textChars":28,"textLines":2,"bbox":[76,148,590,190]}
+{"kind":"textbox","id":"sh/xkru5kri","slide":1,"text":"Von einer offenen Idee zu einem prüfbaren Experiment","textPreview":"Von einer offenen Idee zu einem prüfbaren Experiment","textChars":52,"textLines":1,"bbox":[80,388,500,64]}
+{"kind":"shape","id":"sh/ahgvaps7","slide":1,"bbox":[80,498,220,4]}
+{"kind":"textbox","id":"sh/bipc3u9c","slide":1,"text":"Sinan Yavuz Adigüzel · TU Dortmund","textPreview":"Sinan Yavuz Adigüzel · TU Dortmund","textChars":34,"textLines":1,"bbox":[80,600,460,24]}
+{"kind":"textbox","id":"sh/knidgza9","slide":1,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1160,674,48,20]}
+{"kind":"image","id":"im/sfeh8361","slide":1,"name":"","alt":"Abstrakte visuelle Reise von einer Idee über einen Wissensgraphen zur fertigen Anwendung","bbox":[0,0,1280,720]}
+{"kind":"notes","id":"nt/xppiv0","slide":1,"text":""}
+{"kind":"slide","id":"sl/955cch","slide":2,"title":"AUFTAKT","textShapes":8}
+{"kind":"shape","id":"sh/507itwb6","slide":2,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/idgjy1cf","slide":2,"text":"AUFTAKT","textPreview":"AUFTAKT","textChars":7,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/jep0r6t0","slide":2,"text":"Am Anfang stand kein Produkt, sondern eine Frage.","textPreview":"Am Anfang stand kein Produkt, sondern eine Frage.","textChars":49,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/wby1wru9","slide":2,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/xc7ipwbu","slide":2,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/a9wjuhcj","slide":2,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/va50nmt4","slide":2,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/87e1srud","slide":2,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/98nilcby","slide":2,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/l0jep876","slide":2,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/kfaxg361","slide":2,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/ze1wnypg","slide":2,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/ydsfetov","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/xcjelo7a","slide":2,"text":"„","textPreview":"„","textChars":1,"textLines":1,"bbox":[82,184,100,100]}
+{"kind":"textbox","id":"sh/cbaxcj6p","slide":2,"text":"Was passiert, wenn …","textPreview":"Was passiert, wenn …","textChars":20,"textLines":1,"bbox":[172,245,910,80]}
+{"kind":"shape","id":"sh/bahwjyp4","slide":2,"bbox":[170,360,850,120]}
+{"kind":"shape","id":"sh/a98fatoj","slide":2,"bbox":[186,377,5,86]}
+{"kind":"textbox","id":"sh/p8zeho7e","slide":2,"text":"[Formuliere hier den ursprünglichen Zweifel in einem einzigen Satz – noch ohne Fachbegriffe.]","textPreview":"[Formuliere hier den ursprünglichen Zweifel in einem einzigen Satz – noch ohne Fachbegriffe.]","textChars":93,"textLines":1,"bbox":[208,380,792,84]}
+{"kind":"textbox","id":"sh/o7qx8j6t","slide":2,"text":"Diese Frage ist der rote Faden der gesamten Präsentation.","textPreview":"Diese Frage ist der rote Faden der gesamten Präsentation.","textChars":57,"textLines":1,"bbox":[172,525,780,34]}
+{"kind":"notes","id":"nt/955cch","slide":2,"text":""}
+{"kind":"slide","id":"sl/44jtm6","slide":3,"title":"SEMINARPERSPEKTIVE","textShapes":9}
+{"kind":"shape","id":"sh/p4na1g32","slide":3,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/2hcr6l4b","slide":3,"text":"SEMINARPERSPEKTIVE","textPreview":"SEMINARPERSPEKTIVE","textChars":18,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/3i5szqlw","slide":3,"text":"Zwei Fragen laufen durch dieselbe Geschichte.","textPreview":"Zwei Fragen laufen durch dieselbe Geschichte.","textChars":45,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/c7etcvmd","slide":3,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/d8na503y","slide":3,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/q5wbal4n","slide":3,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/b65s3ql8","slide":3,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/sbu90rm9","slide":3,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/tc3atw3u","slide":3,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/p47e9k7y","slide":3,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/43ydgfqt","slide":3,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/32pw7up8","slide":3,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/21wvep8n","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/d87ed47a","slide":3,"text":"SYSTEMFRAGE","textPreview":"SYSTEMFRAGE","textChars":11,"textLines":1,"bbox":[98,222,430,24]}
+{"kind":"textbox","id":"sh/c7yxkzqp","slide":3,"text":"Hilft Graph-RAG kleinen lokalen Modellen bei mehrstufigen Fragen?","textPreview":"Hilft Graph-RAG kleinen lokalen Modellen bei mehrstufigen Fragen?","textChars":65,"textLines":1,"bbox":[98,278,470,130]}
+{"kind":"textbox","id":"sh/r6pwbup4","slide":3,"text":"PROZESSFRAGE","textPreview":"PROZESSFRAGE","textChars":12,"textLines":1,"bbox":[700,222,430,24]}
+{"kind":"textbox","id":"sh/q5gfip8j","slide":3,"text":"Wo halfen Claude und ChatGPT wirklich – und wo musste ich selbst korrigieren?","textPreview":"Wo halfen Claude und ChatGPT wirklich – und wo musste ich selbst korrigieren?","textChars":77,"textLines":1,"bbox":[700,278,470,130]}
+{"kind":"shape","id":"sh/1wreh476","slide":3,"bbox":[620,214,2,300]}
+{"kind":"textbox","id":"sh/0vixojql","slide":3,"text":"Jede Entwicklungsstufe wird deshalb doppelt erzählt: als technischer Fortschritt und als reflektierte KI-Nutzung.","textPreview":"Jede Entwicklungsstufe wird deshalb doppelt erzählt: als technischer Fortschritt und als reflektierte KI-Nutzung.","textChars":113,"textLines":1,"bbox":[154,550,972,42]}
+{"kind":"notes","id":"nt/44jtm6","slide":3,"text":""}
+{"kind":"slide","id":"sl/rh1oye","slide":4,"title":"KAPITEL 01","textShapes":5}
+{"kind":"shape","id":"sh/lkf2d0vi","slide":4,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/budk7qdg","slide":4,"bbox":[0,0,22,720]}
+{"kind":"textbox","id":"sh/at43ylwv","slide":4,"text":"KAPITEL 01","textPreview":"KAPITEL 01","textChars":10,"textLines":1,"bbox":[82,104,260,58]}
+{"kind":"textbox","id":"sh/xgv290vm","slide":4,"text":"Die Idee","textPreview":"Die Idee","textChars":8,"textLines":1,"bbox":[82,185,560,170]}
+{"kind":"textbox","id":"sh/wvml0ve1","slide":4,"text":"Aus einem Alltagsproblem wird eine wissenschaftliche Frage.","textPreview":"Aus einem Alltagsproblem wird eine wissenschaftliche Frage.","textChars":59,"textLines":1,"bbox":[86,395,500,95]}
+{"kind":"shape","id":"sh/vqh4jadk","slide":4,"bbox":[86,548,360,4]}
+{"kind":"textbox","id":"sh/up83apwz","slide":4,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/of2twryp","slide":4,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/pgbupwfa","slide":4,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/2dkbu1gj","slide":4,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/netcnmx4","slide":4,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/0r2tsryd","slide":4,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/1sbulwfy","slide":4,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/ep0bqhgn","slide":4,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/fqtsjmxs","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"image","id":"im/vu94z69c","slide":4,"name":"","alt":"Abstrakte visuelle Reise von einer Idee über einen Wissensgraphen zur fertigen Anwendung","bbox":[0,0,1280,720]}
+{"kind":"image","id":"im/hgrm1gri","slide":4,"name":"","alt":"Abstrakte Entwicklungsreise","bbox":[650,0,630,720]}
+{"kind":"notes","id":"nt/rh1oye","slide":4,"text":""}
+{"kind":"slide","id":"sl/5h7jcr","slide":5,"title":"AUSGANGSPUNKT","textShapes":9}
+{"kind":"shape","id":"sh/10re9kji","slide":5,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/edgve50r","slide":5,"text":"AUSGANGSPUNKT","textPreview":"AUSGANGSPUNKT","textChars":13,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/fepw7a1c","slide":5,"text":"Lokale KI löst ein Problem – und erzeugt ein neues.","textPreview":"Lokale KI löst ein Problem – und erzeugt ein neues.","textChars":51,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/o3ixkfit","slide":5,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/p4redkze","slide":5,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/210vip03","slide":5,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/n29wba1o","slide":5,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/c72xozi5","slide":5,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/x8beh4zq","slide":5,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/9ojq10zi","slide":5,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/ona9svyx","slide":5,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/nmh8zqhc","slide":5,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/ml8rqlg7","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/xcjq50zu","slide":5,"text":"PRIVAT","textPreview":"PRIVAT","textChars":6,"textLines":1,"bbox":[96,236,420,54]}
+{"kind":"textbox","id":"sh/wba9wvy9","slide":5,"text":"Daten und Inferenz können auf dem Gerät bleiben.","textPreview":"Daten und Inferenz können auf dem Gerät bleiben.","textChars":48,"textLines":1,"bbox":[96,312,430,68]}
+{"kind":"textbox","id":"sh/ba183qho","slide":5,"text":"ABER LÜCKENHAFT","textPreview":"ABER LÜCKENHAFT","textChars":15,"textLines":1,"bbox":[700,236,450,54]}
+{"kind":"textbox","id":"sh/apsrulg3","slide":5,"text":"Kleine Modelle kennen nicht jedes Detail und können plausibel falsch antworten.","textPreview":"Kleine Modelle kennen nicht jedes Detail und können plausibel falsch antworten.","textChars":79,"textLines":1,"bbox":[700,312,450,84]}
+{"kind":"shape","id":"sh/dgzqtgza","slide":5,"bbox":[606,216,2,330]}
+{"kind":"shape","id":"sh/cfqpkbip","slide":5,"bbox":[210,470,860,88]}
+{"kind":"shape","id":"sh/4za9gbql","slide":5,"bbox":[226,487,5,54]}
+{"kind":"textbox","id":"sh/503q9g76","slide":5,"text":"[Kurzes journalistisches Beispiel oder konkrete Situation einfügen.]","textPreview":"[Kurzes journalistisches Beispiel oder konkrete Situation einfügen.]","textChars":68,"textLines":1,"bbox":[248,490,802,52]}
+{"kind":"notes","id":"nt/5h7jcr","slide":5,"text":""}
+{"kind":"slide","id":"sl/0u5khu","slide":6,"title":"FORSCHUNGSFRAGE","textShapes":8}
+{"kind":"shape","id":"sh/elc3i94j","slide":6,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/1o32do3u","slide":6,"text":"FORSCHUNGSFRAGE","textPreview":"FORSCHUNGSFRAGE","textChars":15,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/0nulkjm9","slide":6,"text":"Die Wissenslücke wird zur prüfbaren Frage.","textPreview":"Die Wissenslücke wird zur prüfbaren Frage.","textChars":42,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/nal4fyl0","slide":6,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/mpc3mt4f","slide":6,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/9cnmh836","slide":6,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/obelo3ml","slide":6,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/be54jylw","slide":6,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/adw3qt4r","slide":6,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/0r29gvql","slide":6,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/1sbq90r6","slide":6,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/epkre58v","slide":6,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/zqt87a90","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/ov29kfqx","slide":6,"text":"Verbessert Graph-RAG …","textPreview":"Verbessert Graph-RAG …","textChars":22,"textLines":1,"bbox":[112,230,1050,76]}
+{"kind":"shape","id":"sh/9wvqdkri","slide":6,"bbox":[112,342,820,112]}
+{"kind":"shape","id":"sh/mtkri58r","slide":6,"bbox":[128,359,5,78]}
+{"kind":"textbox","id":"sh/nut8ba9c","slide":6,"text":"[Vervollständige die Forschungsfrage: System · Korpus · Vergleich · Zielgröße.]","textPreview":"[Vervollständige die Forschungsfrage: System · Korpus · Vergleich · Zielgröße.]","textChars":79,"textLines":1,"bbox":[150,362,762,76]}
+{"kind":"textbox","id":"sh/wzm9ozqt","slide":6,"text":"BEWUSSTE GRENZE","textPreview":"BEWUSSTE GRENZE","textChars":15,"textLines":1,"bbox":[970,344,220,24]}
+{"kind":"textbox","id":"sh/xkvqhkre","slide":6,"text":"[Was untersuche ich ausdrücklich nicht?]","textPreview":"[Was untersuche ich ausdrücklich nicht?]","textChars":40,"textLines":1,"bbox":[970,387,220,86]}
+{"kind":"notes","id":"nt/0u5khu","slide":6,"text":""}
+{"kind":"slide","id":"sl/9n1dva","slide":7,"title":"THEORIE","textShapes":14}
+{"kind":"shape","id":"sh/z2hkjqlw","slide":7,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/k3q1cv2h","slide":7,"text":"THEORIE","textPreview":"THEORIE","textChars":7,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/loz2l0j2","slide":7,"text":"Theorie liefert die Erwartung – nicht das Ergebnis.","textPreview":"Theorie liefert die Erwartung – nicht das Ergebnis.","textChars":51,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/mpsjelkn","slide":7,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/7q1knq18","slide":7,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/8ra1gv2d","slide":7,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/9sj2p0jy","slide":7,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/2toj21k3","slide":7,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/3ux0b6lo","slide":7,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/rqp47a1o","slide":7,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/qpg3e5k3","slide":7,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/dsrm90ju","slide":7,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/crylgv29","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/32p43q1c","slide":7,"text":"RAG","textPreview":"RAG","textChars":3,"textLines":1,"bbox":[86,230,300,44]}
+{"kind":"shape","id":"sh/21g3alk7","slide":7,"bbox":[86,292,300,3]}
+{"kind":"textbox","id":"sh/p47m50ji","slide":7,"text":"Relevantes Wissen wird erst zur Frage in den Kontext geholt.","textPreview":"Relevantes Wissen wird erst zur Frage in den Kontext geholt.","textChars":60,"textLines":1,"bbox":[86,322,310,105]}
+{"kind":"textbox","id":"sh/43ylcv2x","slide":7,"text":"[Quelle / Begriff]","textPreview":"[Quelle / Begriff]","textChars":18,"textLines":1,"bbox":[86,455,250,24]}
+{"kind":"textbox","id":"sh/fy5kzq1g","slide":7,"text":"Vektor","textPreview":"Vektor","textChars":6,"textLines":1,"bbox":[474,230,300,44]}
+{"kind":"shape","id":"sh/uxw36lkv","slide":7,"bbox":[474,292,300,3]}
+{"kind":"textbox","id":"sh/itwni14n","slide":7,"text":"Ähnliche Textstellen werden gefunden – Beziehungen bleiben implizit.","textPreview":"Ähnliche Textstellen werden gefunden – Beziehungen bleiben implizit.","textChars":68,"textLines":1,"bbox":[474,322,310,105]}
+{"kind":"textbox","id":"sh/ju54r658","slide":7,"text":"[Quelle / Begriff]","textPreview":"[Quelle / Begriff]","textChars":18,"textLines":1,"bbox":[474,455,250,24]}
+{"kind":"textbox","id":"sh/kve5kbmt","slide":7,"text":"Graph","textPreview":"Graph","textChars":5,"textLines":1,"bbox":[862,230,300,44]}
+{"kind":"shape","id":"sh/5wnmtgne","slide":7,"bbox":[862,292,300,3]}
+{"kind":"textbox","id":"sh/6xwnml4z","slide":7,"text":"Knoten und Kanten machen mehrstufige Verbindungen explizit.","textPreview":"Knoten und Kanten machen mehrstufige Verbindungen explizit.","textChars":59,"textLines":1,"bbox":[862,322,310,105]}
+{"kind":"textbox","id":"sh/7y54vq5k","slide":7,"text":"[Quelle / Begriff]","textPreview":"[Quelle / Begriff]","textChars":18,"textLines":1,"bbox":[862,455,250,24]}
+{"kind":"textbox","id":"sh/sze5ovm5","slide":7,"text":"Theoretischer Übergang: Warum sollte die Form des Kontexts gerade bei Multi-Hop-Fragen zählen?","textPreview":"Theoretischer Übergang: Warum sollte die Form des Kontexts gerade bei Multi-Hop-Fragen zählen?","textChars":94,"textLines":1,"bbox":[164,548,952,34]}
+{"kind":"notes","id":"nt/9n1dva","slide":7,"text":""}
+{"kind":"slide","id":"sl/zvxebh","slide":8,"title":"HYPOTHESEN","textShapes":13}
+{"kind":"shape","id":"sh/tcr2d47q","slide":8,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/69gji9of","slide":8,"text":"HYPOTHESEN","textPreview":"HYPOTHESEN","textChars":10,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/7apkbep0","slide":8,"text":"Aus Annahmen werden drei klare Erwartungen.","textPreview":"Aus Annahmen werden drei klare Erwartungen.","textChars":43,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/gfiloj6h","slide":8,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/hgr2hon2","slide":8,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/ud0jm9ob","slide":8,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/ve9kfe5w","slide":8,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/wjy1cf6d","slide":8,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/xk725k7i","slide":8,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/5krex0nu","slide":8,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/4jidov69","slide":8,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/3i9wvq5o","slide":8,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/ih0vmlo3","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/dobe10nq","slide":8,"text":"H1","textPreview":"H1","textChars":2,"textLines":1,"bbox":[96,218,88,48]}
+{"kind":"textbox","id":"sh/sn2dsv6l","slide":8,"text":"RAG > Baseline","textPreview":"RAG > Baseline","textChars":14,"textLines":1,"bbox":[210,220,430,40]}
+{"kind":"textbox","id":"sh/rmtwza50","slide":8,"text":"[Warum erwarte ich das?]","textPreview":"[Warum erwarte ich das?]","textChars":24,"textLines":1,"bbox":[680,222,450,44]}
+{"kind":"shape","id":"sh/ql0vq5of","slide":8,"bbox":[210,290,920,1]}
+{"kind":"textbox","id":"sh/1sbe5kn2","slide":8,"text":"H2","textPreview":"H2","textChars":2,"textLines":1,"bbox":[96,340,88,48]}
+{"kind":"textbox","id":"sh/0r2dwf6h","slide":8,"text":"Graph ≈ Vektor bei 1 Hop","textPreview":"Graph ≈ Vektor bei 1 Hop","textChars":24,"textLines":1,"bbox":[210,342,430,40]}
+{"kind":"textbox","id":"sh/kvaxsjut","slide":8,"text":"[Welche Bedingung macht beide ähnlich?]","textPreview":"[Welche Bedingung macht beide ähnlich?]","textChars":39,"textLines":1,"bbox":[680,344,450,44]}
+{"kind":"shape","id":"sh/lwjy1ove","slide":8,"bbox":[210,412,920,1]}
+{"kind":"textbox","id":"sh/ytsfq9cn","slide":8,"text":"H3","textPreview":"H3","textChars":2,"textLines":1,"bbox":[96,462,88,48]}
+{"kind":"textbox","id":"sh/zu1gzed8","slide":8,"text":"Graph > Vektor bei 2–3 Hops","textPreview":"Graph > Vektor bei 2–3 Hops","textChars":27,"textLines":1,"bbox":[210,464,430,40]}
+{"kind":"textbox","id":"sh/8zuhw3up","slide":8,"text":"[Welcher Mechanismus erklärt den Vorteil?]","textPreview":"[Welcher Mechanismus erklärt den Vorteil?]","textChars":42,"textLines":1,"bbox":[680,466,450,44]}
+{"kind":"shape","id":"sh/9k3y58va","slide":8,"bbox":[210,534,920,1]}
+{"kind":"notes","id":"nt/zvxebh","slide":8,"text":""}
+{"kind":"slide","id":"sl/564u6u","slide":9,"title":"KAPITEL 02","textShapes":5}
+{"kind":"shape","id":"sh/udsr6dgf","slide":9,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/43u9cneh","slide":9,"bbox":[0,0,22,720]}
+{"kind":"textbox","id":"sh/543a5sf2","slide":9,"text":"KAPITEL 02","textPreview":"KAPITEL 02","textChars":10,"textLines":1,"bbox":[82,104,260,58]}
+{"kind":"textbox","id":"sh/ihcraxwr","slide":9,"text":"Das Experiment","textPreview":"Das Experiment","textChars":14,"textLines":1,"bbox":[82,185,560,170]}
+{"kind":"textbox","id":"sh/3ils3ixw","slide":9,"text":"Die Vermutung wird in kontrollierbare Bedingungen übersetzt.","textPreview":"Die Vermutung wird in kontrollierbare Bedingungen übersetzt.","textChars":60,"textLines":1,"bbox":[86,395,500,95]}
+{"kind":"shape","id":"sh/k7q903yd","slide":9,"bbox":[86,548,360,4]}
+{"kind":"textbox","id":"sh/l8jat8fy","slide":9,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/lkrm54ba","slide":9,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/0ji5cjap","slide":9,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/zi943etk","slide":9,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/yhgna9sz","slide":9,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/9orm9orm","slide":9,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/8ni5gja1","slide":9,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/nm947etg","slide":9,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/ml0ne9sv","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"image","id":"im/cju94jm5","slide":9,"name":"","alt":"Abstrakte visuelle Reise von einer Idee über einen Wissensgraphen zur fertigen Anwendung","bbox":[0,0,1280,720]}
+{"kind":"image","id":"im/qxcr294f","slide":9,"name":"","alt":"Abstrakte Entwicklungsreise","bbox":[650,0,630,720]}
+{"kind":"notes","id":"nt/564u6u","slide":9,"text":""}
+{"kind":"slide","id":"sl/t3hivb","slide":10,"title":"MODELLIERUNG","textShapes":15}
+{"kind":"shape","id":"sh/0jqpwvyl","slide":10,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/zih8nqh0","slide":10,"text":"MODELLIERUNG","textPreview":"MODELLIERUNG","textChars":12,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/eh87ulgf","slide":10,"text":"Der Vergleich darf nur eine Sache verändern.","textPreview":"Der Vergleich darf nur eine Sache verändern.","textChars":44,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/dgfqlgzu","slide":10,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/cf6psby9","slide":10,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/rex8j6h4","slide":10,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/qdo7q1gj","slide":10,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/xcjqxkfe","slide":10,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/wbap4fyt","slide":10,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/yp4ry1kv","slide":10,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/zqdsr61g","slide":10,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/0rm90b21","slide":10,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/lsvatgj6","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"shape","id":"sh/q1kruhkj","slide":10,"bbox":[168,342,925,3]}
+{"kind":"shape","id":"sh/b2dsnml4","slide":10,"bbox":[118,309,68,68]}
+{"kind":"textbox","id":"sh/cnm9wr2p","slide":10,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[118,330,68,22]}
+{"kind":"textbox","id":"sh/dovapwja","slide":10,"text":"Frage","textPreview":"Frage","textChars":5,"textLines":1,"bbox":[90,395,126,42]}
+{"kind":"shape","id":"sh/axor6lk3","slide":10,"bbox":[348,309,68,68]}
+{"kind":"textbox","id":"sh/vyxszq1o","slide":10,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[348,330,68,22]}
+{"kind":"textbox","id":"sh/r2pori10","slide":10,"text":"Retrieval","textPreview":"Retrieval","textChars":9,"textLines":1,"bbox":[320,395,126,42]}
+{"kind":"shape","id":"sh/61g7yd0f","slide":10,"bbox":[578,309,68,68]}
+{"kind":"textbox","id":"sh/t4r6tsj6","slide":10,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[578,330,68,22]}
+{"kind":"textbox","id":"sh/s3ip0nil","slide":10,"text":"Kontext","textPreview":"Kontext","textChars":7,"textLines":1,"bbox":[550,395,126,42]}
+{"kind":"shape","id":"sh/f69ovihw","slide":10,"bbox":[808,309,68,68]}
+{"kind":"textbox","id":"sh/e5072d0b","slide":10,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[808,330,68,22]}
+{"kind":"textbox","id":"sh/18r6xsz2","slide":10,"text":"Lokales LLM","textPreview":"Lokales LLM","textChars":11,"textLines":1,"bbox":[780,395,126,42]}
+{"kind":"shape","id":"sh/g7ip4nih","slide":10,"bbox":[1038,309,68,68]}
+{"kind":"textbox","id":"sh/3utoz2h8","slide":10,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1038,330,68,22]}
+{"kind":"textbox","id":"sh/2t076x0n","slide":10,"text":"Bewertung","textPreview":"Bewertung","textChars":9,"textLines":1,"bbox":[1010,395,126,42]}
+{"kind":"shape","id":"sh/0z25g7yl","slide":10,"bbox":[198,500,884,88]}
+{"kind":"shape","id":"sh/l0b6pcf6","slide":10,"bbox":[214,517,5,54]}
+{"kind":"textbox","id":"sh/yxknexgv","slide":10,"text":"[Markiere in einem Satz, was zwischen Baseline, Vektor-RAG und Graph-RAG variiert – alles andere bleibt konstant.]","textPreview":"[Markiere in einem Satz, was zwischen Baseline, Vektor-RAG und Graph-RAG variiert – alles andere bleibt konstant.]","textChars":114,"textLines":1,"bbox":[236,520,826,52]}
+{"kind":"notes","id":"nt/t3hivb","slide":10,"text":""}
+{"kind":"slide","id":"sl/lktr2i","slide":11,"title":"BEDINGUNGEN","textShapes":25}
+{"kind":"shape","id":"sh/cvu5gjux","slide":11,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/rul47ydc","slide":11,"text":"BEDINGUNGEN","textPreview":"BEDINGUNGEN","textChars":11,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/q9cnetwr","slide":11,"text":"Kontrollbedingungen machen den Graph-Vorteil erklärbar.","textPreview":"Kontrollbedingungen machen den Graph-Vorteil erklärbar.","textChars":55,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/10n6d8ve","slide":11,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/0ze5k3u9","slide":11,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/zy54bydo","slide":11,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/excnitc3","slide":11,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/h4jm14va","slide":11,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/g3a58zep","slide":11,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/mx43m1g7","slide":11,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/nyd4f6xs","slide":11,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/8zmlobyd","slide":11,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/90fmhwfy","slide":11,"text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/a1onq1g3","slide":11,"text":"ID","textPreview":"ID","textChars":2,"textLines":1,"bbox":[98,218,70,22]}
+{"kind":"textbox","id":"sh/v2x4j6xo","slide":11,"text":"BEDINGUNG","textPreview":"BEDINGUNG","textChars":9,"textLines":1,"bbox":[202,218,240,22]}
+{"kind":"textbox","id":"sh/w365sby9","slide":11,"text":"WAS DAS MODELL SIEHT","textPreview":"WAS DAS MODELL SIEHT","textChars":20,"textLines":1,"bbox":[478,218,330,22]}
+{"kind":"textbox","id":"sh/x4fmlgfu","slide":11,"text":"WAS DER VERGLEICH ZEIGT","textPreview":"WAS DER VERGLEICH ZEIGT","textChars":23,"textLines":1,"bbox":[850,218,330,22]}
+{"kind":"shape","id":"sh/i5onulgf","slide":11,"bbox":[92,250,1086,2]}
+{"kind":"textbox","id":"sh/j6x4nqx0","slide":11,"text":"B0","textPreview":"B0","textChars":2,"textLines":1,"bbox":[98,275,70,38]}
+{"kind":"textbox","id":"sh/fuhkbqds","slide":11,"text":"Baseline","textPreview":"Baseline","textChars":8,"textLines":1,"bbox":[202,275,240,38]}
+{"kind":"textbox","id":"sh/et83ilcn","slide":11,"text":"kein externer Kontext","textPreview":"kein externer Kontext","textChars":21,"textLines":1,"bbox":[478,275,330,38]}
+{"kind":"textbox","id":"sh/1wzmd0vy","slide":11,"text":"Referenz","textPreview":"Referenz","textChars":8,"textLines":1,"bbox":[850,275,330,38]}
+{"kind":"shape","id":"sh/gvqlkvud","slide":11,"bbox":[92,324,1086,1]}
+{"kind":"textbox","id":"sh/r6xk76dw","slide":11,"text":"B1","textPreview":"B1","textChars":2,"textLines":1,"bbox":[98,345,70,38]}
+{"kind":"textbox","id":"sh/65o3e1wb","slide":11,"text":"Vektor-RAG","textPreview":"Vektor-RAG","textChars":10,"textLines":1,"bbox":[202,345,240,38]}
+{"kind":"textbox","id":"sh/tsz29gv2","slide":11,"text":"ähnliche Textstellen","textPreview":"ähnliche Textstellen","textChars":20,"textLines":1,"bbox":[478,345,330,38]}
+{"kind":"textbox","id":"sh/s7qlgbuh","slide":11,"text":"Retrieval-Effekt","textPreview":"Retrieval-Effekt","textChars":16,"textLines":1,"bbox":[850,345,330,38]}
+{"kind":"shape","id":"sh/j2xk36d0","slide":11,"bbox":[92,394,1086,1]}
+{"kind":"textbox","id":"sh/i1o3a1wf","slide":11,"text":"B2","textPreview":"B2","textChars":2,"textLines":1,"bbox":[98,415,70,38]}
+{"kind":"textbox","id":"sh/ov29o361","slide":11,"text":"Graph-RAG","textPreview":"Graph-RAG","textChars":9,"textLines":1,"bbox":[202,415,240,38]}
+{"kind":"textbox","id":"sh/9wbax87m","slide":11,"text":"Knoten + Kanten","textPreview":"Knoten + Kanten","textChars":15,"textLines":1,"bbox":[478,415,330,38]}
+{"kind":"textbox","id":"sh/mt0rmtov","slide":11,"text":"Relations-Effekt","textPreview":"Relations-Effekt","textChars":16,"textLines":1,"bbox":[850,415,330,38]}
+{"kind":"shape","id":"sh/nu98vypg","slide":11,"bbox":[92,464,1086,1]}
+{"kind":"textbox","id":"sh/wz29sn6x","slide":11,"text":"B2a","textPreview":"B2a","textChars":3,"textLines":1,"bbox":[98,485,70,38]}
+{"kind":"textbox","id":"sh/x0ba1s7i","slide":11,"text":"Graph − Kanten","textPreview":"Graph − Kanten","textChars":14,"textLines":1,"bbox":[202,485,240,38]}
+{"kind":"textbox","id":"sh/axkrqdor","slide":11,"text":"gleiche Knoten, keine Kanten","textPreview":"gleiche Knoten, keine Kanten","textChars":28,"textLines":1,"bbox":[478,485,330,38]}
+{"kind":"textbox","id":"sh/bytszipc","slide":11,"text":"Ablation","textPreview":"Ablation","textChars":8,"textLines":1,"bbox":[850,485,330,38]}
+{"kind":"shape","id":"sh/c3i9gjqt","slide":11,"bbox":[92,534,1086,1]}
+{"kind":"textbox","id":"sh/d4rqpo7e","slide":11,"text":"[Optional: Budget-Kontrolle oder Hybrid-Bedingung nur nennen, wenn sie für deine Argumentation wirklich nötig ist.]","textPreview":"[Optional: Budget-Kontrolle oder Hybrid-Bedingung nur nennen, wenn sie für deine Argumentation wirklich nötig ist.]","textChars":115,"textLines":1,"bbox":[160,583,960,32]}
+{"kind":"notes","id":"nt/lktr2i","slide":11,"text":""}
+{"kind":"slide","id":"sl/sjtbd6","slide":12,"title":"MESSUNG","textShapes":11}
+{"kind":"shape","id":"sh/9c3u5kru","slide":12,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/m9sbu583","slide":12,"text":"MESSUNG","textPreview":"MESSUNG","textChars":7,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/na1c3a9o","slide":12,"text":"Qualität wird erst durch klare Kriterien messbar.","textPreview":"Qualität wird erst durch klare Kriterien messbar.","textChars":49,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/wzud0fql","slide":12,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/x03u9k76","slide":12,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/axcvyp8f","slide":12,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/bylc7u90","slide":12,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/s3qtovq1","slide":12,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/d4jux0rm","slide":12,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/dob61cny","slide":12,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/cn25876t","slide":12,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/bmtoz258","slide":12,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/ql0n6xon","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/lsb65wna","slide":12,"text":"ANTWORT","textPreview":"ANTWORT","textChars":7,"textLines":1,"bbox":[92,245,330,28]}
+{"kind":"textbox","id":"sh/0r25crmp","slide":12,"text":"korrekt · teilweise · falsch · Enthaltung","textPreview":"korrekt · teilweise · falsch · Enthaltung","textChars":41,"textLines":1,"bbox":[92,300,320,100]}
+{"kind":"shape","id":"sh/zqto3m54","slide":12,"bbox":[92,430,310,3]}
+{"kind":"textbox","id":"sh/ypknahoj","slide":12,"text":"EVIDENZ","textPreview":"EVIDENZ","textChars":7,"textLines":1,"bbox":[482,245,330,28]}
+{"kind":"textbox","id":"sh/9gv69wn6","slide":12,"text":"war der Goldpfad im abgerufenen Kontext?","textPreview":"war der Goldpfad im abgerufenen Kontext?","textChars":40,"textLines":1,"bbox":[482,300,320,100]}
+{"kind":"shape","id":"sh/8fmpgrml","slide":12,"bbox":[482,430,310,3]}
+{"kind":"textbox","id":"sh/szupcvux","slide":12,"text":"RESSOURCEN","textPreview":"RESSOURCEN","textChars":10,"textLines":1,"bbox":[872,245,330,28]}
+{"kind":"textbox","id":"sh/t03ql0vi","slide":12,"text":"End-to-End-Zeit · Kontextgröße · Cache-Zustand","textPreview":"End-to-End-Zeit · Kontextgröße · Cache-Zustand","textChars":46,"textLines":1,"bbox":[872,300,320,100]}
+{"kind":"shape","id":"sh/6xs7a5cr","slide":12,"bbox":[872,430,310,3]}
+{"kind":"shape","id":"sh/7yl8jadc","slide":12,"bbox":[180,500,920,92]}
+{"kind":"shape","id":"sh/gnu9gfu9","slide":12,"bbox":[196,517,5,58]}
+{"kind":"textbox","id":"sh/ho3q9kve","slide":12,"text":"[Hier kurz erklären: automatische Vorprüfung ≠ endgültige Bewertung; verblindete Doppelbewertung ist maßgeblich.]","textPreview":"[Hier kurz erklären: automatische Vorprüfung ≠ endgültige Bewertung; verblindete Doppelbewertung ist maßgeblich.]","textChars":113,"textLines":1,"bbox":[218,520,862,56]}
+{"kind":"notes","id":"nt/sjtbd6","slide":12,"text":""}
+{"kind":"slide","id":"sl/idyekc","slide":13,"title":"KAPITEL 03","textShapes":5}
+{"kind":"shape","id":"sh/u583q9s7","slide":13,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/83qlozah","slide":13,"bbox":[0,0,22,720]}
+{"kind":"textbox","id":"sh/t4z2x4b2","slide":13,"text":"KAPITEL 03","textPreview":"KAPITEL 03","textChars":10,"textLines":1,"bbox":[82,104,260,58]}
+{"kind":"textbox","id":"sh/6ho3mpsb","slide":13,"text":"Die Umsetzung","textPreview":"Die Umsetzung","textChars":13,"textLines":1,"bbox":[82,185,560,170]}
+{"kind":"textbox","id":"sh/72xkvutw","slide":13,"text":"Aus dem Versuchsplan wird in mehreren Schleifen eine lauffähige Anwendung.","textPreview":"Aus dem Versuchsplan wird in mehreren Schleifen eine lauffähige Anwendung.","textChars":74,"textLines":1,"bbox":[86,395,500,95]}
+{"kind":"shape","id":"sh/kf6lkza5","slide":13,"bbox":[86,548,360,4]}
+{"kind":"textbox","id":"sh/lgf2tkbq","slide":13,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/hw76dovi","slide":13,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/wvy54jex","slide":13,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/vu54bedc","slide":13,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/utwn29wr","slide":13,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/98nm94v6","slide":13,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/87e50ze1","slide":13,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/76547udg","slide":13,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/m5wnypwv","slide":13,"text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"image","id":"im/87qp4n2t","slide":13,"name":"","alt":"Abstrakte visuelle Reise von einer Idee über einen Wissensgraphen zur fertigen Anwendung","bbox":[0,0,1280,720]}
+{"kind":"image","id":"im/m5872dkn","slide":13,"name":"","alt":"Abstrakte Entwicklungsreise","bbox":[650,0,630,720]}
+{"kind":"notes","id":"nt/idyekc","slide":13,"text":""}
+{"kind":"slide","id":"sl/6chben","slide":14,"title":"ENTWICKLUNG","textShapes":20}
+{"kind":"shape","id":"sh/orqt8zux","slide":14,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/nqhsfuts","slide":14,"text":"ENTWICKLUNG","textPreview":"ENTWICKLUNG","textChars":11,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/2p8b6pc7","slide":14,"text":"Die App entstand in Schleifen, nicht in einem Prompt.","textPreview":"Die App entstand in Schleifen, nicht in einem Prompt.","textChars":53,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/xgjal4bu","slide":14,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/cfatczu9","slide":14,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/bu1sjuto","slide":14,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/atsbapc3","slide":14,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/dkfa90ba","slide":14,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/sj690fu5","slide":14,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/upozmxoj","slide":14,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/fqx0f254","slide":14,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/gr6ho76p","slide":14,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/hsfihcna","slide":14,"text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"shape","id":"sh/2t8zqhov","slide":14,"bbox":[134,350,1000,3]}
+{"kind":"shape","id":"sh/3eh0j25g","slide":14,"bbox":[94,318,64,64]}
+{"kind":"textbox","id":"sh/4fqhs76l","slide":14,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[94,337,64,24]}
+{"kind":"textbox","id":"sh/pgzilcn6","slide":14,"text":"Idee + Korpus","textPreview":"Idee + Korpus","textChars":13,"textLines":1,"bbox":[60,408,180,52]}
+{"kind":"textbox","id":"sh/qh8zuhor","slide":14,"text":"[Was war zuerst da?]","textPreview":"[Was war zuerst da?]","textChars":20,"textLines":1,"bbox":[52,474,196,54]}
+{"kind":"shape","id":"sh/rih0nm5c","slide":14,"bbox":[324,318,64,64]}
+{"kind":"textbox","id":"sh/nm1gbmlk","slide":14,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[324,337,64,24]}
+{"kind":"textbox","id":"sh/mlsz2h4z","slide":14,"text":"Messdesign","textPreview":"Messdesign","textChars":10,"textLines":1,"bbox":[290,408,180,52]}
+{"kind":"textbox","id":"sh/9ojydw3a","slide":14,"text":"[Welche Regel kam hinzu?]","textPreview":"[Welche Regel kam hinzu?]","textChars":25,"textLines":1,"bbox":[282,474,196,54]}
+{"kind":"shape","id":"sh/onah4r25","slide":14,"bbox":[554,318,64,64]}
+{"kind":"textbox","id":"sh/zihg7ml8","slide":14,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[554,337,64,24]}
+{"kind":"textbox","id":"sh/eh8fyh4n","slide":14,"text":"Offline + Wissen","textPreview":"Offline + Wissen","textChars":16,"textLines":1,"bbox":[520,408,180,52]}
+{"kind":"textbox","id":"sh/1kzy9c3e","slide":14,"text":"[Was musste lokal werden?]","textPreview":"[Was musste lokal werden?]","textChars":26,"textLines":1,"bbox":[512,474,196,54]}
+{"kind":"shape","id":"sh/0jqh07mt","slide":14,"bbox":[784,318,64,64]}
+{"kind":"textbox","id":"sh/ruhg32lc","slide":14,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[784,337,64,24]}
+{"kind":"textbox","id":"sh/qt8fux4r","slide":14,"text":"Fehler + Korrektur","textPreview":"Fehler + Korrektur","textChars":18,"textLines":1,"bbox":[750,408,180,52]}
+{"kind":"textbox","id":"sh/gzmd432p","slide":14,"text":"[Welcher Test änderte den Code?]","textPreview":"[Welcher Test änderte den Code?]","textChars":32,"textLines":1,"bbox":[742,474,196,54]}
+{"kind":"shape","id":"sh/h0ved8ja","slide":14,"bbox":[1014,318,64,64]}
+{"kind":"textbox","id":"sh/ux4v2tkj","slide":14,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[1014,337,64,24]}
+{"kind":"textbox","id":"sh/fydwby14","slide":14,"text":"Demo + Export","textPreview":"Demo + Export","textChars":13,"textLines":1,"bbox":[980,408,180,52]}
+{"kind":"textbox","id":"sh/4n6d8n2l","slide":14,"text":"[Wann war es vorzeigbar?]","textPreview":"[Wann war es vorzeigbar?]","textChars":25,"textLines":1,"bbox":[972,474,196,54]}
+{"kind":"textbox","id":"sh/pofeh8j6","slide":14,"text":"Der glaubwürdige Teil der Geschichte sind die Kurskorrekturen zwischen diesen Stationen.","textPreview":"Der glaubwürdige Teil der Geschichte sind die Kurskorrekturen zwischen diesen Stationen.","textChars":88,"textLines":1,"bbox":[210,574,860,32]}
+{"kind":"notes","id":"nt/6chben","slide":14,"text":""}
+{"kind":"slide","id":"sl/2gma3z","slide":15,"title":"ARBEITSWEISE MIT KI","textShapes":20}
+{"kind":"shape","id":"sh/2do7q5cv","slide":15,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/p0zq1kbm","slide":15,"text":"ARBEITSWEISE MIT KI","textPreview":"ARBEITSWEISE MIT KI","textChars":19,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/4zqpsfu1","slide":15,"text":"Mein Arbeitsablauf war kein Prompt, sondern eine Prüfschleife.","textPreview":"Mein Arbeitsablauf war kein Prompt, sondern eine Prüfschleife.","textChars":62,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/faxovatk","slide":15,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/u9o7m5cz","slide":15,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/hcfqxkba","slide":15,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/gb6pofup","slide":15,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/z6187uto","slide":15,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/y587ypc3","slide":15,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/sfqh43a5","slide":15,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/t0zix8bq","slide":15,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/6doz2tsz","slide":15,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/rex0vytk","slide":15,"text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"shape","id":"sh/4b6h03a9","slide":15,"bbox":[138,351,998,3]}
+{"kind":"shape","id":"sh/5cfit8bu","slide":15,"bbox":[92,319,64,64]}
+{"kind":"textbox","id":"sh/i9ozytc3","slide":15,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[92,338,64,24]}
+{"kind":"textbox","id":"sh/jax0ryto","slide":15,"text":"Anforderung","textPreview":"Anforderung","textChars":11,"textLines":1,"bbox":[54,405,186,40]}
+{"kind":"textbox","id":"sh/w76hwjux","slide":15,"text":"Ich formuliere Ziel und Grenze.","textPreview":"Ich formuliere Ziel und Grenze.","textChars":31,"textLines":1,"bbox":[48,465,198,72]}
+{"kind":"shape","id":"sh/x8fipobi","slide":15,"bbox":[322,319,64,64]}
+{"kind":"textbox","id":"sh/x47ytk36","slide":15,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[322,338,64,24]}
+{"kind":"textbox","id":"sh/c3ex0fm1","slide":15,"text":"KI-Entwurf","textPreview":"KI-Entwurf","textChars":10,"textLines":1,"bbox":[284,405,186,40]}
+{"kind":"textbox","id":"sh/b25gralg","slide":15,"text":"Claude oder ChatGPT schlägt eine Lösung vor.","textPreview":"Claude oder ChatGPT schlägt eine Lösung vor.","textChars":44,"textLines":1,"bbox":[278,465,198,72]}
+{"kind":"shape","id":"sh/a1wfy54v","slide":15,"bbox":[552,319,64,64]}
+{"kind":"textbox","id":"sh/p0nyp03a","slide":15,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[552,338,64,24]}
+{"kind":"textbox","id":"sh/ozexwvmp","slide":15,"text":"Lokaler Test","textPreview":"Lokaler Test","textChars":12,"textLines":1,"bbox":[514,405,186,40]}
+{"kind":"textbox","id":"sh/ny5gnal4","slide":15,"text":"Ich starte, klicke und provoziere Fehler.","textPreview":"Ich starte, klicke und provoziere Fehler.","textChars":41,"textLines":1,"bbox":[508,465,198,72]}
+{"kind":"shape","id":"sh/2xwfu54j","slide":15,"bbox":[782,319,64,64]}
+{"kind":"textbox","id":"sh/9wry143e","slide":15,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[782,338,64,24]}
+{"kind":"textbox","id":"sh/8vih8zmt","slide":15,"text":"Korrektur","textPreview":"Korrektur","textChars":9,"textLines":1,"bbox":[744,405,186,40]}
+{"kind":"textbox","id":"sh/65836xgf","slide":15,"text":"Ich liefere Screenshot, Log und Gegenanforderung.","textPreview":"Ich liefere Screenshot, Log und Gegenanforderung.","textChars":49,"textLines":1,"bbox":[738,465,198,72]}
+{"kind":"shape","id":"sh/r6h4f2xk","slide":15,"bbox":[1012,319,64,64]}
+{"kind":"textbox","id":"sh/s7al87y5","slide":15,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[1012,338,64,24]}
+{"kind":"textbox","id":"sh/tsjmhcfq","slide":15,"text":"Dokumentation","textPreview":"Dokumentation","textChars":13,"textLines":1,"bbox":[974,405,186,40]}
+{"kind":"textbox","id":"sh/i1832xg3","slide":15,"text":"Ich halte Änderung und Urteil fest.","textPreview":"Ich halte Änderung und Urteil fest.","textChars":35,"textLines":1,"bbox":[968,465,198,72]}
+{"kind":"textbox","id":"sh/j2h4b2xo","slide":15,"text":"Entscheidend war nicht die erste Antwort der KI, sondern mein Test zwischen zwei Chatnachrichten.","textPreview":"Entscheidend war nicht die erste Antwort der KI, sondern mein Test zwischen zwei Chatnachrichten.","textChars":97,"textLines":1,"bbox":[174,578,932,32]}
+{"kind":"notes","id":"nt/2gma3z","slide":15,"text":""}
+{"kind":"slide","id":"sl/hcc6vh","slide":16,"title":"SCHLEIFE 01 · PROTOTYP","textShapes":14}
+{"kind":"shape","id":"sh/wfuxkfq9","slide":16,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/belwba9o","slide":16,"text":"SCHLEIFE 01 · PROTOTYP","textPreview":"SCHLEIFE 01 · PROTOTYP","textChars":22,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/adcfip83","slide":16,"text":"Der erste Entwurf sparte Zeit – aber noch keine Prüfung.","textPreview":"Der erste Entwurf sparte Zeit – aber noch keine Prüfung.","textChars":56,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/lknyh47q","slide":16,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/kjexozq5","slide":16,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/ji5wfupk","slide":16,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/yhwfmp8f","slide":16,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/tonyl472","slide":16,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/8nexszqh","slide":16,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/yd87254n","slide":16,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/zehoba58","slide":16,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/0fqp4fmd","slide":16,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/lgj6d0ny","slide":16,"text":"16","textPreview":"16","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/mhs7654j","slide":16,"text":"MEIN AUFTRAG","textPreview":"MEIN AUFTRAG","textChars":12,"textLines":1,"bbox":[92,222,300,24]}
+{"kind":"textbox","id":"sh/ni1ofa54","slide":16,"text":"Eine lokale App, die Baseline, Vektor-RAG und Graph-RAG vergleichbar macht.","textPreview":"Eine lokale App, die Baseline, Vektor-RAG und Graph-RAG vergleichbar macht.","textChars":75,"textLines":1,"bbox":[92,286,300,150]}
+{"kind":"shape","id":"sh/8jap8fmp","slide":16,"bbox":[92,470,300,3]}
+{"kind":"textbox","id":"sh/9kj6hk3a","slide":16,"text":"Ziel setzen","textPreview":"Ziel setzen","textChars":11,"textLines":1,"bbox":[92,502,300,30]}
+{"kind":"textbox","id":"sh/2lonul4f","slide":16,"text":"KI-ERGEBNIS","textPreview":"KI-ERGEBNIS","textChars":11,"textLines":1,"bbox":[450,222,300,24]}
+{"kind":"textbox","id":"sh/3mxo3q50","slide":16,"text":"Schnell entstanden Navigation, Wissensgraph, Experimentansicht und Ergebnisexport.","textPreview":"Schnell entstanden Navigation, Wissensgraph, Experimentansicht und Ergebnisexport.","textChars":82,"textLines":1,"bbox":[450,286,300,150]}
+{"kind":"shape","id":"sh/rqd4bmls","slide":16,"bbox":[450,470,300,3]}
+{"kind":"textbox","id":"sh/6p432hk7","slide":16,"text":"Breite erzeugen","textPreview":"Breite erzeugen","textChars":15,"textLines":1,"bbox":[450,502,300,30]}
+{"kind":"textbox","id":"sh/tsvmdw3i","slide":16,"text":"MEINE KORREKTUR","textPreview":"MEINE KORREKTUR","textChars":15,"textLines":1,"bbox":[808,222,300,24]}
+{"kind":"textbox","id":"sh/srml4r2d","slide":16,"text":"Ich verlangte echtes Offline-Verhalten, faire Lauftrennung, Quellenprüfung und reproduzierbare Exporte.","textPreview":"Ich verlangte echtes Offline-Verhalten, faire Lauftrennung, Quellenprüfung und reproduzierbare Exporte.","textChars":103,"textLines":1,"bbox":[808,286,300,150]}
+{"kind":"shape","id":"sh/jmtk72lg","slide":16,"bbox":[808,470,300,3]}
+{"kind":"textbox","id":"sh/ilk3yxkv","slide":16,"text":"Belastbarkeit erzwingen","textPreview":"Belastbarkeit erzwingen","textChars":23,"textLines":1,"bbox":[808,502,300,30]}
+{"kind":"textbox","id":"sh/5ob29c3m","slide":16,"text":"Reflexion: KI war sehr nützlich für Geschwindigkeit und Varianten – unzureichend als eigene Qualitätskontrolle.","textPreview":"Reflexion: KI war sehr nützlich für Geschwindigkeit und Varianten – unzureichend als eigene Qualitätskontrolle.","textChars":111,"textLines":1,"bbox":[154,583,972,34]}
+{"kind":"notes","id":"nt/hcc6vh","slide":16,"text":""}
+{"kind":"slide","id":"sl/jsd1iy","slide":17,"title":"SCHLEIFE 02 · OFFLINE","textShapes":12}
+{"kind":"shape","id":"sh/476xwfah","slide":17,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/j6dgna9w","slide":17,"text":"SCHLEIFE 02 · OFFLINE","textPreview":"SCHLEIFE 02 · OFFLINE","textChars":21,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/i54fu5sr","slide":17,"text":"Ein Screenshot widerlegte die Behauptung „offline fertig“.","textPreview":"Ein Screenshot widerlegte die Behauptung „offline fertig“.","textChars":58,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/twfytkre","slide":17,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/sb6h0zat","slide":17,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/raxgru98","slide":17,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/69ofypsn","slide":17,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/9gvyh0bu","slide":17,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/8f2xova9","slide":17,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/29szqd0v","slide":17,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/3u10zyhg","slide":17,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/4vahs3i1","slide":17,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/pwji18zm","slide":17,"text":"17","textPreview":"17","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/qxszud07","slide":17,"text":"ANFORDERUNG","textPreview":"ANFORDERUNG","textChars":11,"textLines":1,"bbox":[94,224,310,24]}
+{"kind":"textbox","id":"sh/ry103ihs","slide":17,"text":"„Nach einmaligem Download vollständig offline.“","textPreview":"„Nach einmaligem Download vollständig offline.“","textChars":47,"textLines":1,"bbox":[94,274,320,112]}
+{"kind":"textbox","id":"sh/czahwnid","slide":17,"text":"TEST","textPreview":"TEST","textChars":4,"textLines":1,"bbox":[478,224,310,24]}
+{"kind":"textbox","id":"sh/d03i5szi","slide":17,"text":"Dense ließ sich nicht aktivieren. Statt Modelldaten kam HTML: Unexpected token „<“.","textPreview":"Dense ließ sich nicht aktivieren. Statt Modelldaten kam HTML: Unexpected token „<“.","textChars":83,"textLines":1,"bbox":[478,274,320,130]}
+{"kind":"textbox","id":"sh/e1czyx03","slide":17,"text":"KORREKTUR","textPreview":"KORREKTUR","textChars":9,"textLines":1,"bbox":[862,224,310,24]}
+{"kind":"textbox","id":"sh/z2l07iho","slide":17,"text":"Lokale npm-Pakete, int8 statt q8 und ein expliziter Cache-Check ersetzten die falsche Annahme.","textPreview":"Lokale npm-Pakete, int8 statt q8 und ein expliziter Cache-Check ersetzten die falsche Annahme.","textChars":94,"textLines":1,"bbox":[862,274,320,145]}
+{"kind":"shape","id":"sh/b6lgv2xw","slide":17,"bbox":[438,214,2,300]}
+{"kind":"shape","id":"sh/a5czmxwb","slide":17,"bbox":[822,214,2,300]}
+{"kind":"shape","id":"sh/xsnyxsf2","slide":17,"bbox":[230,532,820,76]}
+{"kind":"shape","id":"sh/wrehoneh","slide":17,"bbox":[246,549,5,42]}
+{"kind":"textbox","id":"sh/n2lgrix0","slide":17,"text":"[Hier Screenshot der Fehlermeldung und kurze Chatstelle einsetzen.]","textPreview":"[Hier Screenshot der Fehlermeldung und kurze Chatstelle einsetzen.]","textChars":67,"textLines":1,"bbox":[268,552,762,40]}
+{"kind":"textbox","id":"sh/m1cfidwf","slide":17,"text":"KI nützlich: konkrete Diagnose aus Log + Screenshot. KI unnütz: die vorherige, ungeprüfte Fertigmeldung.","textPreview":"KI nützlich: konkrete Diagnose aus Log + Screenshot. KI unnütz: die vorherige, ungeprüfte Fertigmeldung.","textChars":104,"textLines":1,"bbox":[176,622,928,26]}
+{"kind":"notes","id":"nt/jsd1iy","slide":17,"text":""}
+{"kind":"slide","id":"sl/2cvsi5","slide":18,"title":"SCHLEIFE 03 · MESSLOGIK","textShapes":12}
+{"kind":"shape","id":"sh/4jy1wv6l","slide":18,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/3i5kna50","slide":18,"text":"SCHLEIFE 03 · MESSLOGIK","textPreview":"SCHLEIFE 03 · MESSLOGIK","textChars":23,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/ixwju5of","slide":18,"text":"Plausible Zahlen waren noch kein plausibles Ergebnis.","textPreview":"Plausible Zahlen waren noch kein plausibles Ergebnis.","textChars":53,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/hwn2l0nu","slide":18,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/gve1sv69","slide":18,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/vu50jq54","slide":18,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/utwjqloj","slide":18,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/tsnihgny","slide":18,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/8re1ob6d","slide":18,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/udovmlwz","slide":18,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/vexcvqd4","slide":18,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/gf6dovep","slide":18,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/h0fux0va","slide":18,"text":"18","textPreview":"18","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/694vilwn","slide":18,"text":"BEOBACHTUNG","textPreview":"BEOBACHTUNG","textChars":11,"textLines":1,"bbox":[96,222,300,24]}
+{"kind":"textbox","id":"sh/7adcrqd8","slide":18,"text":"Die Tabelle zeigte n = 532 und extrem viele Enthaltungen in der Baseline.","textPreview":"Die Tabelle zeigte n = 532 und extrem viele Enthaltungen in der Baseline.","textChars":73,"textLines":1,"bbox":[96,278,310,140]}
+{"kind":"textbox","id":"sh/8bmdkbet","slide":18,"text":"MEINE FRAGE","textPreview":"MEINE FRAGE","textChars":11,"textLines":1,"bbox":[478,222,300,24]}
+{"kind":"textbox","id":"sh/tcfutgve","slide":18,"text":"„Kann das so stimmen?“","textPreview":"„Kann das so stimmen?“","textChars":22,"textLines":1,"bbox":[478,302,310,80]}
+{"kind":"textbox","id":"sh/y54be1wr","slide":18,"text":"FOLGE","textPreview":"FOLGE","textChars":5,"textLines":1,"bbox":[860,222,300,24]}
+{"kind":"textbox","id":"sh/j6dcn6dc","slide":18,"text":"Alte Läufe waren vermischt. runId, Letzter-Lauf-Filter und Löschfunktion verhinderten Scheinpräzision.","textPreview":"Alte Läufe waren vermischt. runId, Letzter-Lauf-Filter und Löschfunktion verhinderten Scheinpräzision.","textChars":102,"textLines":1,"bbox":[860,278,310,150]}
+{"kind":"shape","id":"sh/na9sv2t4","slide":18,"bbox":[438,214,2,310]}
+{"kind":"shape","id":"sh/mp0rmxcj","slide":18,"bbox":[820,214,2,310]}
+{"kind":"shape","id":"sh/9craxcbu","slide":18,"bbox":[236,532,808,76]}
+{"kind":"shape","id":"sh/obi9o7u9","slide":18,"bbox":[252,549,5,42]}
+{"kind":"textbox","id":"sh/betszmt0","slide":18,"text":"[Vorher/Nachher: Ergebnistabelle oder Exportstruktur einsetzen.]","textPreview":"[Vorher/Nachher: Ergebnistabelle oder Exportstruktur einsetzen.]","textChars":64,"textLines":1,"bbox":[274,552,750,40]}
+{"kind":"textbox","id":"sh/adkrqhcf","slide":18,"text":"KI nützlich: Reparatur und zusätzliche Kontrollen. Ohne meine Skepsis hätte die scheinbar saubere Tabelle weiter bestanden.","textPreview":"KI nützlich: Reparatur und zusätzliche Kontrollen. Ohne meine Skepsis hätte die scheinbar saubere Tabelle weiter bestanden.","textChars":123,"textLines":1,"bbox":[146,622,988,28]}
+{"kind":"notes","id":"nt/2cvsi5","slide":18,"text":""}
+{"kind":"slide","id":"sl/6oe8mu","slide":19,"title":"SCHLEIFE 04 · DIDAKTIK","textShapes":10}
+{"kind":"shape","id":"sh/mx8jmtc7","slide":19,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/90j2h8bi","slide":19,"text":"SCHLEIFE 04 · DIDAKTIK","textPreview":"SCHLEIFE 04 · DIDAKTIK","textChars":22,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/8za1o3ux","slide":19,"text":"Produzieren war leichter als ein gutes Quiz zu gestalten.","textPreview":"Produzieren war leichter als ein gutes Quiz zu gestalten.","textChars":57,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/v21kjyto","slide":19,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/u1sjqdc3","slide":19,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/h4j2l8bu","slide":19,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/g3a1s3u9","slide":19,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/36lknitk","slide":19,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/i5s3udcf","slide":19,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/kni94jyx","slide":19,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/loraxof2","slide":19,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/y1gr29gr","slide":19,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/z29svexc","slide":19,"text":"19","textPreview":"19","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/8ri98jyt","slide":19,"text":"ERSTE KI-VERSION","textPreview":"ERSTE KI-VERSION","textChars":16,"textLines":1,"bbox":[100,226,430,24]}
+{"kind":"textbox","id":"sh/9sra1ofe","slide":19,"text":"Technisch funktionsfähig, aber die Fragen waren zu schwer und wirkten „uncool“.","textPreview":"Technisch funktionsfähig, aber die Fragen waren zu schwer und wirkten „uncool“.","textChars":79,"textLines":1,"bbox":[100,286,430,130]}
+{"kind":"textbox","id":"sh/mp0r6tgn","slide":19,"text":"MEINE ENTSCHEIDUNG","textPreview":"MEINE ENTSCHEIDUNG","textChars":18,"textLines":1,"bbox":[700,226,430,24]}
+{"kind":"textbox","id":"sh/7q9szex8","slide":19,"text":"Normales Quizformat; bei der Auflösung erscheint die Frage im Wissensgraphen und wird eingeordnet.","textPreview":"Normales Quizformat; bei der Auflösung erscheint die Frage im Wissensgraphen und wird eingeordnet.","textChars":98,"textLines":1,"bbox":[700,286,430,150]}
+{"kind":"shape","id":"sh/wv2tc3yp","slide":19,"bbox":[614,214,2,320]}
+{"kind":"shape","id":"sh/hwba58fa","slide":19,"bbox":[222,536,836,76]}
+{"kind":"shape","id":"sh/5c7ap87e","slide":19,"bbox":[238,553,5,42]}
+{"kind":"textbox","id":"sh/4by9g3q9","slide":19,"text":"[Links erste Version, rechts überarbeitete Auflösung mit Graph-Ausschnitt einsetzen.]","textPreview":"[Links erste Version, rechts überarbeitete Auflösung mit Graph-Ausschnitt einsetzen.]","textChars":85,"textLines":1,"bbox":[260,556,778,40]}
+{"kind":"textbox","id":"sh/3apsnypo","slide":19,"text":"KI nützlich: sehr schnelle technische Neuvarianten. Mein Urteil blieb nötig für Zielgruppe, Schwierigkeit und Seminarwirkung.","textPreview":"KI nützlich: sehr schnelle technische Neuvarianten. Mein Urteil blieb nötig für Zielgruppe, Schwierigkeit und Seminarwirkung.","textChars":125,"textLines":1,"bbox":[142,624,996,26]}
+{"kind":"notes","id":"nt/6oe8mu","slide":19,"text":""}
+{"kind":"slide","id":"sl/zwlow9","slide":20,"title":"PROZESSDOKUMENTATION","textShapes":17}
+{"kind":"shape","id":"sh/kb2lsjeh","slide":20,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/jatkjedw","slide":20,"text":"PROZESSDOKUMENTATION","textPreview":"PROZESSDOKUMENTATION","textChars":20,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/y9k3q9wb","slide":20,"text":"Jede Schleife hinterlässt vier überprüfbare Spuren.","textPreview":"Jede Schleife hinterlässt vier überprüfbare Spuren.","textChars":51,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/tgb2p8vy","slide":20,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/8f2lw3ed","slide":20,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/7etknyds","slide":20,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/6dk3utwn","slide":20,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/9kr2d4vu","slide":20,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/oji1kze9","slide":20,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/290judgb","slide":20,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/na90nihw","slide":20,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/obi1wnyh","slide":20,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/pcr2psz2","slide":20,"text":"20","textPreview":"20","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/ad0jyxgn","slide":20,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[84,226,66,52]}
+{"kind":"textbox","id":"sh/betkr2h8","slide":20,"text":"CHAT-AUSSCHNITT","textPreview":"CHAT-AUSSCHNITT","textChars":15,"textLines":1,"bbox":[84,304,244,28]}
+{"kind":"textbox","id":"sh/cf2107yd","slide":20,"text":"Anforderung und relevante KI-Antwort – gekürzt, aber datiert.","textPreview":"Anforderung und relevante KI-Antwort – gekürzt, aber datiert.","textChars":61,"textLines":1,"bbox":[84,360,244,128]}
+{"kind":"shape","id":"sh/xgb2tczy","slide":20,"bbox":[84,514,244,3]}
+{"kind":"textbox","id":"sh/y1kj2xgj","slide":20,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[378,226,66,52]}
+{"kind":"textbox","id":"sh/z2tkv2h4","slide":20,"text":"TESTBELEG","textPreview":"TESTBELEG","textChars":9,"textLines":1,"bbox":[378,304,244,28]}
+{"kind":"textbox","id":"sh/v6d0jmdc","slide":20,"text":"Screenshot, Fehlermeldung oder reproduzierbarer Ablauf.","textPreview":"Screenshot, Fehlermeldung oder reproduzierbarer Ablauf.","textChars":55,"textLines":1,"bbox":[378,360,244,128]}
+{"kind":"shape","id":"sh/u54jqhwr","slide":20,"bbox":[378,514,244,3]}
+{"kind":"textbox","id":"sh/h8vilcvi","slide":20,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[672,226,66,52]}
+{"kind":"textbox","id":"sh/w7m1s7ex","slide":20,"text":"ÄNDERUNG","textPreview":"ÄNDERUNG","textChars":8,"textLines":1,"bbox":[672,304,244,28]}
+{"kind":"textbox","id":"sh/72t0f2d0","slide":20,"text":"Vorher/Nachher im Code, Interface oder Versuchsdesign.","textPreview":"Vorher/Nachher im Code, Interface oder Versuchsdesign.","textChars":54,"textLines":1,"bbox":[672,360,244,128]}
+{"kind":"shape","id":"sh/mhkzmxwf","slide":20,"bbox":[672,514,244,3]}
+{"kind":"textbox","id":"sh/94bihcv6","slide":20,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[966,226,66,52]}
+{"kind":"textbox","id":"sh/832ho7el","slide":20,"text":"REFLEXION","textPreview":"REFLEXION","textChars":9,"textLines":1,"bbox":[966,304,244,28]}
+{"kind":"textbox","id":"sh/zet0bid4","slide":20,"text":"Was war nützlich, falsch, unnötig oder nur mit Kontrolle brauchbar?","textPreview":"Was war nützlich, falsch, unnötig oder nur mit Kontrolle brauchbar?","textChars":67,"textLines":1,"bbox":[966,360,244,128]}
+{"kind":"shape","id":"sh/ydkzixwj","slide":20,"bbox":[966,514,244,3]}
+{"kind":"textbox","id":"sh/ojyxsjuh","slide":20,"text":"Im Transparenzbericht wird daraus keine Erfolgschronik, sondern eine begründete Auswahl der wichtigsten Entscheidungen.","textPreview":"Im Transparenzbericht wird daraus keine Erfolgschronik, sondern eine begründete Auswahl der wichtigsten Entscheidungen.","textChars":119,"textLines":1,"bbox":[144,578,992,34]}
+{"kind":"notes","id":"nt/zwlow9","slide":20,"text":""}
+{"kind":"slide","id":"sl/k4t2m7","slide":21,"title":"ARCHITEKTUR","textShapes":9}
+{"kind":"shape","id":"sh/5kzahg7a","slide":21,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/ih8rml8z","slide":21,"text":"ARCHITEKTUR","textPreview":"ARCHITEKTUR","textChars":11,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/3ihsfqpk","slide":21,"text":"„Offline“ ist eine Architekturentscheidung.","textPreview":"„Offline“ ist eine Architekturentscheidung.","textChars":43,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/gfq9kbqt","slide":21,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/hgzadg7e","slide":21,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/udori18n","slide":21,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/vexsb6p8","slide":21,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/0batwv6x","slide":21,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/1cjap07i","slide":21,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/x43mt0fi","slide":21,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/w3u50vex","slide":21,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/b2l4rqxc","slide":21,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/a1cnylwr","slide":21,"text":"21","textPreview":"21","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/9g3mpgf6","slide":21,"text":"EINMAL ONLINE","textPreview":"EINMAL ONLINE","textChars":13,"textLines":1,"bbox":[100,242,430,34]}
+{"kind":"textbox","id":"sh/ofalwbel","slide":21,"text":"Modelle laden\nWikipedia importieren\nLive-Quiz synchronisieren","textPreview":"Modelle laden | Wikipedia importieren | Live-Quiz synchronisieren","textChars":61,"textLines":3,"bbox":[100,302,430,150]}
+{"kind":"textbox","id":"sh/ne14n6xg","slide":21,"text":"DANACH LOKAL","textPreview":"DANACH LOKAL","textChars":12,"textLines":1,"bbox":[700,242,430,34]}
+{"kind":"textbox","id":"sh/mds3ulwv","slide":21,"text":"Retrieval\nLLM-Inferenz\nPDF-Wissen + Messdaten","textPreview":"Retrieval | LLM-Inferenz | PDF-Wissen + Messdaten","textChars":45,"textLines":3,"bbox":[700,302,430,150]}
+{"kind":"shape","id":"sh/twnm1kvq","slide":21,"bbox":[614,228,2,300]}
+{"kind":"shape","id":"sh/8be58fe5","slide":21,"bbox":[234,540,812,74]}
+{"kind":"shape","id":"sh/sfmp4jm1","slide":21,"bbox":[250,557,5,40]}
+{"kind":"textbox","id":"sh/tgv6xo3m","slide":21,"text":"[Hier einen konkreten Stolperstein nennen: CDN, Modellcache, Browser-Speicher oder WebGPU.]","textPreview":"[Hier einen konkreten Stolperstein nennen: CDN, Modellcache, Browser-Speicher oder WebGPU.]","textChars":91,"textLines":1,"bbox":[272,560,754,38]}
+{"kind":"notes","id":"nt/k4t2m7","slide":21,"text":""}
+{"kind":"slide","id":"sl/kouzrq","slide":22,"title":"EHRLICHE HÜRDEN","textShapes":14}
+{"kind":"shape","id":"sh/qpsfqxg3","slide":22,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/ds3ylcfu","slide":22,"text":"EHRLICHE HÜRDEN","textPreview":"EHRLICHE HÜRDEN","textChars":15,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/sruxs7y9","slide":22,"text":"Die Fehler haben das Design verändert.","textPreview":"Die Fehler haben das Design verändert.","textChars":38,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/3m1gfixc","slide":22,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/ilsfmxgr","slide":22,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/5ojyhsfi","slide":22,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/4naxonyx","slide":22,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/vyhgbixg","slide":22,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/ux8fidgv","slide":22,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/kfypovmt","slide":22,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/5g7qx0ne","slide":22,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/itw72l4n","slide":22,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/jup8vq58","slide":22,"text":"22","textPreview":"22","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/wrep0bmx","slide":22,"text":"PROBLEM","textPreview":"PROBLEM","textChars":7,"textLines":1,"bbox":[82,226,300,26]}
+{"kind":"textbox","id":"sh/xsnqtgn2","slide":22,"text":"[Was ging sichtbar schief?]","textPreview":"[Was ging sichtbar schief?]","textChars":27,"textLines":1,"bbox":[82,284,300,92]}
+{"kind":"shape","id":"sh/apw7yl4r","slide":22,"bbox":[82,407,300,3]}
+{"kind":"textbox","id":"sh/vq58rq5c","slide":22,"text":"[Beleg: Screenshot, Log oder Commit]","textPreview":"[Beleg: Screenshot, Log oder Commit]","textChars":36,"textLines":1,"bbox":[82,446,300,44]}
+{"kind":"textbox","id":"sh/gni9wfm1","slide":22,"text":"DIAGNOSE","textPreview":"DIAGNOSE","textChars":8,"textLines":1,"bbox":[447,226,300,26]}
+{"kind":"textbox","id":"sh/horq5k3m","slide":22,"text":"[Woran lag es tatsächlich?]","textPreview":"[Woran lag es tatsächlich?]","textChars":27,"textLines":1,"bbox":[447,284,300,92]}
+{"kind":"shape","id":"sh/p4nqpkvq","slide":22,"bbox":[447,407,300,3]}
+{"kind":"textbox","id":"sh/o3epgfe5","slide":22,"text":"[Beleg: Screenshot, Log oder Commit]","textPreview":"[Beleg: Screenshot, Log oder Commit]","textChars":36,"textLines":1,"bbox":[447,446,300,44]}
+{"kind":"textbox","id":"sh/3258nadk","slide":22,"text":"ENTSCHEIDUNG","textPreview":"ENTSCHEIDUNG","textChars":12,"textLines":1,"bbox":[812,226,300,26]}
+{"kind":"textbox","id":"sh/21w7e5wz","slide":22,"text":"[Was habe ich daraufhin geändert?]","textPreview":"[Was habe ich daraufhin geändert?]","textChars":34,"textLines":1,"bbox":[812,284,300,92]}
+{"kind":"shape","id":"sh/10nql0ve","slide":22,"bbox":[812,407,300,3]}
+{"kind":"textbox","id":"sh/gfupcve9","slide":22,"text":"[Beleg: Screenshot, Log oder Commit]","textPreview":"[Beleg: Screenshot, Log oder Commit]","textChars":36,"textLines":1,"bbox":[812,446,300,44]}
+{"kind":"shape","id":"sh/fel8jqxo","slide":22,"bbox":[170,548,940,78]}
+{"kind":"shape","id":"sh/edc7alw3","slide":22,"bbox":[186,565,5,44]}
+{"kind":"textbox","id":"sh/tc3qh0fi","slide":22,"text":"[Nutze die Folie mehrfach für 2–3 zentrale Hürden. Eine gute Hürde verändert die Methode oder Architektur – sie ist keine bloße Bug-Liste.]","textPreview":"[Nutze die Folie mehrfach für 2–3 zentrale Hürden. Eine gute Hürde verändert die Methode oder Architektur – sie ist keine bloße Bug-Liste.]","textChars":139,"textLines":1,"bbox":[208,568,882,42]}
+{"kind":"notes","id":"nt/kouzrq","slide":22,"text":""}
+{"kind":"slide","id":"sl/2btqe9","slide":23,"title":"TRANSPARENZ","textShapes":17}
+{"kind":"shape","id":"sh/1wfqpobq","slide":23,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/etoretcz","slide":23,"text":"TRANSPARENZ","textPreview":"TRANSPARENZ","textChars":11,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/fux8nytk","slide":23,"text":"KI war Werkzeug – nicht Versuchsperson.","textPreview":"KI war Werkzeug – nicht Versuchsperson.","textChars":39,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/srm9cjut","slide":23,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/dsfqlobe","slide":23,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/qp4ra9c3","slide":23,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/rqd8jeto","slide":23,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/4nm98zux","slide":23,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/5ovqh4bi","slide":23,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/58vqt0v6","slide":23,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/47m90vel","slide":23,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/j6d8rad0","slide":23,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/i54ry5wf","slide":23,"text":"23","textPreview":"23","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/h4vqp0vu","slide":23,"text":"Ideen","textPreview":"Ideen","textChars":5,"textLines":1,"bbox":[102,222,170,32]}
+{"kind":"textbox","id":"sh/w329wve9","slide":23,"text":"HOCH","textPreview":"HOCH","textChars":4,"textLines":1,"bbox":[316,225,110,24]}
+{"kind":"textbox","id":"sh/v2t8nqd4","slide":23,"text":"Fragen schärfen, Alternativen erzeugen","textPreview":"Fragen schärfen, Alternativen erzeugen","textChars":38,"textLines":1,"bbox":[480,222,650,40]}
+{"kind":"shape","id":"sh/uhk7ulwj","slide":23,"bbox":[100,275,1030,1]}
+{"kind":"textbox","id":"sh/9gbqlgvy","slide":23,"text":"Code","textPreview":"Code","textChars":4,"textLines":1,"bbox":[102,305,170,32]}
+{"kind":"textbox","id":"sh/8f2psbed","slide":23,"text":"HOCH","textPreview":"HOCH","textChars":4,"textLines":1,"bbox":[316,308,110,24]}
+{"kind":"textbox","id":"sh/kvqhofql","slide":23,"text":"Entwürfe, Refactorings, Fehlersuche","textPreview":"Entwürfe, Refactorings, Fehlersuche","textChars":35,"textLines":1,"bbox":[480,305,650,40]}
+{"kind":"shape","id":"sh/lwzixk76","slide":23,"bbox":[100,358,1030,1]}
+{"kind":"textbox","id":"sh/ytozm58f","slide":23,"text":"Methode","textPreview":"Methode","textChars":7,"textLines":1,"bbox":[102,388,170,32]}
+{"kind":"textbox","id":"sh/zux0va90","slide":23,"text":"MITTEL","textPreview":"MITTEL","textChars":6,"textLines":1,"bbox":[316,391,110,24]}
+{"kind":"textbox","id":"sh/c76hkfq9","slide":23,"text":"Kontrollen vorschlagen; Entscheidung bleibt bei mir","textPreview":"Kontrollen vorschlagen; Entscheidung bleibt bei mir","textChars":51,"textLines":1,"bbox":[480,388,650,40]}
+{"kind":"shape","id":"sh/x8fitkru","slide":23,"bbox":[100,441,1030,1]}
+{"kind":"textbox","id":"sh/a5ozi583","slide":23,"text":"Evidenz","textPreview":"Evidenz","textChars":7,"textLines":1,"bbox":[102,471,170,32]}
+{"kind":"textbox","id":"sh/b6x0ra9o","slide":23,"text":"KEINE","textPreview":"KEINE","textChars":5,"textLines":1,"bbox":[316,474,110,24]}
+{"kind":"textbox","id":"sh/w3ahwzqt","slide":23,"text":"Hauptlauf und Zweitbewertung nicht durch KI","textPreview":"Hauptlauf und Zweitbewertung nicht durch KI","textChars":43,"textLines":1,"bbox":[480,471,650,40]}
+{"kind":"shape","id":"sh/h4ji547y","slide":23,"bbox":[100,524,1030,1]}
+{"kind":"textbox","id":"sh/rylkvy9g","slide":23,"text":"Mein Urteil: [Wie hat KI Tempo, Qualität und Fehlerprofil konkret verändert?]","textPreview":"Mein Urteil: [Wie hat KI Tempo, Qualität und Fehlerprofil konkret verändert?]","textChars":77,"textLines":1,"bbox":[164,565,952,40]}
+{"kind":"notes","id":"nt/2btqe9","slide":23,"text":""}
+{"kind":"slide","id":"sl/zxalg7","slide":24,"title":"KAPITEL 04","textShapes":5}
+{"kind":"shape","id":"sh/apwbu18f","slide":24,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/kfyt0v6h","slide":24,"bbox":[0,0,22,720]}
+{"kind":"textbox","id":"sh/lg7at072","slide":24,"text":"KAPITEL 04","textPreview":"KAPITEL 04","textChars":10,"textLines":1,"bbox":[82,104,260,58]}
+{"kind":"textbox","id":"sh/ytwbyl8b","slide":24,"text":"Die Prüfung","textPreview":"Die Prüfung","textChars":11,"textLines":1,"bbox":[82,185,560,170]}
+{"kind":"textbox","id":"sh/ze5srqpw","slide":24,"text":"Erst jetzt entscheidet sich, ob die Idee den Daten standhält.","textPreview":"Erst jetzt entscheidet sich, ob die Idee den Daten standhält.","textChars":61,"textLines":1,"bbox":[86,395,500,95]}
+{"kind":"shape","id":"sh/8jyt4v6d","slide":24,"bbox":[86,548,360,4]}
+{"kind":"textbox","id":"sh/9k7ux07y","slide":24,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/lcfuhcjy","slide":24,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/0b6d87id","slide":24,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/zaxcfm18","slide":24,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/y9ov6h0n","slide":24,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/90zelwza","slide":24,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/8fqdcrip","slide":24,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/nexcjmh4","slide":24,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/mdovah0j","slide":24,"text":"24","textPreview":"24","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"image","id":"im/gzmlgfq9","slide":24,"name":"","alt":"Abstrakte visuelle Reise von einer Idee über einen Wissensgraphen zur fertigen Anwendung","bbox":[0,0,1280,720]}
+{"kind":"image","id":"im/ud43e583","slide":24,"name":"","alt":"Abstrakte Entwicklungsreise","bbox":[650,0,630,720]}
+{"kind":"notes","id":"nt/zxalg7","slide":24,"text":""}
+{"kind":"slide","id":"sl/jt24jy","slide":25,"title":"ERGEBNISSE","textShapes":9}
+{"kind":"shape","id":"sh/h4ru5kzm","slide":25,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/u1gbap0b","slide":25,"text":"ERGEBNISSE","textPreview":"ERGEBNISSE","textChars":10,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/v2pc3ahg","slide":25,"text":"Der Vergleich gibt den Zahlen erst Bedeutung.","textPreview":"Der Vergleich gibt den Zahlen erst Bedeutung.","textChars":45,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/47idgzid","slide":25,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/58ru94zy","slide":25,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/i50vep07","slide":25,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/j69c7uhs","slide":25,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/sv2dkzi9","slide":25,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/twbud4zu","slide":25,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/9cri9wnq","slide":25,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/8bihgrm5","slide":25,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/nq907m5k","slide":25,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/mp0zeh4z","slide":25,"text":"25","textPreview":"25","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"shape","id":"sh/xgridgn2","slide":25,"bbox":[82,212,730,378]}
+{"kind":"textbox","id":"sh/wfihkbmh","slide":25,"text":"[HAUPTDIAGRAMM EINFÜGEN]","textPreview":"[HAUPTDIAGRAMM EINFÜGEN]","textChars":24,"textLines":1,"bbox":[180,343,530,40]}
+{"kind":"textbox","id":"sh/ve90b65w","slide":25,"text":"Nur bestätigende Kernbedingungen zeigen; Exploratives klar trennen.","textPreview":"Nur bestätigende Kernbedingungen zeigen; Exploratives klar trennen.","textChars":67,"textLines":1,"bbox":[170,397,550,52]}
+{"kind":"textbox","id":"sh/ad0zi14b","slide":25,"text":"DIE EINE AUSSAGE","textPreview":"DIE EINE AUSSAGE","textChars":16,"textLines":1,"bbox":[870,236,300,22]}
+{"kind":"textbox","id":"sh/dk7y1cni","slide":25,"text":"[Was ist der wichtigste Befund – in einem Satz?]","textPreview":"[Was ist der wichtigste Befund – in einem Satz?]","textChars":48,"textLines":1,"bbox":[870,292,300,118]}
+{"kind":"shape","id":"sh/cjyh87mx","slide":25,"bbox":[870,442,280,4]}
+{"kind":"textbox","id":"sh/432ho7ut","slide":25,"text":"[Effektgröße / Konfidenzintervall / n]","textPreview":"[Effektgröße / Konfidenzintervall / n]","textChars":38,"textLines":1,"bbox":[870,474,300,50]}
+{"kind":"notes","id":"nt/jt24jy","slide":25,"text":""}
+{"kind":"slide","id":"sl/iambwq","slide":26,"title":"EINORDNUNG","textShapes":9}
+{"kind":"shape","id":"sh/tg7mtc36","slide":26,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/6tw3ixkf","slide":26,"text":"EINORDNUNG","textPreview":"EINORDNUNG","textChars":10,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/ru5kr2l0","slide":26,"text":"Ein Ergebnis ist nur so stark wie seine Grenzen.","textPreview":"Ein Ergebnis ist nur so stark wie seine Grenzen.","textChars":48,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/4relg72p","slide":26,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/5sn2ps3a","slide":26,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/ipw3exkj","slide":26,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/jq5kn2l4","slide":26,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/wnelcn2d","slide":26,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/xon2ls3y","slide":26,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/1czal4na","slide":26,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/0bqtcz6p","slide":26,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/zahsju5k","slide":26,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/e9obapoz","slide":26,"text":"26","textPreview":"26","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/d8fah4ne","slide":26,"text":"DAS KANN ICH ZEIGEN","textPreview":"DAS KANN ICH ZEIGEN","textChars":19,"textLines":1,"bbox":[100,230,440,28]}
+{"kind":"textbox","id":"sh/c76t8z6t","slide":26,"text":"[Befund 1]\n[Befund 2]\n[Befund 3]","textPreview":"[Befund 1] | [Befund 2] | [Befund 3]","textChars":32,"textLines":3,"bbox":[100,292,420,190]}
+{"kind":"textbox","id":"sh/r6xsfu58","slide":26,"text":"DAS KANN ICH NICHT ZEIGEN","textPreview":"DAS KANN ICH NICHT ZEIGEN","textChars":25,"textLines":1,"bbox":[700,230,450,28]}
+{"kind":"textbox","id":"sh/q5ob6pon","slide":26,"text":"[keine Generalisierung …]\n[keine Kausalität …]\n[offene Validitätsfrage …]","textPreview":"[keine Generalisierung …] | [keine Kausalität …] | [offene Validitätsfrage …]","textChars":73,"textLines":3,"bbox":[700,292,440,190]}
+{"kind":"shape","id":"sh/p4fadkn2","slide":26,"bbox":[612,218,2,330]}
+{"kind":"textbox","id":"sh/4j6t4f6x","slide":26,"text":"Auch ein Nullbefund ist ein Ergebnis – wenn das Design erklären kann, woran der Effekt scheitert.","textPreview":"Auch ein Nullbefund ist ein Ergebnis – wenn das Design erklären kann, woran der Effekt scheitert.","textChars":97,"textLines":1,"bbox":[160,566,960,40]}
+{"kind":"notes","id":"nt/iambwq","slide":26,"text":""}
+{"kind":"slide","id":"sl/yttl6q","slide":27,"title":"SCHLUSSPUNKT","textShapes":6}
+{"kind":"shape","id":"sh/pkfqlcfe","slide":27,"bbox":[0,0,1280,720]}
+{"kind":"textbox","id":"sh/b6h8n2x4","slide":27,"text":"SCHLUSSPUNKT","textPreview":"SCHLUSSPUNKT","textChars":12,"textLines":1,"bbox":[78,74,300,24]}
+{"kind":"textbox","id":"sh/al8rexwz","slide":27,"text":"Am Ende zählt,\nwas der Weg gezeigt hat.","textPreview":"Am Ende zählt, | was der Weg gezeigt hat.","textChars":39,"textLines":2,"bbox":[78,154,700,160]}
+{"kind":"shape","id":"sh/x8zapcfa","slide":27,"bbox":[80,376,660,112]}
+{"kind":"shape","id":"sh/c7q9g7ep","slide":27,"bbox":[96,393,5,78]}
+{"kind":"textbox","id":"sh/zahsrmxg","slide":27,"text":"[Deine abschließende Antwort auf die Frage von Folie 2 – ohne neue Information.]","textPreview":"[Deine abschließende Antwort auf die Frage von Folie 2 – ohne neue Information.]","textChars":80,"textLines":1,"bbox":[118,396,602,76]}
+{"kind":"textbox","id":"sh/y98rihwv","slide":27,"text":"Nächster Schritt: [Was müsste ein Folgeexperiment verbessern?]","textPreview":"Nächster Schritt: [Was müsste ein Folgeexperiment verbessern?]","textChars":62,"textLines":1,"bbox":[82,548,690,34]}
+{"kind":"textbox","id":"sh/g7el4rql","slide":27,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/h8n2xw76","slide":27,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/ulc32h8f","slide":27,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/v6lkvmp0","slide":27,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/4bel8bqh","slide":27,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/5cn21w72","slide":27,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/i9w3618b","slide":27,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/3a5kz6pw","slide":27,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/sfylcbqt","slide":27,"text":"27","textPreview":"27","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"image","id":"im/3qhsn6tc","slide":27,"name":"","alt":"Abstrakte visuelle Reise von einer Idee über einen Wissensgraphen zur fertigen Anwendung","bbox":[0,0,1280,720]}
+{"kind":"image","id":"im/pszapgbi","slide":27,"name":"","alt":"Abstrakte Wissensgraph-Reise","bbox":[810,0,470,720]}
+{"kind":"notes","id":"nt/yttl6q","slide":27,"text":""}
+{"kind":"slide","id":"sl/22pfqh","slide":28,"title":"KI-DISCLAIMER","textShapes":9}
+{"kind":"shape","id":"sh/zedkjils","slide":28,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/0f61snmd","slide":28,"text":"KI-DISCLAIMER","textPreview":"KI-DISCLAIMER","textChars":13,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/1gf2ls3y","slide":28,"text":"Wo KI im Projekt verwendet wurde.","textPreview":"Wo KI im Projekt verwendet wurde.","textChars":33,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/m1ojuxk3","slide":28,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/n2xkn2lo","slide":28,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/o36lw729","slide":28,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/94f2pc3u","slide":28,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/a5o3yxkf","slide":28,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/b6hkr2l0","slide":28,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/3edkfmds","slide":28,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/2dkjmhc7","slide":28,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/pgv2hwvi","slide":28,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/4fm1orux","slide":28,"text":"28","textPreview":"28","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/fqtkb2dg","slide":28,"text":"CLAUDE + CHATGPT · CHATFUNKTIONEN","textPreview":"CLAUDE + CHATGPT · CHATFUNKTIONEN","textChars":33,"textLines":1,"bbox":[96,220,500,28]}
+{"kind":"textbox","id":"sh/upkjihcv","slide":28,"text":"• Konzeption und Hypothesen\n• große Teile von Code und UI\n• Fehleranalyse und Iterationen\n• Rohfassungen von Bericht und Folien","textPreview":"• Konzeption und Hypothesen | • große Teile von Code und UI | • Fehleranalyse und Iterationen | • Rohfassungen von Bericht und Folien","textChars":127,"textLines":4,"bbox":[96,276,500,200]}
+{"kind":"textbox","id":"sh/hsb2dcvm","slide":28,"text":"MEINE VERANTWORTUNG","textPreview":"MEINE VERANTWORTUNG","textChars":19,"textLines":1,"bbox":[700,220,430,28]}
+{"kind":"textbox","id":"sh/gr21k7u1","slide":28,"text":"Ich gab Ziele vor, wählte Varianten, testete die Anwendung und verantworte Fakten, Quellen, Methode, Code, Bewertungen und Schlussfolgerungen.","textPreview":"Ich gab Ziele vor, wählte Varianten, testete die Anwendung und verantworte Fakten, Quellen, Methode, Code, Bewertungen und Schlussfolgeru...","textChars":142,"textLines":1,"bbox":[700,276,430,180]}
+{"kind":"shape","id":"sh/zmxkn6tk","slide":28,"bbox":[630,212,2,320]}
+{"kind":"textbox","id":"sh/elo3u1cf","slide":28,"text":"Keine empirischen Ergebnisse oder unabhängigen Bewertungen wurden durch KI simuliert.","textPreview":"Keine empirischen Ergebnisse oder unabhängigen Bewertungen wurden durch KI simuliert.","textChars":85,"textLines":1,"bbox":[170,576,940,32]}
+{"kind":"notes","id":"nt/22pfqh","slide":28,"text":""}
+{"kind":"slide","id":"sl/dcyt8d","slide":29,"title":"QUELLEN","textShapes":9}
+{"kind":"shape","id":"sh/mh4zu5gn","slide":29,"bbox":[28,0,8,720]}
+{"kind":"textbox","id":"sh/9kvi5kfy","slide":29,"text":"QUELLEN","textPreview":"QUELLEN","textChars":7,"textLines":1,"bbox":[76,48,460,22]}
+{"kind":"textbox","id":"sh/8jmhwfyd","slide":29,"text":"Theorie, Technik und Korpus bleiben überprüfbar.","textPreview":"Theorie, Technik und Korpus bleiben überprüfbar.","textChars":48,"textLines":1,"bbox":[76,82,1120,70]}
+{"kind":"shape","id":"sh/zut0zahw","slide":29,"bbox":[76,166,1128,1]}
+{"kind":"textbox","id":"sh/ytkzq5gb","slide":29,"text":"GRAPH-RAG · PROSEMINAR SOSE 2026","textPreview":"GRAPH-RAG · PROSEMINAR SOSE 2026","textChars":32,"textLines":1,"bbox":[76,678,390,18]}
+{"kind":"shape","id":"sh/lwvi10z2","slide":29,"bbox":[832,687,73,1]}
+{"kind":"shape","id":"sh/0vmhsfyh","slide":29,"bbox":[820,681,12,12]}
+{"kind":"shape","id":"sh/jqx0bux0","slide":29,"bbox":[917,687,73,1]}
+{"kind":"shape","id":"sh/ipoj2pgv","slide":29,"bbox":[905,681,12,12]}
+{"kind":"shape","id":"sh/0nyhsvy1","slide":29,"bbox":[1002,687,73,1]}
+{"kind":"shape","id":"sh/1o7yl0fm","slide":29,"bbox":[990,681,12,12]}
+{"kind":"shape","id":"sh/elgzqlgv","slide":29,"bbox":[1075,681,12,12]}
+{"kind":"textbox","id":"sh/zmpgjqxg","slide":29,"text":"29","textPreview":"29","textChars":2,"textLines":1,"bbox":[1160,674,46,22]}
+{"kind":"textbox","id":"sh/cjyhobyp","slide":29,"text":"THEORIE + METHODE","textPreview":"THEORIE + METHODE","textChars":17,"textLines":1,"bbox":[92,218,460,24]}
+{"kind":"textbox","id":"sh/dk7yhgfa","slide":29,"text":"[Autor, Jahr. Titel. DOI/URL]\n\n[Autor, Jahr. Titel. DOI/URL]\n\n[Methodenquelle für RAG / Graph-RAG / Bewertung]","textPreview":"[Autor, Jahr. Titel. DOI/URL] |  | [Autor, Jahr. Titel. DOI/URL] |  | [Methodenquelle für RAG / Graph-RAG / Bewertung]","textChars":110,"textLines":5,"bbox":[92,270,500,260]}
+{"kind":"textbox","id":"sh/qhwzmlgz","slide":29,"text":"TECHNIK + DATEN","textPreview":"TECHNIK + DATEN","textChars":15,"textLines":1,"bbox":[690,218,460,24]}
+{"kind":"textbox","id":"sh/ri5gfqx4","slide":29,"text":"[Modellkarte / Bibliotheksdokumentation]\n\n[MediaWiki / Wikipedia-Seiten mit Abrufdatum]\n\n[Repository / Reproduzierbarkeitsmaterial]","textPreview":"[Modellkarte / Bibliotheksdokumentation] |  | [MediaWiki / Wikipedia-Seiten mit Abrufdatum] |  | [Repository / Reproduzierbarkeitsmaterial]","textChars":131,"textLines":5,"bbox":[690,270,500,260]}
+{"kind":"shape","id":"sh/4fehkbyt","slide":29,"bbox":[634,214,2,346]}
+{"kind":"textbox","id":"sh/pgnydgfe","slide":29,"text":"Quellen klein setzen, aber vollständig: Autor · Jahr · Titel · Fundstelle · Abrufdatum.","textPreview":"Quellen klein setzen, aber vollständig: Autor · Jahr · Titel · Fundstelle · Abrufdatum.","textChars":87,"textLines":1,"bbox":[180,590,920,28]}
+{"kind":"notes","id":"nt/dcyt8d","slide":29,"text":""}

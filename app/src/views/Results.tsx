@@ -1,0 +1,402 @@
+import { useMemo, useRef, useState } from 'react'
+import type { AppCtx } from '../App'
+import { exportChartPng } from '../components/exportPng'
+import { CATEGORY_LABELS, QUESTIONS } from '../data/questions'
+import { BASE_GRAPH } from '../data/graph'
+import { aggregate, ALL_CONDITIONS, CONDITION_INFO, cohensKappa, effectiveScore, pairedComparison } from '../engine/experiment'
+import { exportResultsCsv, exportResultsJson, exportSubmissionBundle } from '../engine/store'
+import { GroupedBars, HBar } from '../components/Charts'
+
+function download(name: string, content: string, type: string) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([content], { type }))
+  a.download = name
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function wilson(k: number, n: number): [number, number] {
+  if (!n) return [0, 0]
+  const z = 1.96
+  const p = k / n
+  const d = 1 + (z * z) / n
+  const centre = (p + (z * z) / (2 * n)) / d
+  const half = (z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n))) / d
+  return [Math.max(0, centre - half), Math.min(1, centre + half)]
+}
+
+export default function Results({ ctx }: { ctx: AppCtx }) {
+  const engines = useMemo(() => [...new Set(ctx.results.map((r) => r.engine))], [ctx.results])
+  const retrievals = useMemo(() => [...new Set(ctx.results.map((r) => r.retrieval))], [ctx.results])
+  const runIds = useMemo(() => [...new Set(ctx.results.map((r) => r.runId))], [ctx.results])
+  const latestRunId = ctx.results.at(-1)?.runId ?? ''
+  const [engine, setEngine] = useState<string>('alle')
+  const [retrieval, setRetrieval] = useState<string>('alle')
+  const [run, setRun] = useState<string>('latest')
+  const [showTable, setShowTable] = useState(false)
+  const chartRef = useRef<HTMLDivElement>(null)
+
+  const results = useMemo(
+    () =>
+      ctx.results.filter(
+        (r) =>
+          (run === 'alle' || (run === 'latest' ? r.runId === latestRunId : r.runId === run)) &&
+          (engine === 'alle' || r.engine === engine) &&
+          (retrieval === 'alle' || r.retrieval === retrieval),
+      ),
+    [ctx.results, engine, retrieval, run, latestRunId],
+  )
+
+  // nur Bedingungen zeigen, für die es Daten gibt (Reihenfolge fix)
+  const conds = useMemo(() => ALL_CONDITIONS.filter((c) => results.some((r) => r.condition === c)), [results])
+  const agg = useMemo(() => aggregate(results, conds), [results, conds])
+  const comparisonResults = useMemo(
+    () => ctx.results.filter((r) => (run === 'alle' || (run === 'latest' ? r.runId === latestRunId : r.runId === run)) && (retrieval === 'alle' || r.retrieval === retrieval)),
+    [ctx.results, run, retrieval, latestRunId],
+  )
+  const comparison = useMemo(() => {
+    const models = [...new Set(comparisonResults.map((r) => r.engine))]
+    return models.flatMap((model) => ALL_CONDITIONS.filter((condition) => comparisonResults.some((r) => r.engine === model && r.condition === condition)).map((condition) => {
+      const rs = comparisonResults.filter((r) => r.engine === model && r.condition === condition)
+      const correct = rs.filter((r) => effectiveScore(r) === 'korrekt').length
+      const [lo, hi] = wilson(correct, rs.length)
+      return { model, condition, n: rs.length, correct, accuracy: correct / rs.length, lo, hi }
+    }))
+  }, [comparisonResults])
+  const paired = useMemo(() => [
+    pairedComparison(comparisonResults, 'graph', 'vector'),
+    pairedComparison(comparisonResults, 'graph', 'vector_budget'),
+    pairedComparison(comparisonResults, 'graph', 'graph_no_edges'),
+  ].filter((row) => row.pairs > 0), [comparisonResults])
+  const kappa = useMemo(() => cohensKappa(ctx.results), [ctx.results])
+
+  const categories = Object.keys(CATEGORY_LABELS)
+  const accByCat = useMemo(
+    () =>
+      conds.map((c) => ({
+        name: CONDITION_INFO[c].short,
+        color: CONDITION_INFO[c].color,
+        values: categories.map((cat) => {
+          const qids = new Set(QUESTIONS.filter((q) => q.category === cat).map((q) => q.id))
+          const rs = results.filter((r) => r.condition === c && qids.has(r.questionId))
+          if (!rs.length) return 0
+          return rs.filter((r) => effectiveScore(r) === 'korrekt').length / rs.length
+        }),
+      })),
+    [results, conds],
+  )
+
+  const empty = results.length === 0
+
+  function clearAllResults() {
+    if (
+      window.confirm(
+        'Alle lokal gespeicherten Messdaten werden dauerhaft gelöscht. Exportiere vorher JSON oder CSV, wenn du die Testdaten behalten möchtest.',
+      )
+    ) {
+      ctx.setResults([])
+      setRun('latest')
+    }
+  }
+
+  return (
+    <div>
+      <div className="eyebrow">Auswertung</div>
+      <h1>Ergebnisse</h1>
+      <p className="lead">
+        Bestätigt sich die Hypothese? Entscheidend ist die Interaktion: Graph-RAG sollte seinen Vorsprung vor allem bei
+        2-Hop- und 3-Hop-Fragen ausspielen. Die Evidenz-Diagnostik darunter zeigt, <em>warum</em> eine Bedingung gewinnt
+        oder verliert – Retrieval-Versagen und Generierungs-Versagen werden getrennt sichtbar.
+      </p>
+
+      {empty ? (
+        <div className="card">
+          <p style={{ margin: 0 }}>
+            Noch keine Messdaten{ctx.results.length > 0 ? ' für diese Filterkombination' : ''}. Starte einen Durchlauf im{' '}
+            <a style={{ color: 'var(--accent-deep)', cursor: 'pointer', fontWeight: 600 }} onClick={() => ctx.go('experiment')}>
+              Experiment
+            </a>
+            .
+          </p>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+            <select value={engine} onChange={(e) => setEngine(e.target.value)} style={{ maxWidth: 300 }}>
+              <option value="alle">Alle Engines ({engines.length})</option>
+              {engines.map((e) => (
+                <option key={e} value={e}>
+                  {e}
+                </option>
+              ))}
+            </select>
+            <select value={retrieval} onChange={(e) => setRetrieval(e.target.value)} style={{ maxWidth: 220 }}>
+              <option value="alle">Alle Retrieval-Backends</option>
+              {retrievals.map((r) => (
+                <option key={r} value={r}>
+                  {r === 'dense' ? 'Dichte Embeddings' : 'TF-IDF'}
+                </option>
+              ))}
+            </select>
+            <select value={run} onChange={(e) => setRun(e.target.value)} style={{ maxWidth: 310 }}>
+              <option value="latest">Letzter Messlauf{latestRunId ? ` (${latestRunId})` : ''}</option>
+              <option value="alle">Alle Messläufe (nur Überblick)</option>
+              {runIds.map((id) => (
+                <option key={id} value={id}>
+                  Messlauf: {id}
+                </option>
+              ))}
+            </select>
+            <button className="btn sm" onClick={() => download('graphrag-ergebnisse.json', exportResultsJson(results), 'application/json')}>
+              ⬇ JSON-Export
+            </button>
+            <button className="btn sm" onClick={() => download('graphrag-ergebnisse.csv', exportResultsCsv(results), 'text/csv')}>
+              ⬇ CSV-Export
+            </button>
+            <button className="btn sm" onClick={() => download('graphrag-abgabe-paket.json', exportSubmissionBundle(results), 'application/json')}>
+              ⬇ Abgabe-Paket
+            </button>
+            <button className="btn sm" onClick={() => setShowTable(!showTable)}>
+              {showTable ? 'Tabelle ausblenden' : 'Als Tabelle anzeigen'}
+            </button>
+            <button className="btn sm" style={{ color: 'var(--bad)' }} onClick={clearAllResults}>
+              Alle Messdaten löschen
+            </button>
+            {kappa.kappa !== null && <span className="chip">Bewertung: κ = {kappa.kappa.toFixed(2)} (n = {kappa.n})</span>}
+          </div>
+
+          {run === 'alle' && (
+            <div className="callout" style={{ marginBottom: 14 }}>
+              <strong>Hinweis:</strong> Diese Ansicht fasst mehrere Messläufe zusammen. Für die wissenschaftliche Auswertung
+              verwende einen einzelnen vollständigen Messlauf und exportiere ihn separat.
+            </div>
+          )}
+
+          {comparison.length > 0 && (
+            <>
+              <h2>Direkter Modellvergleich</h2>
+              <div className="card table-wrap">
+                <table>
+                  <thead><tr><th>Modell</th><th>Bedingung</th><th className="num">n</th><th className="num">korrekt</th><th className="num">95%-Intervall</th></tr></thead>
+                  <tbody>{comparison.map((row) => <tr key={`${row.model}-${row.condition}`}><td className="mono" style={{ fontSize: 11.5 }}>{row.model}</td><td>{CONDITION_INFO[row.condition].short}</td><td className="num">{row.n}</td><td className="num"><strong>{Math.round(row.accuracy * 100)}%</strong></td><td className="num">[{Math.round(row.lo * 100)}–{Math.round(row.hi * 100)}%]</td></tr>)}</tbody>
+                </table>
+                <p className="hint" style={{ margin: '10px 0 0' }}>Das Intervall zeigt die Unsicherheit des Anteils korrekter Antworten. Bei kleinen n sind Prozentwerte nur vorläufig interpretierbar.</p>
+              </div>
+            </>
+          )}
+
+          {paired.length > 0 && (
+            <>
+              <h2>Gepaarte Effektanalyse</h2>
+              <div className="card table-wrap">
+                <table><thead><tr><th>Vergleich</th><th className="num">Paare</th><th className="num">Δ Genauigkeit</th><th className="num">nur Graph korrekt</th><th className="num">nur Vergleich korrekt</th><th className="num">McNemar p</th></tr></thead><tbody>{paired.map((row) => <tr key={`${row.a}-${row.b}`}><td>{CONDITION_INFO[row.a].short} vs. {CONDITION_INFO[row.b].short}</td><td className="num">{row.pairs}</td><td className="num"><strong>{row.delta >= 0 ? '+' : ''}{Math.round(row.delta * 100)} Prozentpunkte</strong></td><td className="num">{row.aOnlyCorrect}</td><td className="num">{row.bOnlyCorrect}</td><td className="num">{row.mcnemarExactP === null ? '–' : row.mcnemarExactP.toFixed(4)}</td></tr>)}</tbody></table>
+                <p className="hint" style={{ margin: '10px 0 0' }}>Gepaart wird ausschließlich dieselbe Frage in derselben Wiederholung, Engine und Retrieval-Konfiguration. p-Werte sind ergänzend; maßgeblich bleiben Effektgröße, Intervall und Fehleranalyse.</p>
+              </div>
+            </>
+          )}
+
+          <div className="grid cols-3">
+            {agg.map((a) => (
+              <div className="card stat" key={a.condition}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="sw" style={{ width: 11, height: 11, borderRadius: 3, background: CONDITION_INFO[a.condition].color, display: 'inline-block' }} />
+                  <strong>{CONDITION_INFO[a.condition].short}</strong>
+                </div>
+                <div className="num">{Math.round(a.accuracy * 100)}%</div>
+                <div className="cap">
+                  korrekt ({a.korrekt}/{a.n}) · E2E p50/p95 {a.latencyN ? `${a.medianLatency}/${a.p95Latency} ms` : '–'} · ⌀ Kontext{' '}
+                  {a.meanContext} Zeichen
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h2>Genauigkeit nach Fragetyp</h2>
+          <div className="card" ref={chartRef}>
+            <GroupedBars
+              categories={categories.map((c) => CATEGORY_LABELS[c])}
+              series={accByCat}
+              yMax={1.02}
+              format={(v) => `${Math.round(v * 100)}%`}
+            />
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
+              <p className="hint" style={{ margin: 0, flex: 1, minWidth: 260 }}>
+                Bei »Unbeantwortbar« zählt die korrekte Enthaltung als Treffer – das misst Halluzinationsresistenz.
+              </p>
+              <button
+                className="btn sm"
+                onClick={() => chartRef.current && exportChartPng(chartRef.current, 'genauigkeit-nach-fragetyp.png').catch(console.error)}
+              >
+                📸 Als PNG exportieren
+              </button>
+            </div>
+          </div>
+
+          <h2>Evidenz-Diagnostik: Retrieval- vs. Generierungs-Versagen</h2>
+          <div className="grid cols-2">
+            <div className="card">
+              <h3>⌀ Evidenz-Recall (Gold-Pfad im Kontext)</h3>
+              <HBar
+                rows={agg
+                  .filter((a) => a.meanEvidenceRecall !== null)
+                  .map((a) => ({ label: CONDITION_INFO[a.condition].short, value: Math.round((a.meanEvidenceRecall ?? 0) * 100) }))}
+                color="var(--cat-1)"
+                format={(v) => `${v}%`}
+              />
+              <p className="hint" style={{ marginTop: 8 }}>
+                Niedrig → das Retrieval findet die nötige Evidenz nicht (Pipeline-Problem).
+              </p>
+            </div>
+            <div className="card">
+              <h3>Genauigkeit bei vollständiger Evidenz</h3>
+              <HBar
+                rows={agg
+                  .filter((a) => a.accGivenFullEvidence !== null)
+                  .map((a) => ({ label: CONDITION_INFO[a.condition].short, value: Math.round((a.accGivenFullEvidence ?? 0) * 100) }))}
+                color="var(--cat-2)"
+                format={(v) => `${v}%`}
+              />
+              <p className="hint" style={{ marginTop: 8 }}>
+                Niedrig trotz vorhandener Evidenz → das Modell nutzt den Kontext nicht (Kontexttreue-Problem kleiner
+                Modelle, vgl. RQ4).
+              </p>
+            </div>
+          </div>
+
+          <h2>Ressourcen-Trade-off</h2>
+          <div className="grid cols-2">
+            <div className="card">
+              <h3>End-to-End p50 (ms)</h3>
+              <HBar
+                rows={agg.map((a) => ({ label: CONDITION_INFO[a.condition].short, value: a.medianLatency }))}
+                color="var(--cat-1)"
+                format={(v) => `${v} ms`}
+              />
+              <p className="hint" style={{ marginTop: 8 }}>
+                Vorbereitung/Retrieval plus Generierung. Migrierte Altdaten ohne E2E-Messung sind ausgeschlossen.
+              </p>
+            </div>
+            <div className="card">
+              <h3>End-to-End p95 (ms)</h3>
+              <HBar
+                rows={agg.map((a) => ({ label: CONDITION_INFO[a.condition].short, value: a.p95Latency }))}
+                color="var(--cat-4)"
+                format={(v) => `${v} ms`}
+              />
+              <p className="hint" style={{ marginTop: 8 }}>
+                95. Perzentil nach Nearest Rank: 95 % der gemessenen End-to-End-Laufzeiten liegen höchstens hier.
+              </p>
+            </div>
+            <div className="card">
+              <h3>Median Generierung (ms)</h3>
+              <HBar
+                rows={agg.map((a) => ({ label: CONDITION_INFO[a.condition].short, value: a.medianGeneration }))}
+                color="var(--cat-3)"
+                format={(v) => `${v} ms`}
+              />
+              <p className="hint" style={{ marginTop: 8 }}>
+                Reine Laufzeit des Modells; Vorbereitung und Retrieval sind hier nicht enthalten.
+              </p>
+            </div>
+            <div className="card">
+              <h3>⌀ Kontextgröße (Zeichen)</h3>
+              <HBar
+                rows={agg.map((a) => ({ label: CONDITION_INFO[a.condition].short, value: a.meanContext }))}
+                color="var(--cat-2)"
+                format={(v) => String(v)}
+              />
+              <p className="hint" style={{ marginTop: 8 }}>
+                »Vektor+Budget« sollte hier ungefähr bei Graph-RAG liegen. Das reduziert den Einfluss unterschiedlicher
+                Kontextmengen; die Repräsentation bleibt dennoch verschieden.
+              </p>
+            </div>
+          </div>
+
+          <h2>Antwortverhalten</h2>
+          <div className="card table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bedingung</th>
+                  <th className="num">n</th>
+                  <th className="num">korrekt</th>
+                  <th className="num">teilweise</th>
+                  <th className="num">falsch</th>
+                  <th className="num">Enthaltung</th>
+                  <th className="num">⌀ Ev-Recall</th>
+                  <th className="num">Acc | Evidenz</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agg.map((a) => (
+                  <tr key={a.condition}>
+                    <td>{CONDITION_INFO[a.condition].label}</td>
+                    <td className="num">{a.n}</td>
+                    <td className="num">{a.korrekt}</td>
+                    <td className="num">{a.teilweise}</td>
+                    <td className="num">{a.falsch}</td>
+                    <td className="num">{a.enthaltung}</td>
+                    <td className="num">{a.meanEvidenceRecall === null ? '–' : `${Math.round(a.meanEvidenceRecall * 100)}%`}</td>
+                    <td className="num">{a.accGivenFullEvidence === null ? '–' : `${Math.round(a.accGivenFullEvidence * 100)}%`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {showTable && (
+            <>
+              <h2>Alle Messwerte</h2>
+              <div className="card table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Run / Wdh.</th>
+                      <th className="num">Reihenfolge</th>
+                      <th>Frage</th>
+                      <th>Bedingung</th>
+                      <th>Retrieval</th>
+                      <th>Engine</th>
+                      <th>Score</th>
+                      <th className="num">E2E</th>
+                      <th className="num">Vorbereitung</th>
+                      <th className="num">Retrieval</th>
+                      <th className="num">Generierung</th>
+                      <th className="num">Ev-Recall</th>
+                      <th>Antwort</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.map((r) => (
+                      <tr key={r.id}>
+                        <td className="mono" style={{ fontSize: 11.5 }} title={`Seed ${r.seed ?? 'unbekannt'} · ${r.orderStrategy}`}>
+                          {r.runId} / {r.repetition}
+                        </td>
+                        <td className="num">{r.order}</td>
+                        <td>{r.questionId}</td>
+                        <td>{CONDITION_INFO[r.condition].short}</td>
+                        <td>{r.retrieval}</td>
+                        <td className="mono" style={{ fontSize: 11.5 }}>{r.engine}</td>
+                        <td>
+                          <span className={`chip score-${effectiveScore(r)}`}>{effectiveScore(r)}</span>
+                        </td>
+                        <td className="num" title={r.latencyScope === 'end-to-end' ? 'End-to-End' : 'Altdatum: nur Generierung'}>
+                          {r.latencyScope === 'end-to-end' ? `${r.latencyMs} ms` : '–'}
+                        </td>
+                        <td className="num">{r.prepareMs === null ? '–' : `${r.prepareMs} ms`}</td>
+                        <td className="num">{r.retrievalMs === null ? '–' : `${r.retrievalMs} ms`}</td>
+                        <td className="num">{r.generationMs} ms</td>
+                        <td className="num">{r.evidenceRecall === null ? '–' : `${Math.round(r.evidenceRecall * 100)}%`}</td>
+                        <td style={{ fontSize: 12.5, maxWidth: 340 }}>{r.answer}<details style={{ marginTop: 6 }}><summary className="hint" style={{ cursor: 'pointer' }}>Evidenz ansehen ({r.retrievedIds.length} Knoten)</summary><div className="hint" style={{ marginTop: 5 }}>{r.retrievedIds.map((id) => BASE_GRAPH.nodes.find((node) => node.id === id)?.title ?? id).join(' · ') || 'Kein Kontext abgerufen'}</div></details></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
