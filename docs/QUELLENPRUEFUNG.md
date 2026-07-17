@@ -12,6 +12,7 @@ Diese Liste enthält nur Quellen, die für Aussagen in Ausarbeitung und Präsent
 | Browser-Inferenz | MLC AI, [WebLLM-Dokumentation](https://webllm.mlc.ai/docs/index.html) und [WebLLM-Paper](https://arxiv.org/abs/2412.15803) | WebGPU-beschleunigte Inferenz im Browser ist belegt; die tatsächliche Gerätekompatibilität wird im Pilot auf dem Zielgerät geprüft. |
 | Mobile Kleinmodelle | Abdin et al. (2024), [*Phi-3 Technical Report: A Highly Capable Language Model Locally on Your Phone*](https://arxiv.org/abs/2404.14219) | Das Paper belegt die Machbarkeit eines kompakten 3,8B-Modells im mobilen Setting. Es ist keine Leistungszusage für das eigene Gerät. |
 | Wikipedia-Import außerhalb des Messlaufs | [MediaWiki Action API](https://www.mediawiki.org/wiki/API:Action_API/en) | Die optionale Live-Recherche nutzt die API nur außerhalb des eingefrorenen Messkorpus. |
+| Browser-Sprachdialog | W3C Web Speech Community Group, [*Web Speech API*](https://webaudio.github.io/web-speech-api/) | Die Spezifikation belegt Spracherkennung, kontinuierliche beziehungsweise einzelne Sprachzüge und Sprachsynthese. Sie ist gegenüber der konkreten Implementierung ausdrücklich offen für server- oder clientbasierte Verarbeitung; deshalb behauptet Noesis keine garantierte Offline-Sprachverarbeitung. |
 
 ## Korpusquellen und Attribution
 

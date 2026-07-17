@@ -4,6 +4,7 @@ import { BASE_GRAPH } from './data/graph'
 import { ExperimentRunner } from './engine/experiment'
 import { ExtractiveEngine, WebLLMEngine, type LLMEngine } from './engine/llm'
 import { setEmbeddingNetworkEnabled } from './engine/embeddings'
+import { SeminarOnlineEngine, seminarOnlineConfigured, seminarRoomCode } from './engine/seminarOnline'
 import {
   loadCustomKnowledge,
   loadResults,
@@ -22,6 +23,7 @@ import Rate from './views/Rate'
 import Results from './views/Results'
 import Models from './views/Models'
 import Knowledge from './views/Knowledge'
+import PersonalKnowledge from './views/PersonalKnowledge'
 import Quiz from './views/Quiz'
 import LiveQuiz from './views/LiveQuiz'
 import QrOverlay from './components/QrOverlay'
@@ -56,6 +58,7 @@ const PREFERRED_MODEL_KEY = 'graphrag-preferred-model'
 
 const PRODUCT_NAV: { id: ViewId; label: string; ico: string }[] = [
   { id: 'chat', label: 'Gespräch', ico: '✦' },
+  { id: 'knowledge', label: 'Eigenes Wissen', ico: '＋' },
   { id: 'explorer', label: 'Wissensraum', ico: '⌘' },
   { id: 'offline', label: 'Vortragscheck', ico: '✓' },
 ]
@@ -104,6 +107,8 @@ export interface AppCtx {
 
 export default function App() {
   const liveQuiz = new URLSearchParams(window.location.search).has('live')
+  const [seminarRoom] = useState(() => seminarRoomCode())
+  const seminarOnline = seminarOnlineConfigured(seminarRoom)
   const [view, setView] = useState<ViewId>(() => (liveQuiz ? 'livequiz' : 'chat'))
   const [appMode, setAppMode] = useState<AppMode>(() =>
     liveQuiz || sessionStorage.getItem(APP_MODE_KEY) === 'study' ? 'study' : 'product',
@@ -113,14 +118,18 @@ export default function App() {
   )
   const [custom, setCustomState] = useState<CustomKnowledge>(() => loadCustomKnowledge())
   const [results, setResultsState] = useState<TrialResult[]>(() => loadResults())
-  const [engine, setEngineState] = useState<LLMEngine>(() => new ExtractiveEngine())
+  const [engine, setEngineState] = useState<LLMEngine>(() =>
+    seminarOnline && seminarRoom ? new SeminarOnlineEngine(seminarRoom) : new ExtractiveEngine(),
+  )
   const [engineRestore, setEngineRestore] = useState<{ state: 'idle' | 'loading' | 'error'; text: string }>({
     state: 'idle',
     text: '',
   })
   const [retrieval, setRetrieval] = useState<RetrievalMode>('tfidf')
   const [showQr, setShowQr] = useState(false)
-  const [online, setOnline] = useState(() => localStorage.getItem(ONLINE_MODE_KEY) === 'online')
+  const [online, setOnline] = useState(() =>
+    seminarOnline || localStorage.getItem(ONLINE_MODE_KEY) === 'online',
+  )
   const [experimentStatus, setExperimentStatus] = useState<ExperimentStatus>({
     state: 'idle',
     done: 0,
@@ -136,9 +145,11 @@ export default function App() {
   }, [theme])
 
   useEffect(() => {
-    localStorage.setItem(ONLINE_MODE_KEY, online ? 'online' : 'offline')
+    // Der zeitlich begrenzte QR-Modus darf die dauerhafte Offline-Präferenz
+    // dieses Browserprofils nicht unbemerkt überschreiben.
+    if (!seminarOnline) localStorage.setItem(ONLINE_MODE_KEY, online ? 'online' : 'offline')
     setEmbeddingNetworkEnabled(online)
-  }, [online])
+  }, [online, seminarOnline])
 
   useEffect(() => {
     sessionStorage.setItem(APP_MODE_KEY, appMode)
@@ -154,7 +165,7 @@ export default function App() {
   // Ein bereits vollständig bereitgestelltes Modell wird beim festen
   // Vortrags-Launcher automatisch aus dem Browser-Cache wiederhergestellt.
   useEffect(() => {
-    if (restoreStartedRef.current || !webgpu) return
+    if (restoreStartedRef.current || !webgpu || seminarOnline) return
     restoreStartedRef.current = true
     const modelId = localStorage.getItem(PREFERRED_MODEL_KEY)
     if (!modelId) return
@@ -179,7 +190,7 @@ export default function App() {
         })
       }
     })()
-  }, [webgpu])
+  }, [seminarOnline, webgpu])
 
   function switchMode(next: AppMode) {
     setAppMode(next)
@@ -194,7 +205,9 @@ export default function App() {
     engine,
     setEngine: (next) => {
       setEngineState(next)
-      if (next.id !== 'extractive') localStorage.setItem(PREFERRED_MODEL_KEY, next.id)
+      if (next.id !== 'extractive' && next.id !== 'seminar-online') {
+        localStorage.setItem(PREFERRED_MODEL_KEY, next.id)
+      }
     },
     retrieval,
     setRetrieval,
@@ -205,12 +218,14 @@ export default function App() {
     },
     custom,
     setCustom: (next) => {
-      setCustomState(next)
-      saveCustomKnowledge(next)
+      // Erst persistent speichern: Bei vollem Browser-Speicher darf die UI
+      // keinen erfolgreichen Import vortäuschen, der nach Reload verloren ist.
+      const persisted = saveCustomKnowledge(next)
+      setCustomState(persisted)
     },
     webgpu,
     online,
-    setOnline,
+    setOnline: (next) => setOnline(seminarOnline ? true : next),
     experimentStatus,
     beginExperiment: (runId, total) => {
       experimentCancelRef.current = false
@@ -239,7 +254,7 @@ export default function App() {
         <div className="brand"><em>Noesis</em></div>
         <div className="brand-sub">
           {appMode === 'product'
-            ? 'Wissen im Zusammenhang · lokal erklärt'
+            ? 'Wissen im Zusammenhang · transparent erklärt'
             : 'Graph-RAG · wissenschaftlicher Studienmodus'}
         </div>
         {nav.map((item) => (
@@ -268,13 +283,18 @@ export default function App() {
             <button
               className={`btn sm ${online ? 'online-active' : ''}`}
               title={
-                online
-                  ? 'Online: Downloads und Wikipedia-Recherche erlaubt'
-                  : 'Offline: kein Nachladen und keine Live-Recherche'
+                seminarOnline
+                  ? 'QR-Seminarmodus: Antworten kommen vom gemeinsamen Online-Modell; Import und Retrieval bleiben lokal.'
+                  : online
+                    ? 'Online: Downloads und Wikipedia-Recherche erlaubt'
+                    : 'Offline: Noesis lädt nichts nach; der möglicherweise online arbeitende Browser-Sprachdienst bleibt gesperrt'
               }
-              onClick={() => setOnline(!online)}
+              onClick={() => {
+                if (!seminarOnline) setOnline(!online)
+              }}
+              aria-disabled={seminarOnline}
             >
-              {online ? '● Online' : '○ Offline'}
+              {seminarOnline ? '● Seminar online' : online ? '● Online' : '○ Offline'}
             </button>
           </div>
           <button
@@ -306,7 +326,7 @@ export default function App() {
             )}
           </div>
         )}
-        <div hidden={view !== 'chat'}><Conversation ctx={ctx} /></div>
+        <div hidden={view !== 'chat'}><Conversation ctx={ctx} active={view === 'chat'} /></div>
         {view === 'offline' && <OfflinePresentation ctx={ctx} />}
         {view === 'overview' && <Overview ctx={ctx} />}
         {view === 'explorer' && <Explorer ctx={ctx} />}
@@ -317,7 +337,7 @@ export default function App() {
         {view === 'quiz' && <Quiz ctx={ctx} />}
         {view === 'livequiz' && <LiveQuiz />}
         {view === 'models' && <Models ctx={ctx} />}
-        {view === 'knowledge' && <Knowledge ctx={ctx} />}
+        {view === 'knowledge' && (appMode === 'product' ? <PersonalKnowledge ctx={ctx} /> : <Knowledge ctx={ctx} />)}
       </main>
       {showQr && <QrOverlay onClose={() => setShowQr(false)} />}
     </div>

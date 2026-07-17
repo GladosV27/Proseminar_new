@@ -4,12 +4,14 @@ import QRCode from 'qrcode'
 /**
  * QR-Overlay: zeigt die aktuelle App-URL als QR-Code – fürs Seminar:
  * Code an die Wand, Kommilitonen scannen und haben die App auf dem
- * eigenen Gerät (PWA, danach offline nutzbar).
+ * eigenen Gerät. Ein Link mit `?seminar=…` teilt bewusst den zeitlich
+ * begrenzten Online-Raum; ohne diesen Parameter bleibt es die normale App.
  */
 export default function QrOverlay({ onClose }: { onClose: () => void }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const url = window.location.href.split('#')[0]
   const isLocal = /localhost|127\.0\.0\.1/.test(url)
+  const isSeminar = new URL(url).searchParams.has('seminar')
 
   useEffect(() => {
     QRCode.toDataURL(url, {
@@ -34,7 +36,9 @@ export default function QrOverlay({ onClose }: { onClose: () => void }) {
       }}
     >
       <div className="card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 380, textAlign: 'center' }}>
-        <h3 style={{ fontFamily: 'var(--serif)', fontSize: 20 }}>App teilen</h3>
+        <h3 style={{ fontFamily: 'var(--serif)', fontSize: 20 }}>
+          {isSeminar ? 'Seminarraum teilen' : 'App teilen'}
+        </h3>
         {dataUrl ? (
           <img src={dataUrl} alt={`QR-Code für ${url}`} style={{ width: '100%', maxWidth: 300, borderRadius: 12 }} />
         ) : (
@@ -46,6 +50,12 @@ export default function QrOverlay({ onClose }: { onClose: () => void }) {
         {isLocal && (
           <p className="hint" style={{ fontSize: 12 }}>
             ⚠ Das ist eine lokale Adresse – fürs Seminar die GitHub-Pages-URL öffnen und dort teilen.
+          </p>
+        )}
+        {isSeminar && (
+          <p className="hint" style={{ fontSize: 12 }}>
+            Dieser QR-Code enthält den temporären Raumcode. Teile ihn nur mit den Seminarteilnehmenden; nach dem
+            festgelegten Ablaufzeitpunkt lehnt der Server weitere Fragen ab.
           </p>
         )}
         <button className="btn" onClick={onClose} style={{ marginTop: 6 }}>

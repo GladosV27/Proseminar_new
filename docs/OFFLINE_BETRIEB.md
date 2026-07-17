@@ -10,6 +10,7 @@ Die App ist **offline-first**, aber die Begriffe sind wichtig:
 - Die App-Laufzeiten fuer WebLLM und Transformers.js werden mit dem Produktions-Build lokal ausgeliefert. Sie werden nicht mehr von `esm.run` geladen.
 - Modellgewichte und das Embedding-Modell sind grosse Dateien. Sie muessen einmalig im **Online-Modus** geladen und im Browser-Cache gespeichert werden. Danach koennen sie im **Offline-Modus** ohne Server-Inferenz verwendet werden.
 - Wikipedia-Import und Live-Recherche sind bewusst Online-Funktionen und werden im Offline-Modus blockiert.
+- Der Textchat kann offline laufen; der optionale Live-Sprachdialog bleibt im Offline-Modus gesperrt. Die App kann nicht garantieren, dass die Web-Spracherkennung oder gewählte Vorlesestimme des Browsers ohne einen Anbieter-Onlinedienst funktioniert.
 
 ## Der Schalter in der App
 
@@ -47,6 +48,10 @@ Der Browser-Cache ist an Browserprofil und Adresse gebunden. Ein Wechsel von `lo
 > **Keine Server-Inferenz; nach einmaliger, dokumentierter Bereitstellung offline auf demselben Browserprofil nutzbar.**
 
 Ein vollstaendig air-gapped Paket, das auch ohne vorherigen Browser-Cache auf einem neuen Geraet startet, braeuchte die Modellgewichte und die Modell-WASM-Dateien als lokale Dateien. Je nach Modell sind das etwa 1 bis 4 GB zusaetzlich. Diese Dateien werden nicht in das Repository eingecheckt, weil sie gross sind und eigene Lizenzen haben; sie koennen aber fuer eine spaetere Distribution lokal mitgeliefert werden.
+
+### Zusatzgrenze des Sprachdialogs
+
+Der Schalter **Offline** kontrolliert Noesis-eigene Netzfunktionen wie Recherche und Downloads, aber nicht die interne Implementierung der Web-Speech-API durch den Browser. Deshalb startet Noesis in diesem Modus gar keine Spracherkennung. Die App selbst speichert keine Audiodatei. Nach bewusster Online-Freigabe kann das Mikrofonsignal je nach Browser und Betriebssystem dennoch zur Erkennung an den jeweiligen Anbieter gehen; auch die Verfuegbarkeit einer Vorlesestimme ist geraeteabhaengig. Fuer einen belastbaren Flugmodus-Nachweis wird deshalb ausschließlich der normale Textchat verwendet.
 
 ## Regel fuer das Experiment
 

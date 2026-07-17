@@ -1,4 +1,13 @@
-import type { GraphEdge, GraphNode, KnowledgeGraph } from '../data/types'
+import type {
+  GraphEdge,
+  GraphNode,
+  KnowledgeGraph,
+  KnowledgeImportReport,
+  KnowledgeProvenance,
+  KnowledgeSourceKind,
+} from '../data/types'
+import type { PdfReadResult } from './pdf'
+import { createImportReport, evidenceExcerpt, stableHash } from './knowledge'
 import { normalize, splitSentences } from './text'
 
 /**
@@ -26,67 +35,199 @@ export function slug(title: string): string {
   )
 }
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/** Exakte, Unicode-fähige Namensnennung mit Wortgrenzen und Originalspan. */
+function literalMention(text: string, name: string): { start: number; end: number } | null {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0 || normalize(name).replace(/[^a-z0-9]/g, '').length < 3) return null
+  const expression = parts.map(escapeRegex).join('\\s+')
+  const match = new RegExp(`(^|[^\\p{L}\\p{N}])(${expression})(?=$|[^\\p{L}\\p{N}])`, 'iu').exec(text)
+  if (!match) return null
+  const start = match.index + match[1].length
+  return { start, end: start + match[2].length }
+}
+
+function mentionEdges(
+  sourceId: string,
+  text: string,
+  graph: KnowledgeGraph,
+  provenance: Omit<KnowledgeProvenance, 'method' | 'confidence' | 'evidence' | 'charStart' | 'charEnd'>,
+  offset = 0,
+): { edges: GraphEdge[]; ambiguous: number } {
+  const owners = new Map<string, Set<string>>()
+  for (const node of graph.nodes) {
+    for (const name of [node.title, ...(node.aliases ?? [])]) {
+      const key = normalize(name).replace(/\s+/g, ' ').trim()
+      if (!owners.has(key)) owners.set(key, new Set())
+      owners.get(key)!.add(node.id)
+    }
+  }
+
+  const edges: GraphEdge[] = []
+  let ambiguous = 0
+  for (const node of graph.nodes) {
+    if (node.id === sourceId) continue
+    let evidence: { start: number; end: number } | null = null
+    for (const name of [node.title, ...(node.aliases ?? [])].sort((a, b) => b.length - a.length)) {
+      const span = literalMention(text, name)
+      if (!span) continue
+      const key = normalize(name).replace(/\s+/g, ' ').trim()
+      if ((owners.get(key)?.size ?? 0) !== 1) {
+        ambiguous++
+        continue
+      }
+      evidence = span
+      break
+    }
+    if (!evidence) continue
+    edges.push({
+      source: sourceId,
+      target: node.id,
+      relation: 'erwaehnt',
+      label: 'erwähnt',
+      custom: true,
+      provenance: [{
+        ...provenance,
+        method: 'explicit-mention',
+        confidence: 'verified',
+        evidence: evidenceExcerpt(text, evidence.start, evidence.end),
+        charStart: offset + evidence.start,
+        charEnd: offset + evidence.end,
+      }],
+    })
+  }
+  return { edges, ambiguous }
+}
+
+function sourceProvenance(args: {
+  sourceId: string
+  sourceKind: KnowledgeSourceKind
+  sourceTitle: string
+  importedAt: number
+  evidence?: string
+  contentFingerprint?: string
+}): KnowledgeProvenance {
+  return {
+    ...args,
+    importScopeId: args.sourceId,
+    method: 'source-text',
+    confidence: 'verified',
+  }
+}
+
 export function ingestText(
   title: string,
   text: string,
   graph: KnowledgeGraph,
-): { node: GraphNode; edges: GraphEdge[] } {
+): { node: GraphNode; edges: GraphEdge[]; report: KnowledgeImportReport } {
+  const cleanTitle = title.trim()
+  const cleanText = text.trim()
+  if (!cleanTitle || !cleanText) throw new Error('Titel und Text dürfen nicht leer sein.')
   const id = slug(title)
-  const summary = splitSentences(text).slice(0, 6).join(' ').slice(0, 900)
+  const importedAt = Date.now()
+  const sourceId = `manual-text:${stableHash(normalize(cleanTitle))}`
+  const summary = splitSentences(cleanText).slice(0, 6).join(' ').slice(0, 900)
+  const provenance = sourceProvenance({
+    sourceId,
+    sourceKind: 'manual-text',
+    sourceTitle: cleanTitle,
+    importedAt,
+    evidence: summary || cleanText.slice(0, 320),
+    contentFingerprint: `fnv1a:${stableHash(cleanText)}`,
+  })
   const node: GraphNode = {
     id,
-    title: title.trim(),
+    title: cleanTitle,
     type: 'konzept',
     community: 'custom',
-    summary: summary || text.slice(0, 900),
+    summary: summary || cleanText.slice(0, 900),
     custom: true,
+    provenance: [provenance],
   }
-  const edges: GraphEdge[] = []
-  const t = ' ' + normalize(text) + ' '
-  for (const other of graph.nodes) {
-    if (other.id === id) continue
-    const names = [other.title, ...(other.aliases ?? [])]
-    if (names.some((n) => t.includes(' ' + normalize(n) + ' ') || t.includes(normalize(n) + ','))) {
-      edges.push({ source: id, target: other.id, relation: 'erwaehnt', label: 'erwähnt', custom: true })
-    }
-  }
-  return { node, edges }
+  const mentions = mentionEdges(id, cleanText, graph, provenance)
+  const report = createImportReport({
+    sourceId,
+    sourceKind: 'manual-text',
+    sourceTitle: cleanTitle,
+    importedAt,
+    localOnly: true,
+    nodes: [node],
+    edges: mentions.edges,
+    graph,
+    truncated: cleanText.length > node.summary.length,
+    warnings: cleanText.length > node.summary.length
+      ? ['Der Notizknoten speichert nur eine Kurzfassung; Kanten behalten den belegenden Textausschnitt.']
+      : [],
+    skippedReasons: mentions.ambiguous ? { 'mehrdeutige Entitätsnennung': mentions.ambiguous } : {},
+  })
+  return { node, edges: mentions.edges, report }
 }
 
-// ────────────────────────── Wikipedia-Import (Themen-Lernen) ──────────────────────────
-
-/** Fügt nur bei expliziter Namensnennung eine Kante zu bestehendem Wissen hinzu. */
-function pdfMentionEdges(sourceId: string, text: string, graph: KnowledgeGraph): GraphEdge[] {
-  const edges: GraphEdge[] = []
-  const normalizedText = ' ' + normalize(text) + ' '
-  for (const other of graph.nodes) {
-    if (other.id === sourceId) continue
-    const names = [other.title, ...(other.aliases ?? [])]
-    if (names.some((name) => normalizedText.includes(' ' + normalize(name) + ' ') || normalizedText.includes(normalize(name) + ','))) {
-      edges.push({ source: sourceId, target: other.id, relation: 'erwaehnt', label: 'erwähnt', custom: true })
-    }
-  }
-  return edges
+interface PdfChunk {
+  text: string
+  start: number
+  end: number
+  page?: number
 }
 
-function pdfChunks(text: string, maxChars = 850, maxChunks = 24): string[] {
-  const compact = text.replace(/\s+/g, ' ').trim()
-  const sentences = splitSentences(compact)
-  const units = sentences.length > 1 ? sentences : compact.match(new RegExp(`.{1,${maxChars}}(?:\\s|$)`, 'g')) ?? [compact]
-  const chunks: string[] = []
-  let current = ''
-  for (const unit of units) {
-    const part = unit.trim()
-    if (!part) continue
-    if (current && current.length + part.length + 1 > maxChars) {
-      chunks.push(current)
-      current = ''
-      if (chunks.length >= maxChunks) break
+function chunkSegment(text: string, baseOffset: number, maxChars: number, page?: number): PdfChunk[] {
+  const chunks: PdfChunk[] = []
+  let cursor = 0
+  while (cursor < text.length) {
+    while (/\s/.test(text[cursor] ?? '')) cursor++
+    if (cursor >= text.length) break
+    let end = Math.min(text.length, cursor + maxChars)
+    if (end < text.length) {
+      const minimum = cursor + Math.floor(maxChars * 0.55)
+      const candidates = ['. ', '! ', '? ', '» ', '\n\n', '\n', ' ']
+        .map((separator) => text.lastIndexOf(separator, end))
+        .filter((position) => position >= minimum)
+      if (candidates.length) end = Math.max(...candidates) + 1
     }
-    current = current ? `${current} ${part}` : part
+    if (end <= cursor) end = Math.min(text.length, cursor + maxChars)
+    const raw = text.slice(cursor, end)
+    const leading = raw.search(/\S/)
+    const trailing = raw.match(/\s*$/)?.[0].length ?? 0
+    const chunkText = leading >= 0 ? raw.slice(leading, raw.length - trailing) : ''
+    if (chunkText) {
+      chunks.push({
+        text: chunkText,
+        start: baseOffset + cursor + leading,
+        end: baseOffset + end - trailing,
+        page,
+      })
+    }
+    cursor = end
   }
-  if (current && chunks.length < maxChunks) chunks.push(current)
   return chunks
+}
+
+function pdfChunks(source: string | PdfReadResult, maxChars: number, maxChunks: number): { chunks: PdfChunk[]; truncated: boolean } {
+  const chunks: PdfChunk[] = []
+  const segments = typeof source === 'string' || source.pages.length === 0
+    ? [{ text: typeof source === 'string' ? source : source.text, charStart: 0, page: undefined }]
+    : source.pages.map((page) => ({ text: page.text, charStart: page.charStart, page: page.page }))
+  let truncated = typeof source !== 'string' && source.truncated
+  for (const segment of segments) {
+    for (const chunk of chunkSegment(segment.text, segment.charStart, maxChars, segment.page)) {
+      if (chunks.length >= maxChunks) {
+        truncated = true
+        return { chunks, truncated }
+      }
+      chunks.push(chunk)
+    }
+  }
+  return { chunks, truncated }
+}
+
+export interface PdfIngestOptions {
+  /** Stabiler Replace-Scope, falls gleichnamige Dokumente getrennt bleiben sollen. */
+  sourceId?: string
+  maxChunkChars?: number
+  maxChunks?: number
 }
 
 /**
@@ -95,42 +236,125 @@ function pdfChunks(text: string, maxChars = 850, maxChunks = 24): string[] {
  */
 export function ingestPdfDocument(
   title: string,
-  text: string,
+  source: string | PdfReadResult,
   graph: KnowledgeGraph,
-): { nodes: GraphNode[]; edges: GraphEdge[]; chunks: number } {
-  const documentId = slug(`pdf ${title}`)
-  const sections = pdfChunks(text)
+  options: PdfIngestOptions = {},
+): { nodes: GraphNode[]; edges: GraphEdge[]; chunks: number; report: KnowledgeImportReport } {
+  const cleanTitle = title.trim()
+  if (!cleanTitle) throw new Error('Der PDF-Titel darf nicht leer sein.')
+  const fullText = typeof source === 'string' ? source : source.text
+  const importedAt = Date.now()
+  const contentFingerprint = typeof source === 'string' ? `fnv1a:${stableHash(fullText)}` : source.fingerprint
+  // Der Fingerprint verhindert, dass zwei verschiedene PDFs mit identischem
+  // Dateinamen einander still ersetzen. Ein identischer Reimport bleibt
+  // dagegen idempotent und kann seinen Source-Scope sauber aktualisieren.
+  const sourceId = options.sourceId ?? `pdf-local:${contentFingerprint}`
+  const documentId = `${slug(`pdf ${cleanTitle}`)}_${stableHash(sourceId)}`
+  const chunked = pdfChunks(source, options.maxChunkChars ?? 1100, options.maxChunks ?? 128)
+  const sections = chunked.chunks
   if (sections.length === 0) throw new Error('Aus dem PDF konnte kein verwertbarer Text gelesen werden.')
+
+  const rootProvenance = sourceProvenance({
+    sourceId,
+    sourceKind: 'pdf',
+    sourceTitle: cleanTitle,
+    importedAt,
+    evidence: sections[0].text.slice(0, 320),
+    contentFingerprint,
+  })
 
   const nodes: GraphNode[] = [
     {
       id: documentId,
-      title: `PDF: ${title}`,
+      title: `PDF: ${cleanTitle}`,
       type: 'konzept',
       community: 'custom',
-      summary: sections[0].slice(0, 900),
+      summary: sections[0].text.slice(0, 900),
       custom: true,
+      provenance: [rootProvenance],
     },
   ]
   const edges: GraphEdge[] = []
   let previousId: string | null = null
+  let ambiguousMentions = 0
   for (const [index, section] of sections.entries()) {
     const id = `${documentId}_abschnitt_${index + 1}`
+    const sectionBase = {
+      sourceId,
+      importScopeId: sourceId,
+      sourceKind: 'pdf' as const,
+      sourceTitle: cleanTitle,
+      importedAt,
+      page: section.page,
+      section: index + 1,
+      charStart: section.start,
+      charEnd: section.end,
+      contentFingerprint,
+    }
+    const sectionProvenance: KnowledgeProvenance = {
+      ...sectionBase,
+      method: 'source-text',
+      confidence: 'verified',
+      evidence: section.text.slice(0, 320),
+    }
     nodes.push({
       id,
-      title: `${title} · Abschnitt ${index + 1}`,
+      title: `${cleanTitle} · Abschnitt ${index + 1}`,
       type: 'konzept',
       community: 'custom',
-      summary: section,
+      summary: section.text,
       custom: true,
+      provenance: [sectionProvenance],
     })
-    edges.push({ source: documentId, target: id, relation: 'enthaelt_abschnitt', label: 'enthält Abschnitt', custom: true })
-    if (previousId) edges.push({ source: previousId, target: id, relation: 'folgt_auf', label: 'folgt auf', custom: true })
-    edges.push(...pdfMentionEdges(id, section, graph))
+    const structuralProvenance: KnowledgeProvenance = {
+      ...sectionBase,
+      method: 'document-structure',
+      confidence: 'verified',
+      evidence: `Abschnitt ${index + 1}${section.page ? ` auf Seite ${section.page}` : ''}`,
+    }
+    edges.push({
+      source: documentId,
+      target: id,
+      relation: 'enthaelt_abschnitt',
+      label: 'enthält Abschnitt',
+      custom: true,
+      provenance: [structuralProvenance],
+    })
+    if (previousId) {
+      edges.push({
+        source: previousId,
+        target: id,
+        relation: 'danach_folgt',
+        label: 'danach folgt',
+        custom: true,
+        provenance: [structuralProvenance],
+      })
+    }
+    const mentions = mentionEdges(id, section.text, graph, sectionBase, section.start)
+    edges.push(...mentions.edges)
+    ambiguousMentions += mentions.ambiguous
     previousId = id
   }
-  return { nodes, edges, chunks: sections.length }
+
+  const warnings: string[] = []
+  if (chunked.truncated) warnings.push('Der Dokumentimport wurde an einem lokalen Speicherlimit gekürzt.')
+  const report = createImportReport({
+    sourceId,
+    sourceKind: 'pdf',
+    sourceTitle: cleanTitle,
+    importedAt,
+    localOnly: true,
+    nodes,
+    edges,
+    graph,
+    truncated: chunked.truncated,
+    warnings,
+    skippedReasons: ambiguousMentions ? { 'mehrdeutige Entitätsnennung': ambiguousMentions } : {},
+  })
+  return { nodes, edges, chunks: sections.length, report }
 }
+
+// ────────────────────────── Wikipedia-Import (Themen-Lernen) ──────────────────────────
 
 export interface WikiImportProgress {
   step: string
@@ -141,6 +365,9 @@ export interface WikiImportProgress {
 export interface WikiPage {
   title: string
   extract: string
+  pageId?: number
+  revisionId?: number
+  url?: string
 }
 
 const API = 'https://de.wikipedia.org/w/api.php'
@@ -149,13 +376,19 @@ export async function apiGet(params: Record<string, string>): Promise<any> {
   const url = `${API}?${new URLSearchParams({ ...params, format: 'json', origin: '*' })}`
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Wikipedia-API: HTTP ${res.status}`)
-  return res.json()
+  const body = await res.text()
+  try {
+    return JSON.parse(body)
+  } catch {
+    throw new Error('Die Wikipedia-API lieferte keine gültigen JSON-Daten. Prüfe Netzwerk, Filter oder Captive Portal.')
+  }
 }
 
 export async function fetchIntro(title: string): Promise<WikiPage | null> {
   const data = await apiGet({
     action: 'query',
-    prop: 'extracts',
+    prop: 'extracts|info',
+    inprop: 'url',
     exintro: '1',
     explaintext: '1',
     redirects: '1',
@@ -164,7 +397,15 @@ export async function fetchIntro(title: string): Promise<WikiPage | null> {
   const pages = data?.query?.pages ?? {}
   for (const key of Object.keys(pages)) {
     const p = pages[key]
-    if (p?.extract) return { title: p.title, extract: p.extract as string }
+    if (p?.extract) {
+      return {
+        title: p.title,
+        extract: p.extract as string,
+        pageId: typeof p.pageid === 'number' ? p.pageid : undefined,
+        revisionId: typeof p.lastrevid === 'number' ? p.lastrevid : undefined,
+        url: typeof p.canonicalurl === 'string' ? p.canonicalurl : undefined,
+      }
+    }
   }
   return null
 }
@@ -205,10 +446,27 @@ export async function importWikipediaTopic(
   topic: string,
   neighbors = 8,
   onProgress?: (p: WikiImportProgress) => void,
-): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> {
+): Promise<{ nodes: GraphNode[]; edges: GraphEdge[]; report: KnowledgeImportReport }> {
   onProgress?.({ step: `Lade Artikel »${topic}« …`, done: 0, total: neighbors + 1 })
   const root = await fetchIntro(topic)
   if (!root) throw new Error(`Artikel »${topic}« nicht gefunden.`)
+
+  const importedAt = Date.now()
+  const importScopeId = `wikipedia-topic:${stableHash(normalize(root.title))}`
+  const provenanceFor = (page: WikiPage, method: 'source-text' | 'mediawiki-link', targetTitle?: string): KnowledgeProvenance => ({
+    sourceId: `wikipedia:${page.pageId ?? stableHash(normalize(page.title))}`,
+    importScopeId,
+    sourceKind: 'wikipedia',
+    sourceTitle: page.title,
+    importedAt,
+    method,
+    confidence: 'verified',
+    evidence: method === 'source-text' ? page.extract.slice(0, 320) : `${page.title} verlinkt auf ${targetTitle}.`,
+    url: page.url,
+    pageId: page.pageId,
+    revisionId: page.revisionId,
+    targetTitle,
+  })
 
   const introNorm = normalize(root.extract)
   const linked = await fetchLinkedTitles(root.title)
@@ -225,9 +483,12 @@ export async function importWikipediaTopic(
       community: communityId,
       summary: root.extract.slice(0, 1100),
       custom: true,
+      provenance: [provenanceFor(root, 'source-text')],
     },
   ]
   const edges: GraphEdge[] = []
+  const pagesById = new Map<string, WikiPage>([[slug(root.title), root]])
+  let failedPages = 0
 
   let done = 1
   for (const t of relevant) {
@@ -244,18 +505,22 @@ export async function importWikipediaTopic(
             community: communityId,
             summary: page.extract.slice(0, 900),
             custom: true,
+            provenance: [provenanceFor(page, 'source-text')],
           })
+          pagesById.set(nid, page)
           edges.push({
             source: slug(root.title),
             target: nid,
             relation: 'mediawiki_verlinkt_auf',
             label: 'MediaWiki-Link',
             custom: true,
+            provenance: [provenanceFor(root, 'mediawiki-link', page.title)],
           })
         }
       }
     } catch {
       /* einzelne Fehlschläge tolerieren */
+      failedPages++
     }
     done++
   }
@@ -275,12 +540,32 @@ export async function importWikipediaTopic(
       if (a.id === b.id) continue
       if (mediaWikiLinks.get(a.id)?.has(normalize(b.title))) {
         if (!edges.some((e) => e.source === a.id && e.target === b.id)) {
-          edges.push({ source: a.id, target: b.id, relation: 'mediawiki_verlinkt_auf', label: 'MediaWiki-Link', custom: true })
+          const sourcePage = pagesById.get(a.id)
+          edges.push({
+            source: a.id,
+            target: b.id,
+            relation: 'mediawiki_verlinkt_auf',
+            label: 'MediaWiki-Link',
+            custom: true,
+            provenance: sourcePage ? [provenanceFor(sourcePage, 'mediawiki-link', b.title)] : undefined,
+          })
         }
       }
     }
   }
 
   onProgress?.({ step: 'Fertig.', done: relevant.length + 1, total: relevant.length + 1 })
-  return { nodes, edges }
+  const report = createImportReport({
+    sourceId: importScopeId,
+    sourceKind: 'wikipedia',
+    sourceTitle: root.title,
+    importedAt,
+    localOnly: false,
+    nodes,
+    edges,
+    graph: { nodes: [], edges: [] },
+    warnings: failedPages ? [`${failedPages} verlinkte Wikipedia-Seite(n) konnten nicht geladen werden.`] : [],
+    skippedReasons: failedPages ? { 'Wikipedia-Seite nicht ladbar': failedPages } : {},
+  })
+  return { nodes, edges, report }
 }

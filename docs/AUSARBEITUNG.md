@@ -159,7 +159,7 @@ Zusätzlich enthält die App eine deterministische **Demo-Engine** (extraktiver 
 
 ## 5 Systemarchitektur
 
-Das Begleitartefakt **Graph-RAG Lab** implementiert die komplette Pipeline als lokale Web-App (React + TypeScript, keine Server-Komponente):
+Das Begleitartefakt **Graph-RAG Lab** implementiert die komplette wissenschaftliche Pipeline als lokale Web-App (React + TypeScript). Der folgende Aufbau beschreibt ausschließlich den reproduzierbaren Offline-Messmodus:
 
 ```
 ┌────────────────────────────── Smartphone / Browser ──────────────────────────────┐
@@ -195,7 +195,11 @@ Das Begleitartefakt **Graph-RAG Lab** implementiert die komplette Pipeline als l
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Entwurfsprinzipien: **Privacy by Design** (kein Backend, keine Telemetrie; einzige optionale Netzverbindung ist der einmalige Modell-Download bzw. der ausdrücklich angestoßene Wikipedia-Import), **Transparenz** (jeder Retrieval-Kontext und jeder extrahierte Subgraph ist in der UI vollständig einsehbar – auch als didaktisches Werkzeug für die Seminarpräsentation) und **Austauschbarkeit** (Engine- und Retrieval-Schnittstellen sind so geschnitten, dass dichte Embeddings oder andere Modelle ohne Umbau einsteckbar sind).
+Für die interaktive QR-Demonstration auf Smartphones mit inkompatibler WebGPU-Pipeline existiert zusätzlich ein **klar getrennter, zeitlich begrenzter Seminar-Online-Modus**. Auch dort bleiben Dateiimport, Speicherung und Graph-Retrieval lokal; erst beim Senden gehen Frage, kurzer Verlauf und ein begrenzter Graphkontext an eine Supabase Edge Function und das gehostete Modell. Persönliche Text-/PDF-Belege und eine optionale MediaWiki-Suche sind standardmäßig ausgeschaltet und erfordern getrennte Freigaben. Dieser Modus ist kein Teil der Messläufe oder Hypothesentests; technische Details und Transparenztext stehen in `SEMINAR_ONLINE.md`.
+
+Als Bedienoberfläche besitzt Noesis außerdem einen **turn-basierten Live-Sprachdialog**. Nach einem Informationsschritt und einer bewussten Mikrofonfreigabe führt die App abwechselnd Spracherkennung, dieselbe Graph-RAG-/Modellpipeline wie im Textchat und Browser-Sprachausgabe aus; danach beginnt der nächste Sprachzug. Diese Halbduplex-Entscheidung verhindert, dass das Handy seine eigene Vorlesestimme erneut als Frage erkennt. Sie ist nicht mit einer voll-duplex Realtime-Audioverbindung gleichzusetzen. Die Web-Speech-Spezifikation lässt sowohl server- als auch clientbasierte Implementierungen zu [9]. Die App speichert selbst keine Audiodatei, kann aber technisch nicht garantieren, dass Browser oder Betriebssystem Spracherkennung und Sprachausgabe lokal statt über eigene Onlinedienste verarbeiten. Deshalb bleibt die Spracherkennung im Noesis-Offline-Modus gesperrt. Der Sprachmodus ist eine Demonstrations- und Bedienfunktion, kein Faktor oder Messinstrument des Experiments.
+
+Entwurfsprinzipien: **Privacy by Design** (keine Telemetrie; Messdaten, Originaldateien und vollständige Nutzergraphen bleiben lokal; optionale Übertragungen werden begrenzt und offengelegt), **Transparenz** (jeder Retrieval-Kontext und jeder extrahierte Subgraph ist in der UI einsehbar – auch als didaktisches Werkzeug für die Seminarpräsentation) und **Austauschbarkeit** (Engine- und Retrieval-Schnittstellen sind so geschnitten, dass dichte Embeddings oder andere Modelle ohne Umbau einsteckbar sind).
 
 ## 6 Interpretationsmatrix
 
@@ -261,6 +265,7 @@ Es werden keine personenbezogenen Inhalte verarbeitet; die zwei Bewertenden beur
 - [6] Gutiérrez, B. J., Shu, Y., Gu, Y., Yasunaga, M., Su, Y. (2024). *HippoRAG: Neurobiologically Inspired Long-Term Memory for Large Language Models.* NeurIPS 37.
 - [7] Yang, Z., Qi, P., Zhang, S., et al. (2018). *HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering.* EMNLP.
 - [8] MLC-Team (2024). *WebLLM: High-Performance In-Browser LLM Inference Engine.* github.com/mlc-ai/web-llm.
+- [9] W3C Web Speech Community Group (2026). *Web Speech API – Draft Community Group Report.* https://webaudio.github.io/web-speech-api/
 
 ---
 
