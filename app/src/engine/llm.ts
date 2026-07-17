@@ -228,6 +228,23 @@ export const WASM_LLM_MODELS: WasmLLMModel[] = [
   },
 ]
 
+export const WASM_LLM_CONTEXT_TOKENS = 4096
+const WASM_LLM_OUTPUT_TOKENS = 180
+// Zeichen sind nur eine konservative Näherung für Tokens. Der Puffer hält
+// Systemprompt, Chat-Template und Ausgabe sicher innerhalb von 4096 Tokens.
+const WASM_LLM_PROMPT_CHAR_BUDGET = 10_500
+
+export function compactWasmPrompt(system: string, user: string): string {
+  const available = Math.max(2_000, WASM_LLM_PROMPT_CHAR_BUDGET - system.length)
+  if (user.length <= available) return user
+
+  const questionMarker = user.lastIndexOf('\n\nFRAGE:')
+  const tail = questionMarker >= 0 ? user.slice(questionMarker) : user.slice(-800)
+  const notice = '\n\n[… Kontext für das lokale Modell gekürzt …]'
+  const headLength = Math.max(1_000, available - tail.length - notice.length)
+  return `${user.slice(0, headLength)}${notice}${tail}`
+}
+
 export class WasmLLMEngine implements LLMEngine {
   readonly id: string
   readonly label: string
@@ -282,7 +299,7 @@ export class WasmLLMEngine implements LLMEngine {
       // ein Thread gesetzt, weil dort keine COOP/COEP-Header konfigurierbar sind.
       n_gpu_layers: 0,
       n_threads: 1,
-      n_ctx: 2048,
+      n_ctx: WASM_LLM_CONTEXT_TOKENS,
       n_batch: 128,
       useCache: true,
       progressCallback: ({ loaded, total }) => {
@@ -301,16 +318,17 @@ export class WasmLLMEngine implements LLMEngine {
 
   async generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult> {
     if (!this.runtime) throw new Error('CPU-Modell nicht geladen')
+    const fittedUserPrompt = compactWasmPrompt(system, user)
     this.abortController = new AbortController()
     try {
       const stream = await this.runtime.createChatCompletion({
         messages: [
           { role: 'system', content: system },
-          { role: 'user', content: user },
+          { role: 'user', content: fittedUserPrompt },
         ],
         temperature: 0,
         seed: 42,
-        max_tokens: 180,
+        max_tokens: WASM_LLM_OUTPUT_TOKENS,
         cache_prompt: true,
         abortSignal: this.abortController.signal,
         stream: true,
