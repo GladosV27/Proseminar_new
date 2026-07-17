@@ -3,6 +3,7 @@ import type { AppCtx } from '../App'
 import { extractTriples } from '../engine/extract'
 import { importWikipediaTopic, ingestPdfDocument, ingestText, type WikiImportProgress } from '../engine/ingest'
 import { readPdfText, type PdfReadProgress } from '../engine/pdf'
+import { applyKnowledgeImport } from '../engine/store'
 
 export default function Knowledge({ ctx }: { ctx: AppCtx }) {
   const [title, setTitle] = useState('')
@@ -22,21 +23,22 @@ export default function Knowledge({ ctx }: { ctx: AppCtx }) {
 
   async function addNote() {
     if (!title.trim() || !text.trim() || extracting) return
-    const { node, edges } = ingestText(title, text, ctx.graph)
+    setError(null)
+    const imported = ingestText(title, text, ctx.graph)
+    const { node, edges } = imported
 
     // Optional: das LOKALE LLM extrahiert typisierte Tripel aus dem Text –
     // der Graph baut sich selbst (Ausarbeitung § 8). Nur eindeutig auflösbare
     // Tripel werden übernommen; Erwähnungs-Kanten bleiben der Fallback.
     let llmEdges: typeof edges = []
     let llmNote = ''
-    if (useLlmExtraction && ctx.engine.id !== 'extractive') {
+    if (useLlmExtraction && ctx.engine.id !== 'extractive' && ctx.engine.execution === 'local') {
       setExtracting(true)
       try {
-        const { triples, edges: extracted } = await extractTriples(ctx.engine, text, ctx.graph, node)
-        llmEdges = extracted.filter(
-          (e) => !edges.some((x) => x.source === e.source && x.target === e.target),
-        )
+        const { triples, edges: extracted, evidenceRejected } = await extractTriples(ctx.engine, text, ctx.graph, node)
+        llmEdges = extracted
         llmNote = ` Das LLM hat ${triples.length} Tripel vorgeschlagen, davon ${llmEdges.length} eindeutig aufgelöst und übernommen.`
+        if (evidenceRejected) llmNote += ` ${evidenceRejected} Vorschläge hatten keinen eindeutigen Textbeleg.`
       } catch (err) {
         llmNote = ` (Tripel-Extraktion fehlgeschlagen: ${err instanceof Error ? err.message : String(err)})`
       } finally {
@@ -44,13 +46,24 @@ export default function Knowledge({ ctx }: { ctx: AppCtx }) {
       }
     }
 
-    ctx.setCustom({
-      nodes: [...ctx.custom.nodes.filter((n) => n.id !== node.id), node],
-      edges: [...ctx.custom.edges.filter((e) => e.source !== node.id), ...edges, ...llmEdges],
-    })
-    setMessage(`»${node.title}« hinzugefügt – automatisch verknüpft mit ${edges.length} vorhandenen Entitäten.${llmNote}`)
-    setTitle('')
-    setText('')
+    try {
+      const allEdges = [...edges, ...llmEdges]
+      const applied = applyKnowledgeImport(ctx.custom, {
+        nodes: [node],
+        edges: allEdges,
+        report: {
+          ...imported.report,
+          candidateEdges: allEdges.length,
+          evidencedEdges: allEdges.filter((edge) => edge.provenance?.length).length,
+        },
+      })
+      ctx.setCustom(applied.knowledge)
+      setMessage(`»${node.title}« gespeichert – ${applied.report.delta.addedEdgeKeys.length} neue und ${applied.report.delta.updatedEdgeKeys.length} aktualisierte Kanten.${llmNote}`)
+      setTitle('')
+      setText('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
   }
 
   async function learnTopic() {
@@ -63,14 +76,11 @@ export default function Knowledge({ ctx }: { ctx: AppCtx }) {
     setError(null)
     setMessage(null)
     try {
-      const { nodes, edges } = await importWikipediaTopic(topic.trim(), 8, setWikiProgress)
-      const existing = new Set(ctx.custom.nodes.map((n) => n.id))
-      ctx.setCustom({
-        nodes: [...ctx.custom.nodes, ...nodes.filter((n) => !existing.has(n.id))],
-        edges: [...ctx.custom.edges, ...edges],
-      })
+      const imported = await importWikipediaTopic(topic.trim(), 8, setWikiProgress)
+      const applied = applyKnowledgeImport(ctx.custom, imported)
+      ctx.setCustom(applied.knowledge)
       setMessage(
-        `Thema »${topic}« gelernt: ${nodes.length} Artikel und ${edges.length} Beziehungen als neuer Cluster übernommen. Der Assistent kann jetzt Fragen dazu beantworten.`,
+        `Thema »${topic}« gelernt: ${applied.report.delta.addedNodeIds.length} neue Artikel und ${applied.report.delta.addedEdgeKeys.length} verifizierte MediaWiki-Beziehungen übernommen.`,
       )
       setTopic('')
     } catch (err) {
@@ -93,16 +103,11 @@ export default function Knowledge({ ctx }: { ctx: AppCtx }) {
     try {
       const parsed = await readPdfText(pdfFile, setPdfProgress)
       const title = pdfFile.name.replace(/\.pdf$/i, '') || 'Lokales PDF'
-      const { nodes, edges, chunks } = ingestPdfDocument(title, parsed.text, ctx.graph)
-      const newIds = new Set(nodes.map((node) => node.id))
-      const preservedNodes = ctx.custom.nodes.filter((node) => !newIds.has(node.id))
-      const preservedEdges = ctx.custom.edges.filter((edge) => !newIds.has(edge.source) && !newIds.has(edge.target))
-      const mergedEdges = [...preservedEdges, ...edges].filter(
-        (edge, index, all) => all.findIndex((other) => other.source === edge.source && other.target === edge.target && other.relation === edge.relation) === index,
-      )
-      ctx.setCustom({ nodes: [...preservedNodes, ...nodes], edges: mergedEdges })
+      const imported = ingestPdfDocument(title, parsed, ctx.graph)
+      const applied = applyKnowledgeImport(ctx.custom, imported)
+      ctx.setCustom(applied.knowledge)
       setMessage(
-        `PDF »${pdfFile.name}« lokal gelesen: ${parsed.pagesRead}/${parsed.totalPages} Seiten, ${chunks} Abschnittsknoten und ${edges.length} belegte Kanten hinzugefügt.${parsed.truncated ? ' Der Import wurde aus Speichergründen begrenzt.' : ''}`,
+        `PDF »${pdfFile.name}« lokal gelesen: ${parsed.pagesRead}/${parsed.totalPages} Seiten, ${imported.chunks} Abschnittsknoten und ${applied.report.delta.addedEdgeKeys.length} neue belegte Kanten.${applied.report.truncated ? ' Der Import wurde aus Speichergründen begrenzt.' : ''}`,
       )
       setPdfFile(null)
     } catch (err) {
@@ -158,14 +163,14 @@ export default function Knowledge({ ctx }: { ctx: AppCtx }) {
               type="checkbox"
               checked={useLlmExtraction}
               onChange={(e) => setUseLlmExtraction(e.target.checked)}
-              disabled={ctx.engine.id === 'extractive'}
+              disabled={ctx.engine.id === 'extractive' || ctx.engine.execution !== 'local'}
               style={{ marginTop: 2 }}
             />
             <span>
               🧠 Beziehungen zusätzlich mit dem lokalen LLM extrahieren (Subjekt | Relation | Objekt)
-              {ctx.engine.id === 'extractive' && (
+              {(ctx.engine.id === 'extractive' || ctx.engine.execution !== 'local') && (
                 <em style={{ display: 'block', color: 'var(--muted)' }}>
-                  – benötigt ein geladenes WebLLM-Modell (Ansicht »Modelle«)
+                  – benötigt ein tatsächlich lokal geladenes WebLLM-Modell (Ansicht »Modelle«)
                 </em>
               )}
             </span>

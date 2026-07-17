@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { AppCtx } from '../App'
 import type { Condition, GraphEdge, GraphNode } from '../data/types'
 import { BASE_GRAPH } from '../data/graph'
 import { QUESTIONS } from '../data/questions'
 import ForceGraph from '../components/ForceGraph'
 import { dictate, speak, speaking, speechRecognitionAvailable, stopSpeaking, ttsAvailable } from '../components/speech'
+import { VOICE_PRIVACY_NOTICE_DE } from '../engine/liveVoice'
 import { ALL_CONDITIONS, CONDITION_INFO, ExperimentRunner, type PreparedTrial } from '../engine/experiment'
 import { looksUncovered, researchQuestion, type ResearchProgress } from '../engine/research'
 
@@ -24,6 +25,7 @@ export default function Assistant({ ctx }: { ctx: AppCtx }) {
   const [busy, setBusy] = useState(false)
   const [researchProgress, setResearchProgress] = useState<ResearchProgress | null>(null)
   const [researchError, setResearchError] = useState<string | null>(null)
+  const dictationCancelRef = useRef<(() => void) | null>(null)
   // Recherche-Wissen der Sitzung – bewusst getrennt vom Basis-Korpus und
   // erst auf Klick dauerhaft ins Nutzerwissen übernommen.
   const [research, setResearch] = useState<{ nodes: GraphNode[]; edges: GraphEdge[]; sources: string[] }>({
@@ -35,6 +37,13 @@ export default function Assistant({ ctx }: { ctx: AppCtx }) {
   useEffect(() => {
     if (!ctx.online) setOnline(false)
   }, [ctx.online])
+
+  useEffect(() => {
+    return () => {
+      dictationCancelRef.current?.()
+      stopSpeaking()
+    }
+  }, [])
 
   // Aktive Wissensbasis: Experiment-Korpus pur oder erweitert (inkl. eigenem
   // Wissen), jeweils plus das in dieser Sitzung recherchierte Wissen.
@@ -129,9 +138,14 @@ export default function Assistant({ ctx }: { ctx: AppCtx }) {
 
   async function startDictation() {
     if (listening || busy) return
+    if (!ctx.online) {
+      setResearchError('Diktieren bleibt im Offline-Modus gesperrt, weil die Browser-Spracherkennung nicht garantiert lokal arbeitet.')
+      return
+    }
     setListening(true)
     try {
-      const { promise } = dictate((interim) => setQuestion(interim))
+      const { promise, cancel } = dictate((interim) => setQuestion(interim))
+      dictationCancelRef.current = cancel
       const finalText = await promise
       setListening(false)
       if (finalText) {
@@ -141,6 +155,8 @@ export default function Assistant({ ctx }: { ctx: AppCtx }) {
     } catch (err) {
       setListening(false)
       setResearchError(err instanceof Error ? err.message : String(err))
+    } finally {
+      dictationCancelRef.current = null
     }
   }
 
@@ -222,9 +238,9 @@ export default function Assistant({ ctx }: { ctx: AppCtx }) {
           {speechRecognitionAvailable() && (
             <button
               className="btn"
-              title="Frage diktieren"
+              title={ctx.online ? 'Frage über den Browser-Sprachdienst diktieren' : 'Im Offline-Modus gesperrt'}
               onClick={startDictation}
-              disabled={busy}
+              disabled={busy || !ctx.online}
               style={listening ? { borderColor: 'var(--accent)', color: 'var(--accent-deep)', animation: 'pulse-mic 1s infinite' } : undefined}
             >
               {listening ? '● hört zu …' : '🎙'}
@@ -234,6 +250,11 @@ export default function Assistant({ ctx }: { ctx: AppCtx }) {
             {busy ? '…' : 'Fragen'}
           </button>
         </div>
+        {speechRecognitionAvailable() && (
+          <div className="hint" style={{ marginTop: 7 }}>
+            🎙 {VOICE_PRIVACY_NOTICE_DE} Deshalb ist das Mikrofon im Offline-Modus gesperrt.
+          </div>
+        )}
 
         <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {[QUESTIONS[10], QUESTIONS[21], QUESTIONS[23], QUESTIONS[35]].map((q) => (

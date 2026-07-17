@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readdir, readFile, writeFile } from 'node:fs/promises'
+import { readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -9,6 +9,10 @@ const distDirectory = path.join(appDirectory, 'dist')
 const serviceWorkerPath = path.join(distDirectory, 'sw.js')
 const BUILD_PLACEHOLDER = '__APP_BUILD_ID__'
 const MANIFEST_PLACEHOLDER = "['__PRECACHE_MANIFEST__']"
+// Große optionale Laufzeiten (WebLLM/ONNX) würden sonst bereits beim ersten
+// QR-Aufruf auf jedes Handy geladen. Sie werden erst bei bewusster Modell-
+// bzw. Embedding-Wahl geladen und dann vom Runtime-Cache gespeichert.
+const MAX_PRECACHE_FILE_BYTES = 3 * 1024 * 1024
 
 async function listFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true })
@@ -66,14 +70,22 @@ async function main() {
   }
 
   const buildId = await createBuildId(files)
-  const manifest = files.map(toScopedUrl)
+  const sizes = await Promise.all(files.map(async (file) => ({ file, bytes: (await stat(file)).size })))
+  const precacheFiles = sizes
+    .filter(({ file, bytes }) => !file.includes(`${path.sep}assets${path.sep}`) || bytes <= MAX_PRECACHE_FILE_BYTES)
+    .map(({ file }) => file)
+  const excluded = sizes.filter(({ file }) => !precacheFiles.includes(file))
+  const manifest = precacheFiles.map(toScopedUrl)
   const generated = template
     .replaceAll(BUILD_PLACEHOLDER, buildId)
     .replace(MANIFEST_PLACEHOLDER, JSON.stringify(manifest, null, 2))
 
   await writeFile(serviceWorkerPath, generated, 'utf8')
   console.log(
-    `Offline-App-Shell erzeugt: ${manifest.length} Dateien, Build ${buildId}, Cache graphrag-app-shell-${buildId}`,
+    `Offline-App-Shell erzeugt: ${manifest.length} Dateien, Build ${buildId}, Cache graphrag-app-shell-${buildId}` +
+      (excluded.length
+        ? `; ${excluded.length} optionale Großdatei(en) (${(excluded.reduce((sum, item) => sum + item.bytes, 0) / 1024 / 1024).toFixed(1)} MB) werden erst bei Nutzung geladen`
+        : ''),
   )
 }
 

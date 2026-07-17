@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { AppCtx } from '../App'
+import LiveVoiceDialog, { type LiveVoiceStage } from '../components/LiveVoiceDialog'
 import type { GraphEdge, KnowledgeGraph } from '../data/types'
 import { ExperimentRunner, type PreparedTrial } from '../engine/experiment'
+import {
+  getVoiceCapabilities,
+  TurnBasedVoiceController,
+  VoiceSynthesisError,
+  type LiveVoiceSnapshot,
+} from '../engine/liveVoice'
 import {
   RESEARCH_COMMUNITY,
   looksUncovered,
@@ -30,6 +37,8 @@ interface ConversationMessage {
   prepared?: PreparedTrial
   technicalGraph?: KnowledgeGraph
   notices?: string[]
+  /** Die Antwort enthält Kontext aus lokalem Text/PDF-Wissen. */
+  containsPersonalKnowledge?: boolean
 }
 
 interface ActiveRun {
@@ -140,6 +149,36 @@ function technicalSubgraph(prepared: PreparedTrial, graph: KnowledgeGraph): Know
   }
 }
 
+const PRIVATE_SOURCE_KINDS = new Set(['manual-text', 'pdf', 'local-llm'])
+
+function isPrivateProvenance(edge: GraphEdge): boolean {
+  return edge.provenance?.some((value) => PRIVATE_SOURCE_KINDS.has(value.sourceKind)) ?? false
+}
+
+/** Entfernt private Text-/PDF-Knoten und auch private Basis→Basis-Kanten. */
+function withoutPersonalKnowledge(graph: KnowledgeGraph): KnowledgeGraph {
+  const privateIds = new Set(
+    graph.nodes.filter((node) => node.community === 'custom').map((node) => node.id),
+  )
+  const communities = new Map(graph.nodes.map((node) => [node.id, node.community]))
+  return {
+    nodes: graph.nodes.filter((node) => !privateIds.has(node.id)),
+    edges: graph.edges.flatMap((edge) => {
+      if (privateIds.has(edge.source) || privateIds.has(edge.target)) return []
+      if (edge.custom && !edge.provenance?.length) {
+        // Legacy-Wikipedia-Kanten sind öffentlich erkennbar; unbelegte
+        // Basis→Basis-Custom-Kanten werden privacy-first ausgeschlossen.
+        const publicResearch = [communities.get(edge.source), communities.get(edge.target)]
+          .some((community) => community === RESEARCH_COMMUNITY || community?.startsWith('wiki_'))
+        return publicResearch ? [edge] : []
+      }
+      if (!isPrivateProvenance(edge)) return [edge]
+      const provenance = edge.provenance?.filter((value) => !PRIVATE_SOURCE_KINDS.has(value.sourceKind))
+      return provenance?.length ? [{ ...edge, provenance }] : []
+    }),
+  }
+}
+
 function lastUserQuestion(messages: ConversationMessage[]): string | null {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === 'user') return messages[i].text
@@ -157,9 +196,13 @@ function retrievalQuestion(question: string, messages: ConversationMessage[]): s
   return isFollowUp ? `${previous}\nAnschlussfrage: ${question}` : question
 }
 
-function conversationHistory(messages: ConversationMessage[]): string {
+function conversationHistory(messages: ConversationMessage[], includePersonalKnowledge = true): string {
   const usable = messages
-    .filter((message) => message.status === 'done' && message.text.trim())
+    .filter((message) =>
+      message.status === 'done' &&
+      message.text.trim() &&
+      (includePersonalKnowledge || !message.containsPersonalKnowledge),
+    )
     .slice(-6)
   if (usable.length === 0) return ''
   return usable
@@ -171,8 +214,13 @@ function conversationHistory(messages: ConversationMessage[]): string {
     .join('\n')
 }
 
-function modelPrompt(question: string, prepared: PreparedTrial, messages: ConversationMessage[]): string {
-  const history = conversationHistory(messages)
+function modelPrompt(
+  question: string,
+  prepared: PreparedTrial,
+  messages: ConversationMessage[],
+  includePersonalKnowledge = true,
+): string {
+  const history = conversationHistory(messages, includePersonalKnowledge)
   return [
     history ? `BISHERIGER GESPRÄCHSVERLAUF (nur für sprachliche Bezüge):\n${history}` : '',
     `KONTEXT:\n${prepared.context}`,
@@ -191,14 +239,44 @@ function sourceRelationList(graph: KnowledgeGraph): string[] {
   })
 }
 
-export default function Conversation({ ctx }: { ctx: AppCtx }) {
+function dialogStage(snapshot: LiveVoiceSnapshot): LiveVoiceStage {
+  if (snapshot.phase === 'idle') return 'ready'
+  if (snapshot.phase === 'listening') return 'listening'
+  if (snapshot.phase === 'thinking') return 'thinking'
+  if (snapshot.phase === 'speaking') return 'speaking'
+  if (snapshot.phase === 'paused') return 'paused'
+  return 'error'
+}
+
+export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boolean }) {
   const [messages, setMessages] = useState<ConversationMessage[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState<ConversationPhase>('idle')
   const [researchProgress, setResearchProgress] = useState<ResearchProgress | null>(null)
+  const [sharePersonalKnowledge, setSharePersonalKnowledge] = useState(false)
+  const [seminarWikipedia, setSeminarWikipedia] = useState(false)
+  const [voiceOpen, setVoiceOpen] = useState(false)
+  const [voiceStage, setVoiceStage] = useState<LiveVoiceStage>('ready')
+  const [voiceTranscript, setVoiceTranscript] = useState('')
+  const [voiceLastQuestion, setVoiceLastQuestion] = useState('')
+  const [voiceLastAnswer, setVoiceLastAnswer] = useState('')
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null)
+  const [voiceMuted, setVoiceMuted] = useState(false)
   const activeRunRef = useRef<ActiveRun | null>(null)
+  const busyRef = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const voiceControllerRef = useRef<TurnBasedVoiceController | null>(null)
+  const askRef = useRef<(question: string) => Promise<string | null>>(async () => null)
+  const stopAnswerRef = useRef<() => void>(() => undefined)
+  const voiceMutedRef = useRef(false)
+  const seminarOnline = ctx.engine.id === 'seminar-online'
+  const voiceCapabilities = useMemo(() => getVoiceCapabilities(), [])
+  const personalNodeCount = useMemo(
+    () => ctx.custom.nodes.filter((node) => node.community === 'custom').length,
+    [ctx.custom.nodes],
+  )
 
   const pendingLabel = useMemo(() => {
     if (phase === 'research') return researchProgress?.step ?? 'Wikipedia wird nach passendem Wissen durchsucht …'
@@ -215,6 +293,33 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
   useEffect(() => {
     return () => {
       if (activeRunRef.current) activeRunRef.current.cancelled = true
+      voiceControllerRef.current?.stop()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (active) return
+    voiceControllerRef.current?.stop()
+    setVoiceOpen(false)
+    setVoiceStage('ready')
+    setVoiceTranscript('')
+  }, [active])
+
+  useEffect(() => {
+    function suspendVoice() {
+      voiceControllerRef.current?.stop()
+      setVoiceOpen(false)
+      setVoiceStage('ready')
+      setVoiceTranscript('')
+    }
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') suspendVoice()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', suspendVoice)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', suspendVoice)
     }
   }, [])
 
@@ -222,9 +327,9 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
     setMessages((current) => current.map((message) => (message.id === id ? { ...message, ...patch } : message)))
   }
 
-  async function ask(rawQuestion?: string): Promise<void> {
+  async function ask(rawQuestion?: string): Promise<string | null> {
     const question = (rawQuestion ?? input).trim()
-    if (!question || busy) return
+    if (!question || busyRef.current) return null
 
     const historyBeforeQuestion = messages
     const userMessage: ConversationMessage = {
@@ -246,18 +351,24 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
     }
 
     activeRunRef.current = run
+    busyRef.current = true
     setMessages((current) => [...current, userMessage, assistantMessage])
     setInput('')
     setBusy(true)
     setResearchProgress(null)
 
-    let graph = ctx.graph
+    let graph = seminarOnline && !sharePersonalKnowledge
+      ? withoutPersonalKnowledge(ctx.graph)
+      : ctx.graph
     const query = retrievalQuestion(question, historyBeforeQuestion)
     const notices: string[] = []
+
+    let answerForVoice: string | null = null
 
     try {
       const canResearch =
         ctx.online &&
+        (!seminarOnline || seminarWikipedia) &&
         navigator.onLine !== false &&
         (looksUncovered(query, graph) || looksUncovered(question, graph))
 
@@ -267,14 +378,14 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
           const found = await researchQuestion(query, graph, {}, (progress) => {
             if (!run.cancelled) setResearchProgress(progress)
           })
-          if (run.cancelled) return
+          if (run.cancelled) return null
           persistResearch(ctx, found)
           graph = mergeResearchGraph(graph, found)
           notices.push(
             `${found.nodes.length} Wikipedia-Artikel und ${found.edges.length} verifizierte MediaWiki-Verbindungen wurden lokal gespeichert.`,
           )
         } catch (error) {
-          if (run.cancelled) return
+          if (run.cancelled) return null
           const reason = error instanceof Error ? error.message : String(error)
           notices.push(`Die Wikipedia-Ergänzung war nicht verfügbar (${reason}). Die Antwort nutzt deshalb nur das lokale Wissen.`)
         } finally {
@@ -282,7 +393,7 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
         }
       }
 
-      if (run.cancelled) return
+      if (run.cancelled) return null
       setPhase('retrieval')
       const runner = new ExperimentRunner(graph)
       let prepared: PreparedTrial
@@ -294,44 +405,66 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
         notices.push('Dichte Embeddings waren lokal nicht bereit; für diese Antwort wurde automatisch auf TF-IDF zurückgefallen.')
       }
 
-      if (run.cancelled) return
+      if (run.cancelled) return null
       const sources = sourceRefs(prepared, graph)
+      const retrievedIds = new Set(prepared.retrievedIds)
+      const containsPersonalKnowledge =
+        sources.some((source) => source.kind === 'Eigenes Wissen') ||
+        graph.edges.some(
+          (edge) =>
+            isPrivateProvenance(edge) &&
+            retrievedIds.has(edge.source) &&
+            retrievedIds.has(edge.target),
+        )
+      if (seminarOnline && sharePersonalKnowledge && containsPersonalKnowledge) {
+        notices.push('Mit deiner Freigabe wurden ausgewählte Belegauszüge aus deinem lokalen Wissen an das Seminar-Modell gesendet.')
+      }
       updateMessage(assistantMessage.id, {
         prepared,
         sources,
         technicalGraph: technicalSubgraph(prepared, graph),
         notices,
+        containsPersonalKnowledge,
       })
 
       setPhase('generation')
       const result = await ctx.engine.generate(
         CONVERSATION_SYSTEM_PROMPT,
-        modelPrompt(question, prepared, historyBeforeQuestion),
+        modelPrompt(
+          question,
+          prepared,
+          historyBeforeQuestion,
+          !seminarOnline || sharePersonalKnowledge,
+        ),
         (partial) => {
           if (!run.cancelled) updateMessage(assistantMessage.id, { text: partial })
         },
       )
-      if (run.cancelled) return
+      if (run.cancelled) return null
+      answerForVoice = result.text.trim() || 'Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.'
       updateMessage(assistantMessage.id, {
-        text: result.text.trim() || 'Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.',
+        text: answerForVoice,
         status: 'done',
       })
     } catch (error) {
-      if (run.cancelled) return
+      if (run.cancelled) return null
       const reason = error instanceof Error ? error.message : String(error)
+      answerForVoice = `Ich konnte die Antwort gerade nicht erzeugen. ${reason}`
       updateMessage(assistantMessage.id, {
-        text: `Ich konnte die Antwort gerade nicht erzeugen. ${reason}`,
+        text: answerForVoice,
         status: 'error',
         notices,
       })
     } finally {
       if (activeRunRef.current?.id === run.id) {
         activeRunRef.current = null
+        busyRef.current = false
         setBusy(false)
         setPhase('idle')
         setResearchProgress(null)
       }
     }
+    return answerForVoice
   }
 
   function stopAnswer(): void {
@@ -353,6 +486,7 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
     void Promise.resolve(ctx.engine.interrupt?.()).finally(() => {
       if (activeRunRef.current?.id !== run.id) return
       activeRunRef.current = null
+      busyRef.current = false
       setBusy(false)
       setPhase('idle')
       setResearchProgress(null)
@@ -360,6 +494,9 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
   }
 
   function clearConversation(): void {
+    voiceControllerRef.current?.stop()
+    setVoiceOpen(false)
+    setVoiceStage('ready')
     const run = activeRunRef.current
     if (run) {
       run.cancelled = true
@@ -367,6 +504,7 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
       void Promise.resolve(ctx.engine.interrupt?.()).finally(() => {
         if (activeRunRef.current?.id !== run.id) return
         activeRunRef.current = null
+        busyRef.current = false
         setBusy(false)
         setPhase('idle')
         setResearchProgress(null)
@@ -377,6 +515,103 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
     setResearchProgress(null)
     if (!run) setPhase('idle')
   }
+
+  function syncVoiceSnapshot(snapshot: LiveVoiceSnapshot): void {
+    setVoiceStage(dialogStage(snapshot))
+    setVoiceTranscript([snapshot.finalTranscript, snapshot.interimTranscript].filter(Boolean).join(' ').trim())
+    setVoiceError(snapshot.error?.message ?? null)
+    if (snapshot.lastUserText) setVoiceLastQuestion(snapshot.lastUserText)
+    if (snapshot.phase === 'thinking') setVoiceLastAnswer('')
+  }
+
+  function voiceController(): TurnBasedVoiceController {
+    if (voiceControllerRef.current) return voiceControllerRef.current
+    voiceControllerRef.current = new TurnBasedVoiceController({
+      lang: 'de-DE',
+      autoContinue: true,
+      onSnapshot: syncVoiceSnapshot,
+      onCancelTurn: () => stopAnswerRef.current(),
+      onTurnError: (error) => {
+        if (!(error instanceof VoiceSynthesisError) || error.code === 'cancelled') return
+        voiceMutedRef.current = true
+        setVoiceMuted(true)
+        setVoiceNotice('Die Vorlesestimme ist auf diesem Gerät gerade nicht verfügbar. Die Textantwort bleibt sichtbar; Noesis hört weiter zu.')
+      },
+      onTurn: async (transcript) => {
+        setVoiceLastQuestion(transcript)
+        setVoiceLastAnswer('')
+        const answer = await askRef.current(transcript)
+        if (answer) setVoiceLastAnswer(answer)
+        return voiceMutedRef.current || !voiceCapabilities.synthesis ? null : answer
+      },
+    })
+    return voiceControllerRef.current
+  }
+
+  function openVoice(): void {
+    if (busyRef.current) return
+    setVoiceOpen(true)
+    setVoiceTranscript('')
+    setVoiceLastQuestion('')
+    setVoiceLastAnswer('')
+    setVoiceError(null)
+    setVoiceNotice(null)
+    if (!ctx.online) {
+      setVoiceStage('offline')
+      return
+    }
+    if (!voiceCapabilities.recognition) {
+      setVoiceStage('unsupported')
+      return
+    }
+    if (!voiceCapabilities.synthesis) {
+      voiceMutedRef.current = true
+      setVoiceMuted(true)
+    }
+  }
+
+  function closeVoice(): void {
+    voiceControllerRef.current?.stop()
+    setVoiceOpen(false)
+    setVoiceStage('ready')
+    setVoiceTranscript('')
+    setVoiceError(null)
+    setVoiceNotice(null)
+  }
+
+  function handleVoicePrimaryAction(): void {
+    const controller = voiceControllerRef.current
+    if (!controller) {
+      if (voiceCapabilities.recognition) voiceController().start()
+      return
+    }
+    if (voiceStage === 'listening') {
+      controller.pause()
+    } else if (voiceStage === 'speaking') {
+      controller.interruptSpeech()
+    } else if (controller.getSnapshot().phase === 'paused' || controller.getSnapshot().phase === 'error') {
+      controller.resume()
+    } else {
+      controller.start()
+    }
+  }
+
+  function stopVoiceTurn(): void {
+    voiceControllerRef.current?.pause()
+    stopAnswer()
+  }
+
+  function toggleVoiceMuted(): void {
+    if (!voiceCapabilities.synthesis) return
+    const next = !voiceMutedRef.current
+    voiceMutedRef.current = next
+    setVoiceMuted(next)
+    if (!next) setVoiceNotice(null)
+    if (next && voiceStage === 'speaking') voiceControllerRef.current?.interruptSpeech()
+  }
+
+  askRef.current = (question) => ask(question)
+  stopAnswerRef.current = stopAnswer
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
@@ -394,7 +629,9 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
     <section className="conversation-view">
       <header className="conversation-hero">
         <div>
-          <div className="eyebrow">Wikipedia · Wissensgraph · lokal</div>
+          <div className="eyebrow">
+            {seminarOnline ? 'Seminar-Online-Modell · lokales Graph-Retrieval' : 'Wikipedia · Wissensgraph · lokal'}
+          </div>
           <h1>Noesis · philosophischer Wissensdialog</h1>
           <p className="lead">
             Sprich natürlich über Philosophie- und Ideengeschichte. Noesis verbindet passende Knoten, macht seine Quellen
@@ -407,10 +644,23 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
           <button
             type="button"
             className={`chip conversation-online-toggle ${ctx.online ? 'online' : ''}`}
-            onClick={() => ctx.setOnline(!ctx.online)}
-            title={ctx.online ? 'Live-Recherche ausschalten' : 'Live-Recherche und bewusste Downloads erlauben'}
+            onClick={() => {
+              if (!seminarOnline) ctx.setOnline(!ctx.online)
+            }}
+            title={
+              seminarOnline
+                ? 'Das gemeinsame Seminar-Modell ist online; Dateien und Graph-Retrieval bleiben lokal.'
+                : ctx.online
+                  ? 'Live-Recherche ausschalten'
+                  : 'Live-Recherche und bewusste Downloads erlauben'
+            }
+            aria-disabled={seminarOnline}
           >
-            {ctx.online ? '● Wikipedia bei Wissenslücken' : '○ Offline · nur lokales Wissen'}
+            {seminarOnline
+              ? '● Seminar-Modell verbunden'
+              : ctx.online
+                ? '● Wikipedia bei Wissenslücken'
+                : '○ Offline · Noesis-Netz aus'}
           </button>
         </div>
       </header>
@@ -430,11 +680,53 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
         </div>
       )}
 
+      {seminarOnline && (
+        <div className="callout conversation-engine-note conversation-remote-note">
+          <div>
+            <strong>Transparenz: Die Antwort wird online formuliert.</strong>
+            <div className="hint">
+              Text- und PDF-Import, Speicherung sowie Graph-Retrieval laufen auf diesem Gerät. Erst beim Senden werden
+              die Frage, ein kurzer Gesprächsverlauf und höchstens 5.000 Zeichen ausgewählter Graphkontext an das
+              zeitlich begrenzte Seminar-Modell übertragen – niemals die Originaldatei oder der vollständige Graph.
+            </div>
+            <div className="seminar-consent-controls">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={sharePersonalKnowledge}
+                  onChange={(event) => setSharePersonalKnowledge(event.target.checked)}
+                  disabled={personalNodeCount === 0}
+                />
+                <span>
+                  <strong>Eigenes Wissen für Online-Antworten freigeben</strong>
+                  <small>
+                    {personalNodeCount > 0
+                      ? 'Nur lokal ausgewählte Textstellen, standardmäßig ausgeschaltet.'
+                      : 'Noch kein eigener Text oder PDF-Inhalt gespeichert.'}
+                  </small>
+                </span>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={seminarWikipedia}
+                  onChange={(event) => setSeminarWikipedia(event.target.checked)}
+                />
+                <span>
+                  <strong>Wikipedia bei Wissenslücken durchsuchen</strong>
+                  <small>Übermittelt die Suchfrage an die öffentliche MediaWiki-API; standardmäßig ausgeschaltet.</small>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card conversation-shell">
         <div className="conversation-feed" role="log" aria-live="polite" aria-busy={busy}>
           {messages.length === 0 && (
             <div className="conversation-welcome">
-              <div className="conversation-avatar" aria-hidden="true">F</div>
+              <div className="conversation-avatar" aria-hidden="true">N</div>
               <div>
                 <h2>Worüber möchtest du sprechen?</h2>
                 <p>
@@ -554,6 +846,19 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
             aria-label="Nachricht an Noesis"
           />
           <div className="conversation-composer-actions">
+            <button
+              className="btn conversation-live-button"
+              type="button"
+              onClick={openVoice}
+              disabled={busy}
+              title="Live-Gespräch öffnen; vor dem Mikrofonstart folgt ein Hinweis zum Browser-Sprachdienst"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15.25a3.75 3.75 0 0 0 3.75-3.75v-5a3.75 3.75 0 0 0-7.5 0v5A3.75 3.75 0 0 0 12 15.25Z" />
+                <path d="M5.75 10.75v.75a6.25 6.25 0 0 0 12.5 0v-.75M12 17.75v3M8.75 20.75h6.5" />
+              </svg>
+              Live sprechen
+            </button>
             {busy ? (
               <button className="btn" type="button" onClick={stopAnswer} disabled={phase === 'stopping'}>
                 ■ Ausgabe stoppen
@@ -574,10 +879,29 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
             </button>
           </div>
           <div className="hint conversation-composer-hint">
-            Enter sendet · Shift+Enter fügt eine neue Zeile ein · Wikipedia-Wissen wird nur im Online-Modus ergänzt
+            {seminarOnline
+              ? 'Enter sendet · Ausgewählte Belegauszüge werden an das Seminar-Modell übertragen · Originaldateien bleiben lokal'
+              : 'Enter sendet · Shift+Enter fügt eine neue Zeile ein · Wikipedia-Wissen wird nur im Online-Modus ergänzt'}
           </div>
         </form>
       </div>
+
+      <LiveVoiceDialog
+        open={voiceOpen}
+        stage={voiceStage}
+        transcript={voiceTranscript}
+        lastQuestion={voiceLastQuestion}
+        lastAnswer={voiceLastAnswer}
+        error={voiceError ?? voiceNotice}
+        muted={voiceMuted}
+        speechOutputAvailable={voiceCapabilities.synthesis}
+        engineLabel={ctx.engine.label}
+        remoteAnswer={seminarOnline}
+        onClose={closeVoice}
+        onPrimaryAction={handleVoicePrimaryAction}
+        onStopTurn={stopVoiceTurn}
+        onToggleMuted={toggleVoiceMuted}
+      />
     </section>
   )
 }

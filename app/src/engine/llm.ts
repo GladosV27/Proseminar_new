@@ -24,6 +24,8 @@ export interface GenerateResult {
 export interface LLMEngine {
   readonly id: string
   readonly label: string
+  /** Ausführungsort – verhindert, dass private Extraktionsaufgaben versehentlich an Remote-Engines gehen. */
+  readonly execution: 'local' | 'remote'
   generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult>
   /** Unterbricht – sofern von der Engine unterstützt – eine laufende Generierung. */
   interrupt?(): Promise<void> | void
@@ -34,6 +36,7 @@ export interface LLMEngine {
 export class ExtractiveEngine implements LLMEngine {
   readonly id = 'extractive'
   readonly label = 'Demo-Engine (extraktiv, ohne LLM)'
+  readonly execution = 'local' as const
 
   async generate(_system: string, user: string): Promise<GenerateResult> {
     // Kontext und Frage aus dem Prompt trennen
@@ -134,6 +137,7 @@ export const WEBLLM_MODELS: WebLLMModel[] = [
 export class WebLLMEngine implements LLMEngine {
   readonly id: string
   readonly label: string
+  readonly execution = 'local' as const
   private engine: MLCEngine | null = null
 
   constructor(private modelId: string) {

@@ -2,6 +2,90 @@
 
 export type NodeType = 'person' | 'werk' | 'konzept' | 'ort' | 'institution' | 'ereignis'
 
+/** Herkunft eines nutzerseitig ergänzten Wissenselements. */
+export type KnowledgeSourceKind =
+  | 'manual-text'
+  | 'pdf'
+  | 'wikipedia'
+  | 'wikipedia-research'
+  | 'local-llm'
+
+export type EvidenceMethod =
+  | 'source-text'
+  | 'document-structure'
+  | 'explicit-mention'
+  | 'mediawiki-link'
+  | 'llm-triple'
+
+export type EvidenceConfidence = 'verified' | 'heuristic' | 'model-assisted'
+
+/**
+ * Kompakter, menschenprüfbarer Herkunftsbeleg für einen Knoten oder eine
+ * Kante. `evidence` enthält nur einen kurzen Ausschnitt, nie das komplette
+ * Quelldokument. Eigene PDF- und Textdaten bleiben dabei browserlokal.
+ */
+export interface KnowledgeProvenance {
+  /** Stabile ID der Importquelle, z. B. `pdf:<sha256>` oder `wikipedia:123`. */
+  sourceId: string
+  /** Gemeinsamer Replace-/Delta-Scope eines mehrteiligen Imports. */
+  importScopeId?: string
+  sourceKind: KnowledgeSourceKind
+  sourceTitle: string
+  importedAt: number
+  method: EvidenceMethod
+  confidence: EvidenceConfidence
+  /** Kurzer Originalausschnitt, der die übernommene Information belegt. */
+  evidence?: string
+  /** Position im lokal gelesenen Quelldokument. */
+  page?: number
+  pageEnd?: number
+  section?: number
+  charStart?: number
+  charEnd?: number
+  /** Nur für öffentliche Online-Quellen wie Wikipedia. */
+  url?: string
+  pageId?: number
+  revisionId?: number
+  targetTitle?: string
+  /** Inhaltssignatur, sofern die Quelle lokal sicher gehasht werden konnte. */
+  contentFingerprint?: string
+}
+
+export interface KnowledgeImportDelta {
+  addedNodeIds: string[]
+  updatedNodeIds: string[]
+  unchangedNodeIds: string[]
+  removedNodeIds: string[]
+  addedEdgeKeys: string[]
+  updatedEdgeKeys: string[]
+  unchangedEdgeKeys: string[]
+  removedEdgeKeys: string[]
+  skippedNodes: number
+  skippedEdges: number
+}
+
+/**
+ * Maschinenlesbare Import-Zusammenfassung. Ingest-Funktionen liefern einen
+ * Kandidatenbericht; `applyKnowledgeImport` ergänzt daraus das tatsächliche
+ * Delta gegen den aktuell gespeicherten Nutzergraphen.
+ */
+export interface KnowledgeImportReport {
+  importId: string
+  sourceId: string
+  sourceKind: KnowledgeSourceKind
+  sourceTitle: string
+  importedAt: number
+  /** Eigene Texte/PDFs werden ausschließlich browserlokal verarbeitet. */
+  localOnly: boolean
+  candidateNodes: number
+  candidateEdges: number
+  evidencedEdges: number
+  truncated: boolean
+  warnings: string[]
+  skippedReasons: Record<string, number>
+  delta: KnowledgeImportDelta
+}
+
 export interface GraphNode {
   id: string
   title: string
@@ -14,6 +98,8 @@ export interface GraphNode {
   summary: string
   /** true, wenn der Knoten vom Nutzer ergänzt wurde (Wissen füttern) */
   custom?: boolean
+  /** Herkunftsbelege; bei dem eingefrorenen Basisgraphen optional. */
+  provenance?: KnowledgeProvenance[]
 }
 
 export interface GraphEdge {
@@ -24,6 +110,8 @@ export interface GraphEdge {
   /** menschenlesbares Label, z.B. 'war Lehrer von' */
   label: string
   custom?: boolean
+  /** Beleg(e), aus denen genau diese Kante abgeleitet wurde. */
+  provenance?: KnowledgeProvenance[]
 }
 
 export interface KnowledgeGraph {

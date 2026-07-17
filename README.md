@@ -8,7 +8,7 @@
 
 | Pfad | Inhalt |
 |---|---|
-| [`app/`](app/) | **Noesis / Graph-RAG Lab** – ein natürlicher, Wikipedia-angereicherter philosophischer Wissensdialog und sein wissenschaftlicher Messstand als lokale Web-App (React + TypeScript). Nach der einmaligen Vorbereitung laufen LLM-Inferenz, Retrieval und Speicherung lokal; es gibt keine Server-Inferenz und kein eigenes Backend. |
+| [`app/`](app/) | **Noesis / Graph-RAG Lab** – philosophischer Wissensdialog und wissenschaftlicher Messstand als lokale Web-App (React + TypeScript). Der Messmodus läuft nach der Vorbereitung lokal; für inkompatible Seminar-Handys existiert getrennt ein transparent gekennzeichneter, zeitlich begrenzter QR-Online-Modus. |
 | [`docs/AUSARBEITUNG.md`](docs/AUSARBEITUNG.md) | Wissenschaftliche Ausarbeitung: Motivation, verwandte Arbeiten, Forschungsfragen & Hypothesen, komplettes Experimentaldesign (Metriken, Statistik, Protokoll), Architektur, Limitationen, Zeitplan, Fragenkatalog. |
 | [`docs/TRANSPARENZBERICHT.md`](docs/TRANSPARENZBERICHT.md) | Vorlage für den abzugebenden Transparenz-Bericht (KI-Einsatz + Reproduzierbarkeit). |
 | [`docs/Praesentation_Graph-RAG_Schaffungsprozess.pptx`](docs/Praesentation_Graph-RAG_Schaffungsprozess.pptx) | Aktuelle, editierbare Seminarpräsentation: technische Entwicklung und reflektierter KI-Schaffungsprozess als gemeinsamer Erzählbogen. |
@@ -17,12 +17,14 @@
 | [`docs/OFFLINE_BETRIEB.md`](docs/OFFLINE_BETRIEB.md) | Anleitung für den Online-/Offline-Schalter, die einmalige Modellbereitstellung und den Flugmodus-Test. |
 | [`docs/VORTRAG_OFFLINE.md`](docs/VORTRAG_OFFLINE.md) | Fester Vortragsablauf mit Build-Time-Precache und lokalem Node-Server auf `localhost:4173` – ohne npm-/npx-Aufruf auf der Bühne. |
 | [`docs/LIVE_QUIZ.md`](docs/LIVE_QUIZ.md) | Einrichtung des QR-Code-Live-Quiz mit Supabase Realtime und kostenlosem Cloudflare-Pages-Hosting. |
+| [`docs/SEMINAR_ONLINE.md`](docs/SEMINAR_ONLINE.md) | Datenschutz- und Deployment-Anleitung für den getrennten QR-Seminarmodus mit lokalem Nutzergraphen und gemeinsamem Online-Modell. |
 | [`docs/HAUPTLAUF_CHECKLISTE.md`](docs/HAUPTLAUF_CHECKLISTE.md) | Verbindlicher Freeze-, Mess-, Bewertungs-, Statistik- und Abgabecheck für den empirischen Hauptlauf. |
 
 ## Die App in 60 Sekunden
 
 - **Noesis · philosophischer Wissensdialog (Standardansicht)** – natürlicher Multi-Turn-Chat über Philosophie- und Ideengeschichte. Noesis löst Anschlussbezüge auf, verbindet passende Graphknoten und legt Quellen auf Wunsch offen. Im Online-Modus recherchiert es echte MediaWiki-Verbindungen bei Wissenslücken und speichert sie lokal; dieses angereicherte Wissen bleibt anschließend offline nutzbar.
-- **Zwei bewusst getrennte Oberflächen** – im Vortrags-/Produktmodus sind nur Gespräch, Wissensraum und Offline-Check sichtbar. Ein optionaler Studienmodus öffnet Experiment, Bewertung, Ergebnisse, Modellwahl, Wissensimport und Quiz.
+- **Live-Gespräch** – ein eigener, mobil optimierter Sprachdialog hört einen Sprachzug, sendet das Transkript an dieselbe transparente Graph-RAG-Pipeline, liest die fertige Antwort vor und öffnet danach automatisch wieder das Mikrofon. Pausieren, Stummschalten, Unterbrechen und Beenden sind jederzeit möglich. Die App selbst speichert keine Audiodatei; die Web-Spracherkennung und Vorlesestimme stammen jedoch aus Browser beziehungsweise Betriebssystem und können je nach Gerät Online-Dienste des Anbieters nutzen. Deshalb bleibt das Mikrofon im Noesis-Offline-Modus gesperrt und startet online erst nach einer zweiten, informierten Bestätigung im Dialog.
+- **Zwei bewusst getrennte Oberflächen** – im Vortrags-/Produktmodus sind Gespräch, eigenes Wissen, Wissensraum und Offline-Check sichtbar. Ein optionaler Studienmodus öffnet Experiment, Bewertung, Ergebnisse, Modellwahl, technische Importe und Quiz.
 - **Übersicht** – Projekt, Korpus-Statistik, die drei Bedingungen.
 - **Graph-Explorer** – interaktiver Wissensgraph (75 Knoten, 165 typisierte Kanten, 5 manuell zugeordnete thematische Communities zur Domäne »Deutscher Idealismus«), Suche, Community-Filter und Knoten-Details. Zusammenfassungen, Relationen und Community-Zuordnungen wurden auf Grundlage ausgewählter Wikipedia-Inhalte manuell kuratiert und für das Experiment eingefroren.
 - **Assistent** – Frage stellen, Bedingung umschalten (Baseline / Vektor-RAG / Graph-RAG), Antwort mit offengelegtem Kontext und visualisiertem Subgraph. Mit umschaltbarer Wissensbasis (eingefrorener Korpus vs. erweitert) und **Live-Recherche**: Ist das Gerät online, zieht die App fehlendes Wissen fragegetrieben aus der Wikipedia (Volltextsuche → Sitzungs-Cluster → Antwort mit Quellenangabe; auf Wunsch dauerhaft übernehmbar).
@@ -30,10 +32,11 @@
 - **Bewerten** – verblindete Doppelbewertung direkt in der App: gemischte Reihenfolge ohne Bedingung/Engine, zwei Bewertende (A/B), Cohens κ live, Konsens-Übernahme und Konfliktauflösung.
 - **Ergebnisse** – Genauigkeit nach Hop-Tiefe, Evidenz-Diagnostik (Retrieval- vs. Generierungs-Versagen), End-to-End-Latenz einschließlich Retrieval und Generierung, Kontextgröße, Enthaltungsverhalten; Export als JSON/CSV.
 - **Modelle** – lokale LLMs per WebGPU laden (Llama 3.2 1B/3B, Qwen 2.5, Gemma 2, Phi 3.5) oder deterministische Demo-Engine nutzen; dazu wählbares Retrieval-Backend für Vektor-RAG: TF-IDF oder **dichte Embeddings** (multilingual MiniLM via transformers.js, on-device).
-- **Wissen füttern** – eigene Notizen oder PDFs vollständig lokal als Dokument- und Abschnittsknoten einpflegen; Dokumentstruktur und explizite Namensnennungen erzeugen nachvollziehbare Kanten. Themen können im Online-Modus über die MediaWiki-API importiert werden; Kanten entstehen dabei ausschließlich aus tatsächlichen MediaWiki-Links. Alle diese Erweiterungen bleiben bewusst außerhalb des Messprotokolls.
+- **Eigenes Wissen** – Notizen oder PDFs lokal als Dokument- und Abschnittsknoten einpflegen. Die App zeigt das echte Importdelta, neue Brücken und den jeweiligen Text-/Seitenbeleg direkt im Graphen. Dokumentstruktur und eindeutige Namensnennungen erzeugen Kanten; Reimporte sind idempotent und gleichnamige, inhaltlich verschiedene PDFs bleiben getrennt. Alle Erweiterungen bleiben außerhalb des Messprotokolls.
+- **QR-Seminarmodus** – für Geräte ohne funktionierende WebGPU-Pipeline kann ein gemeinsames Online-Modell Antworten formulieren. Import, Speicherung und Retrieval bleiben lokal; eigene Belege sind standardmäßig gesperrt und werden erst nach expliziter Freigabe als begrenzter Kontext übertragen. Raumablauf, zentraler Rate-Limiter und fester Serverprompt schützen den temporären Endpunkt; Einrichtung in [`SEMINAR_ONLINE.md`](docs/SEMINAR_ONLINE.md).
 - **Pfad-Quiz** – die App würfelt 2–3-Hop-Pfade durch den Graphen als Multiple-Choice-Spiel; zugleich ein unerschöpflicher **Generator für Multi-Hop-Testfragen** mit garantiertem Gold-Evidenzpfad (Export als Katalog-JSON).
 - **Live-Quiz** – Kahoot-artiger, vom Experiment getrennter Präsentationsmodus: Host-Raum, QR-Code-Beitritt, Lobby, 18-Sekunden-Timer, Punkte für Tempo und Richtigkeit, Serien und Siegerpodest. Der kostenlose Realtime-Dienst wird nur für diesen Online-Modus genutzt; Details in [`LIVE_QUIZ.md`](docs/LIVE_QUIZ.md).
-- **Extras** – 🎙 Sprachmodus (Frage diktieren, Antwort vorlesen – Web Speech API), 🕰 Zeitreise-Slider im Explorer (1650–1900), 📱 QR-Code-Overlay zum Teilen der App, 📸 Chart-Export als PNG, animierte Pfadverfolgung im Subgraphen, haptisches Feedback und Konfetti bei κ ≥ 0,8.
+- **Extras** – 🕰 Zeitreise-Slider im Explorer (1650–1900), 📱 QR-Code-Overlay zum Teilen der App, 📸 Chart-Export als PNG, animierte Pfadverfolgung im Subgraphen, haptisches Feedback und Konfetti bei κ ≥ 0,8.
 
 ## Starten
 
@@ -46,12 +49,12 @@ npm run build      # Produktions-Build in app/dist (statisch hostbar, z. B. GitH
 
 Echte LLM-Inferenz benötigt WebGPU (Chrome/Edge ≥ 113, Chrome auf Android). Ohne WebGPU läuft die vollständige Pipeline mit der Demo-Engine.
 
-Die App ist eine **PWA** mit Online-/Offline-Schalter: Nach der einmaligen, dokumentierten Bereitstellung eines Modells und gegebenenfalls der Embeddings läuft der Messmodus ohne Server-Inferenz auf demselben Browserprofil. Wikipedia-Import und Live-Recherche werden im Offline-Modus gesperrt. Die genaue Einrichtung beschreibt [`docs/OFFLINE_BETRIEB.md`](docs/OFFLINE_BETRIEB.md). Ein GitHub-Actions-Workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) deployt sie zu GitHub Pages – dazu in den Repo-Einstellungen unter *Pages* die Quelle „GitHub Actions" wählen (läuft bei Push auf `main` oder manuell per *Run workflow*).
+Die App ist eine **PWA** mit Online-/Offline-Schalter: Nach der einmaligen, dokumentierten Bereitstellung eines Modells und gegebenenfalls der Embeddings läuft der Messmodus ohne Server-Inferenz auf demselben Browserprofil. Wikipedia-Import, Live-Recherche und der nicht garantiert lokale Browser-Sprachdienst werden im Offline-Modus gesperrt. Der klar getrennte `?seminar=…`-Link verwendet dagegen bewusst das zeitlich begrenzte Online-Modell. Die genaue Offline-Einrichtung beschreibt [`docs/OFFLINE_BETRIEB.md`](docs/OFFLINE_BETRIEB.md). Ein GitHub-Actions-Workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)) deployt sie zu GitHub Pages – dazu in den Repo-Einstellungen unter *Pages* die Quelle „GitHub Actions" wählen (läuft bei Push auf `main` oder manuell per *Run workflow*).
 
 ## Design-Entscheidungen (Kurzfassung)
 
 - **Manuell kuratierter, eingefrorener Korpus** mit typisierten Beziehungen → reproduzierbare Struktur und geschlossene Beantwortbarkeit für saubere Hop-Strata. Beide RAG-Bedingungen verwenden dieselben Knotenzusammenfassungen; Graph-RAG ergänzt deren Auswahl um explizit serialisierte Relationen. Das Experiment vergleicht deshalb vollständige Retrieval-Pipelines und nicht ausschließlich eine abstrakte Topologievariable.
-- **Privacy by Design:** keine Server-Komponente, keine Telemetrie; Ergebnisse und Nutzerwissen bleiben im localStorage.
+- **Privacy by Design:** keine Telemetrie; Ergebnisse, Originaldateien und Nutzergraph bleiben im Browser. Im optionalen QR-Modus werden nur nach transparenter Anzeige und ausdrücklicher Freigabe begrenzte, lokal ausgewählte Belegauszüge an das Seminar-Modell übertragen. Der Sprachdialog legt separat offen, dass der Browser das Mikrofonsignal zur Erkennung an einen eigenen Dienst übertragen kann.
 - **Transparenz als Feature:** jeder Retrieval-Kontext und jeder extrahierte Subgraph ist in der UI einsehbar – ideal für die Live-Demo im Seminar.
 
 ## Wie ich das Projekt aufgebaut habe

@@ -30,15 +30,26 @@ interface Props {
   graph: KnowledgeGraph
   height?: number
   highlightIds?: string[]
+  /** Kanten, die als neu oder besonders relevant sichtbar bleiben sollen. */
+  highlightEdgeKeys?: string[]
   onSelect?: (id: string | null) => void
   selected?: string | null
   /** Pfadverfolgung: Kanten leuchten der Reihe nach auf (für Subgraph/Quiz) */
   pulse?: boolean
 }
 
-export default function ForceGraph({ graph, height = 520, highlightIds, onSelect, selected, pulse }: Props) {
+export default function ForceGraph({
+  graph,
+  height = 520,
+  highlightIds,
+  highlightEdgeKeys,
+  onSelect,
+  selected,
+  pulse,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const simRef = useRef<Sim[]>([])
+  const heatRef = useRef(0)
   const dragRef = useRef<{ id: string | null; ox: number; oy: number }>({ id: null, ox: 0, oy: 0 })
   const [hover, setHover] = useState<string | null>(null)
   const hoverRef = useRef<string | null>(null)
@@ -70,6 +81,7 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
         highlight: hi.size === 0 || hi.has(n.id),
       }
     })
+    heatRef.current = Math.min(260, 80 + graph.nodes.length)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph, highlightIds?.join(',')])
 
@@ -79,11 +91,15 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
     let raf = 0
     let running = true
 
+    const emphasizedEdges = new Set(highlightEdgeKeys ?? [])
+    const simById = new Map(simRef.current.map((node) => [node.id, node]))
     const edgeIdx = graph.edges.map((e) => ({
-      s: () => simRef.current.find((n) => n.id === e.source),
-      t: () => simRef.current.find((n) => n.id === e.target),
+      s: simById.get(e.source),
+      t: simById.get(e.target),
       label: e.label,
+      key: `${e.source}\u0000${e.relation}\u0000${e.target}`,
     }))
+    const pulseEdges = edgeIdx.filter((edge) => emphasizedEdges.size === 0 || emphasizedEdges.has(edge.key))
 
     function step() {
       const sims = simRef.current
@@ -108,8 +124,8 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
       }
       // Federn
       for (const e of edgeIdx) {
-        const a = e.s()
-        const b = e.t()
+        const a = e.s
+        const b = e.t
         if (!a || !b) continue
         const dx = b.x - a.x
         const dy = b.y - a.y
@@ -157,20 +173,24 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
       const surface = resolveColor('var(--surface)')
 
       const sims = simRef.current
-      const byId = new Map(sims.map((s) => [s.id, s]))
       const active = hoverRef.current ?? selected
       // Pfadverfolgung: reihum jeweils eine Kante hervorheben
-      const pulseIdx = pulse && graph.edges.length ? Math.floor(performance.now() / 650) % graph.edges.length : -1
+      const pulseKey = pulse && pulseEdges.length
+        ? pulseEdges[Math.floor(performance.now() / 650) % pulseEdges.length].key
+        : null
 
       // Kanten
-      graph.edges.forEach((e, ei) => {
-        const a = byId.get(e.source)
-        const b = byId.get(e.target)
+      graph.edges.forEach((e) => {
+        const a = simById.get(e.source)
+        const b = simById.get(e.target)
         if (!a || !b) return
-        const touched = (active && (e.source === active || e.target === active)) || ei === pulseIdx
+        const key = `${e.source}\u0000${e.relation}\u0000${e.target}`
+        const emphasized = emphasizedEdges.has(key)
+        const pulsing = key === pulseKey
+        const touched = Boolean(active && (e.source === active || e.target === active)) || emphasized || pulsing
         ctx.strokeStyle = touched ? resolveColor('var(--accent)') : line
-        ctx.lineWidth = ei === pulseIdx ? 3 : touched ? 1.8 : 1
-        ctx.globalAlpha = a.highlight && b.highlight ? (touched ? 0.95 : 0.55) : 0.12
+        ctx.lineWidth = pulsing ? 3.2 : emphasized ? 2.2 : touched ? 1.8 : 1
+        ctx.globalAlpha = emphasized || pulsing ? 0.98 : a.highlight && b.highlight ? (touched ? 0.95 : 0.55) : 0.12
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)
         ctx.lineTo(b.x, b.y)
@@ -208,7 +228,10 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
 
     function loop() {
       if (!running) return
-      step()
+      if (heatRef.current > 0 || dragRef.current.id) {
+        step()
+        heatRef.current = Math.max(0, heatRef.current - 1)
+      }
       draw()
       raf = requestAnimationFrame(loop)
     }
@@ -217,7 +240,7 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
       running = false
       cancelAnimationFrame(raf)
     }
-  }, [graph, selected, pulse])
+  }, [graph, highlightIds?.join(','), highlightEdgeKeys, selected, pulse])
 
   function pick(ev: React.PointerEvent): string | null {
     const canvas = canvasRef.current!
@@ -238,6 +261,7 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
       style={{ width: '100%', height, display: 'block', cursor: hover ? 'pointer' : 'grab', touchAction: 'none' }}
       onPointerMove={(ev) => {
         if (dragRef.current.id) {
+          heatRef.current = Math.max(heatRef.current, 30)
           const canvas = canvasRef.current!
           const rect = canvas.getBoundingClientRect()
           const s = simRef.current.find((n) => n.id === dragRef.current.id)
@@ -254,6 +278,7 @@ export default function ForceGraph({ graph, height = 520, highlightIds, onSelect
       onPointerDown={(ev) => {
         const id = pick(ev)
         dragRef.current.id = id
+        heatRef.current = Math.max(heatRef.current, 45)
         ;(ev.target as HTMLElement).setPointerCapture(ev.pointerId)
       }}
       onPointerUp={(ev) => {
