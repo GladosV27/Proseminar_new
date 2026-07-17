@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { AppCtx } from '../App'
+import AnswerEvidence from '../components/AnswerEvidence'
+import LiveGraphDiff from '../components/LiveGraphDiff'
 import LiveVoiceDialog, { type LiveVoiceStage } from '../components/LiveVoiceDialog'
 import type { GraphEdge, KnowledgeGraph } from '../data/types'
 import { ExperimentRunner, type PreparedTrial } from '../engine/experiment'
@@ -11,7 +13,7 @@ import {
   type GermanVoiceInfo,
   type LiveVoiceSnapshot,
 } from '../engine/liveVoice'
-import { comparableKnowledgeTitle, parseKnowledgeAddCommand } from '../engine/knowledgeCommand'
+import { comparableKnowledgeTitle, parseNoesisAction } from '../engine/knowledgeCommand'
 import {
   RESEARCH_COMMUNITY,
   looksUncovered,
@@ -52,6 +54,7 @@ interface ConversationMessage {
   knowledgeChoices?: WikipediaSearchHit[]
   /** Nach einem Import direkt zum neuen Knoten im Wissensraum springen. */
   graphFocus?: { nodeId: string; title: string }
+  graphDelta?: { addedNodeIds: string[]; addedEdgeKeys: string[] }
 }
 
 interface ActiveRun {
@@ -71,6 +74,7 @@ const AUTO_WIKIPEDIA_KEY = 'noesis.wikipedia.auto.v1'
 const VOICE_URI_KEY = 'noesis.voice.uri.v1'
 const VOICE_RATE_KEY = 'noesis.voice.rate.v1'
 const EXPLORER_FOCUS_KEY = 'noesis.explorer.focus.v1'
+const CHAT_PREFILL_KEY = 'noesis.chat.prefill.v1'
 
 const CONVERSATION_SYSTEM_PROMPT = [
   'Du bist Noesis, ein freundlicher deutschsprachiger Wissensassistent für Philosophie- und Ideengeschichte.',
@@ -358,7 +362,14 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   }, [])
 
   useEffect(() => {
-    if (active) return
+    if (active) {
+      const prefill = sessionStorage.getItem(CHAT_PREFILL_KEY)
+      if (prefill) {
+        sessionStorage.removeItem(CHAT_PREFILL_KEY)
+        setInput(prefill)
+      }
+      return
+    }
     voiceControllerRef.current?.stop()
     setVoiceOpen(false)
     setVoiceStage('ready')
@@ -424,9 +435,19 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     const notices: string[] = []
 
     let answerForVoice: string | null = null
+    let backgroundTaskStarted = false
 
     try {
-      const knowledgeTopic = parseKnowledgeAddCommand(question)
+      const action = parseNoesisAction(question)
+      if (action?.kind === 'open-view') {
+        answerForVoice = action.view === 'arena'
+          ? 'Ich öffne die Live-Arena. Dort kannst du Vektor-RAG, Graph-RAG und Gegenproben direkt vergleichen.'
+          : 'Ich öffne deinen Wissensraum mit dem frei navigierbaren Graphen.'
+        updateMessage(assistantMessage.id, { text: answerForVoice, status: 'done' })
+        window.setTimeout(() => ctx.go(action.view), 250)
+        return answerForVoice
+      }
+      const knowledgeTopic = action?.kind === 'add-wikipedia' ? action.topic : null
       if (knowledgeTopic) {
         if (!ctx.online || navigator.onLine === false) {
           answerForVoice = `Um „${knowledgeTopic}“ aus Wikipedia hinzuzufügen, musst du oben zuerst den Online-Modus einschalten.`
@@ -440,6 +461,8 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
 
         setPhase('research')
         setResearchProgress({ step: `Suche „${knowledgeTopic}“ in Wikipedia …`, done: 0, total: 1 })
+        ctx.updateBackgroundTask({ state: 'running', label: `Wikipedia: ${knowledgeTopic}`, done: 0, total: 1 })
+        backgroundTaskStarted = true
         const hits = await searchPersonalWikipedia(knowledgeTopic, { limit: 5 })
         if (run.cancelled) return null
         const usableHits = hits.filter((hit) => !hit.disambiguation)
@@ -456,6 +479,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           if (usableHits.length === 0) {
             answerForVoice = `Ich habe für „${knowledgeTopic}“ keinen eindeutigen Wikipedia-Artikel gefunden.`
             updateMessage(assistantMessage.id, { text: answerForVoice, status: 'error' })
+            ctx.updateBackgroundTask({ state: 'error', label: answerForVoice, done: 0, total: 1 })
             return answerForVoice
           }
           answerForVoice = `Zu „${knowledgeTopic}“ gibt es mehrere mögliche Wikipedia-Artikel. Welchen soll ich in den Wissensbaum aufnehmen?`
@@ -464,12 +488,16 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
             status: 'done',
             knowledgeChoices: usableHits.slice(0, 4),
           })
+          ctx.updateBackgroundTask({ state: 'completed', label: 'Wikipedia-Auswahl wartet im Chat', done: 1, total: 1 })
           return answerForVoice
         }
 
         const pulled = await pullPersonalWikipedia([chosen.title], graph, {
           onProgress: (progress) => {
-            if (!run.cancelled) setResearchProgress(progress)
+            if (!run.cancelled) {
+              setResearchProgress(progress)
+              ctx.updateBackgroundTask({ state: 'running', label: progress.step, done: progress.done, total: progress.total })
+            }
           },
         })
         if (run.cancelled) return null
@@ -498,7 +526,12 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
             `Importbericht: ${delta.addedNodeIds.length} neue, ${delta.updatedNodeIds.length} aktualisierte und ${delta.unchangedNodeIds.length} unveränderte Knoten.`,
           ],
           graphFocus: focusNodeId ? { nodeId: focusNodeId, title: chosen.title } : undefined,
+          graphDelta: {
+            addedNodeIds: delta.addedNodeIds,
+            addedEdgeKeys: [...delta.addedEdgeKeys, ...delta.updatedEdgeKeys],
+          },
         })
+        ctx.updateBackgroundTask({ state: 'completed', label: `Wikipedia-Import: ${chosen.title}`, done: 1, total: 1 })
         return answerForVoice
       }
 
@@ -510,9 +543,14 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
 
       if (canResearch) {
         setPhase('research')
+        backgroundTaskStarted = true
+        ctx.updateBackgroundTask({ state: 'running', label: 'Wikipedia-Recherche', done: 0, total: 1 })
         try {
           const found = await researchQuestion(query, graph, {}, (progress) => {
-            if (!run.cancelled) setResearchProgress(progress)
+            if (!run.cancelled) {
+              setResearchProgress(progress)
+              ctx.updateBackgroundTask({ state: 'running', label: progress.step, done: progress.done, total: progress.total })
+            }
           })
           if (run.cancelled) return null
           persistResearch(ctx, found)
@@ -520,10 +558,12 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           notices.push(
             `${found.nodes.length} Wikipedia-Artikel und ${found.edges.length} verifizierte MediaWiki-Verbindungen wurden lokal gespeichert.`,
           )
+          ctx.updateBackgroundTask({ state: 'completed', label: 'Wikipedia-Recherche gespeichert', done: 1, total: 1 })
         } catch (error) {
           if (run.cancelled) return null
           const reason = error instanceof Error ? error.message : String(error)
           notices.push(`Die Wikipedia-Ergänzung war nicht verfügbar (${reason}). Die Antwort nutzt deshalb nur das lokale Wissen.`)
+          ctx.updateBackgroundTask({ state: 'error', label: reason, done: 0, total: 1 })
         } finally {
           setResearchProgress(null)
         }
@@ -592,6 +632,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         status: 'error',
         notices,
       })
+      if (backgroundTaskStarted) ctx.updateBackgroundTask({ state: 'error', label: reason, done: 0, total: 1 })
     } finally {
       if (activeRunRef.current?.id === run.id) {
         activeRunRef.current = null
@@ -972,6 +1013,14 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
                     </button>
                   )}
 
+                  {message.graphDelta && message.technicalGraph && (
+                    <LiveGraphDiff
+                      graph={message.technicalGraph}
+                      addedNodeIds={message.graphDelta.addedNodeIds}
+                      addedEdgeKeys={message.graphDelta.addedEdgeKeys}
+                    />
+                  )}
+
                   {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
                     <details className="conversation-sources">
                       <summary>{message.sources.length} verwendete Quellen</summary>
@@ -1017,6 +1066,10 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
                         {message.prepared.context || 'Für diese Frage wurde kein passender lokaler Kontext gefunden.'}
                       </div>
                     </details>
+                  )}
+
+                  {message.role === 'assistant' && message.status === 'done' && message.prepared && message.technicalGraph && (
+                    <AnswerEvidence answer={message.text} graph={message.technicalGraph} />
                   )}
                 </div>
               </article>

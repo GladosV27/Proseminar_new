@@ -60,12 +60,16 @@ export interface LiveDeckCard {
 
 type JoinPayload = { player: Pick<LivePlayer, 'id' | 'name' | 'color'> }
 type AnswerPayload = { playerId: string; questionId: string; optionId: string; at: number }
+export interface TopicSuggestionPayload { id: string; playerId: string; playerName: string; topic: string }
+export interface TopicDecisionPayload { id: string; topic: string; accepted: boolean; message: string }
 
 export interface LiveHandlers {
   onState: (state: LiveQuizState) => void
   onJoin?: (payload: JoinPayload) => void
   onAnswer?: (payload: AnswerPayload) => void
   onSyncRequest?: () => void
+  onTopicSuggestion?: (payload: TopicSuggestionPayload) => void
+  onTopicDecision?: (payload: TopicDecisionPayload) => void
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -121,6 +125,8 @@ export class LiveTransport {
     channel.on('broadcast', { event: 'join' }, ({ payload }) => handlers.onJoin?.(payload as JoinPayload))
     channel.on('broadcast', { event: 'answer' }, ({ payload }) => handlers.onAnswer?.(payload as AnswerPayload))
     channel.on('broadcast', { event: 'sync-request' }, () => handlers.onSyncRequest?.())
+    channel.on('broadcast', { event: 'topic-suggest' }, ({ payload }) => handlers.onTopicSuggestion?.(payload as TopicSuggestionPayload))
+    channel.on('broadcast', { event: 'topic-decision' }, ({ payload }) => handlers.onTopicDecision?.(payload as TopicDecisionPayload))
 
     await new Promise<void>((resolve, reject) => {
       const timer = window.setTimeout(() => reject(new Error('Zeitüberschreitung beim Verbinden mit dem Live-Raum.')), 12_000)
@@ -138,7 +144,7 @@ export class LiveTransport {
     return new LiveTransport(channel)
   }
 
-  async send(event: 'state' | 'join' | 'answer' | 'sync-request', payload: object = {}): Promise<void> {
+  async send(event: 'state' | 'join' | 'answer' | 'sync-request' | 'topic-suggest' | 'topic-decision', payload: object = {}): Promise<void> {
     const status = await this.channel.send({ type: 'broadcast', event, payload })
     if (status !== 'ok') throw new Error(`Echtzeit-Nachricht konnte nicht gesendet werden (${status}).`)
   }

@@ -23,6 +23,8 @@ Der **Live-Quizmodus** ist eine Kahoot-artige Präsentationsfunktion. Der Host e
 
 Die App verwendet absichtlich keinen Datenbankzugriff, keine Anmeldung und keine Server-Funktion: Der Realtime-Broadcast-Kanal reicht für einen Seminarraum. Auf dem aktuellen kostenlosen Supabase-Plan sind 200 gleichzeitige Realtime-Verbindungen und zwei Millionen Nachrichten enthalten – 20 Smartphones liegen weit darunter. Siehe [Realtime-Limits](https://supabase.com/docs/guides/realtime/limits) und [Preise](https://supabase.com/pricing).
 
+Dieselbe Broadcast-Verbindung trägt den optionalen **gemeinsamen Seminargraphen**. Teilnehmende übertragen dort ausschließlich Spitzname und Themenbegriff. Vorschläge verändern noch nichts: Nur der Host kann einen Begriff freigeben; erst danach fragt das Präsentationsgerät die öffentliche MediaWiki-API ab und speichert den geprüften Import lokal. Die Smartphones erhalten lediglich die Annahme- oder Ablehnungsnachricht.
+
 ## Sicherheitsregel
 
 Der `sb_publishable_…`-Key darf im Browser und damit im gebauten Frontend stehen. **Nie** einen `sb_secret_…`, `service_role`-Key oder ein anderes Geheimnis in `.env`, Git oder Cloudflare eintragen. Der Raum ist für eine moderierte Lehrveranstaltung gedacht, nicht für öffentliche, manipulationssichere Wettbewerbe. Der Host hält Spielstand und Lösungen nur im Arbeitsspeicher; ein Reload/Schließen des Host-Tabs beendet den Raum.

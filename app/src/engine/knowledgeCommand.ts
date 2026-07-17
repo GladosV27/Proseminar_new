@@ -41,3 +41,22 @@ export function parseKnowledgeAddCommand(raw: string): string | null {
   }
   return null
 }
+
+export type NoesisAction =
+  | { kind: 'add-wikipedia'; topic: string }
+  | { kind: 'open-view'; view: 'explorer' | 'arena' }
+
+/** Kleine, validierbare Aktionsschicht statt freier LLM-Toolausführung. */
+export function parseNoesisAction(raw: string): NoesisAction | null {
+  const topic = parseKnowledgeAddCommand(raw)
+  if (topic) return { kind: 'add-wikipedia', topic }
+  const command = compactCommand(raw).replace(/[.!?]+$/g, '')
+  if (/^(?:öffne|zeige)(?:\s+mir)?\s+(?:den|meinen)?\s*(?:wissensraum|wissensbaum|graph(?:en)?|graph-explorer)$/i.test(command)) {
+    return { kind: 'open-view', view: 'explorer' }
+  }
+  if (/^(?:öffne|zeige)(?:\s+mir)?\s+(?:die\s+)?(?:live-)?arena$/i.test(command) ||
+      /^(?:vergleiche|vergleich)\s+(?:vektor-rag\s+(?:und|mit)\s+graph-rag|graph-rag\s+(?:und|mit)\s+vektor-rag)$/i.test(command)) {
+    return { kind: 'open-view', view: 'arena' }
+  }
+  return null
+}

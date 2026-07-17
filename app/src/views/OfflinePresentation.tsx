@@ -73,6 +73,22 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
     state: 'idle',
     text: '',
   })
+  const [demoStep, setDemoStep] = useState(0)
+
+  const demoSteps = [
+    { label: '1 · Wissen ergänzen', view: 'chat' as const, prefill: 'Füge Simone de Beauvoir in deinen Wissensbaum hinzu' },
+    { label: '2 · Zusammenhang fragen', view: 'chat' as const, prefill: 'Wie hängen Simone de Beauvoir und Jean-Paul Sartre zusammen?' },
+    { label: '3 · Graph zeigen', view: 'explorer' as const },
+    { label: '4 · Verfahren vergleichen', view: 'arena' as const },
+    { label: '5 · Ergebnisse einordnen', view: 'results' as const },
+  ]
+
+  function openDemoStep(index: number) {
+    const step = demoSteps[index]
+    setDemoStep(index)
+    if (step.prefill) sessionStorage.setItem('noesis.chat.prefill.v1', step.prefill)
+    ctx.go(step.view)
+  }
 
   const refresh = useCallback(async () => {
     setChecking(true)
@@ -251,6 +267,30 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
       {smoke.state !== 'idle' && (
         <div className={`smoke-result ${smoke.state}`} role="status">{smoke.text}</div>
       )}
+
+      <div className="card demo-director">
+        <div className="demo-director-head">
+          <div>
+            <div className="eyebrow">Bühnenregie</div>
+            <h2>Die komplette Geschichte in fünf Klicks</h2>
+          </div>
+          <span>{demoStep + 1}/{demoSteps.length}</span>
+        </div>
+        <div className="demo-director-steps">
+          {demoSteps.map((step, index) => (
+            <button
+              type="button"
+              className={demoStep === index ? 'active' : ''}
+              onClick={() => openDemoStep(index)}
+              key={step.label}
+            >
+              <span>{step.label}</span>
+              <small>{step.prefill ?? (step.view === 'explorer' ? 'frei navigieren und Kante wählen' : step.view === 'arena' ? 'A/B-Blindvergleich öffnen' : 'Messdaten und Grenzen zeigen')}</small>
+            </button>
+          ))}
+        </div>
+        <p className="hint">Chat-Beispiele werden nur in das Eingabefeld eingesetzt und niemals automatisch abgesendet. Du behältst auf der Bühne die Kontrolle.</p>
+      </div>
 
       <div className="offline-truth">
         <span>Was „offline“ hier ehrlich bedeutet</span>

@@ -10,6 +10,7 @@ import { BASE_GRAPH } from '../data/graph'
 import { QUESTIONS } from '../data/questions'
 import { ALL_CONDITIONS, ORDER_STRATEGY, SYSTEM_PROMPT } from './experiment'
 import { edgeKey, emptyImportDelta, mergeProvenance } from './knowledge'
+import { readDurableSnapshot, writeDurableSnapshot } from './durableStorage'
 
 /**
  * Lokale Persistenz (localStorage): Experiment-Ergebnisse und nutzereigenes
@@ -20,6 +21,37 @@ import { edgeKey, emptyImportDelta, mergeProvenance } from './knowledge'
 
 const RESULTS_KEY = 'graphrag.results.v1'
 const CUSTOM_KEY = 'graphrag.customKnowledge.v1'
+const RESULTS_UPDATED_KEY = `${RESULTS_KEY}.updatedAt`
+const CUSTOM_UPDATED_KEY = `${CUSTOM_KEY}.updatedAt`
+
+function normalizeResults(raw: Partial<TrialResult>[]): TrialResult[] {
+  return raw.map((r, i) => {
+    const latencyMs = r.latencyMs ?? 0
+    const latencyScope = r.latencyScope ?? 'generation-only'
+    const runId = r.runId ?? 'legacy_unknown_run'
+    return {
+      ...r,
+      id: r.id ?? `legacy_${i}_${r.timestamp ?? 0}`,
+      runId,
+      repetitionId: r.repetitionId ?? `${runId}_r${r.repetition ?? 1}`,
+      repetition: r.repetition ?? 1,
+      order: r.order ?? i + 1,
+      seed: r.seed ?? null,
+      questionOrder: r.questionOrder ?? null,
+      conditionOrder: r.conditionOrder ?? null,
+      orderStrategy: r.orderStrategy ?? 'legacy-order-unknown',
+      retrieval: r.retrieval ?? 'tfidf',
+      latencyMs,
+      latencyScope,
+      prepareMs: r.prepareMs ?? null,
+      retrievalMs: r.retrievalMs ?? null,
+      generationMs: r.generationMs ??
+        (latencyScope === 'generation-only' ? latencyMs : Math.max(0, latencyMs - (r.prepareMs ?? 0))),
+      evidenceRecall: r.evidenceRecall ?? null,
+      evidencePrecision: r.evidencePrecision ?? null,
+    } as TrialResult
+  })
+}
 
 export function loadResults(): TrialResult[] {
   try {
@@ -27,33 +59,7 @@ export function loadResults(): TrialResult[] {
     // Migration älterer Datensätze: Deren latencyMs begann erst vor der
     // Generierung. Sie werden deshalb explizit als generation-only markiert
     // und später nicht in End-to-End-Aggregate gemischt.
-    return raw.map((r, i) => {
-      const latencyMs = r.latencyMs ?? 0
-      const latencyScope = r.latencyScope ?? 'generation-only'
-      const runId = r.runId ?? 'legacy_unknown_run'
-      return {
-        ...r,
-        id: r.id ?? `legacy_${i}_${r.timestamp ?? 0}`,
-        runId,
-        repetitionId: r.repetitionId ?? `${runId}_r${r.repetition ?? 1}`,
-        repetition: r.repetition ?? 1,
-        order: r.order ?? i + 1,
-        seed: r.seed ?? null,
-        questionOrder: r.questionOrder ?? null,
-        conditionOrder: r.conditionOrder ?? null,
-        orderStrategy: r.orderStrategy ?? 'legacy-order-unknown',
-        retrieval: r.retrieval ?? 'tfidf',
-        latencyMs,
-        latencyScope,
-        prepareMs: r.prepareMs ?? null,
-        retrievalMs: r.retrievalMs ?? null,
-        generationMs:
-          r.generationMs ??
-          (latencyScope === 'generation-only' ? latencyMs : Math.max(0, latencyMs - (r.prepareMs ?? 0))),
-        evidenceRecall: r.evidenceRecall ?? null,
-        evidencePrecision: r.evidencePrecision ?? null,
-      } as TrialResult
-    })
+    return normalizeResults(raw)
   } catch {
     return []
   }
@@ -61,6 +67,9 @@ export function loadResults(): TrialResult[] {
 
 export function saveResults(results: TrialResult[]): void {
   localStorage.setItem(RESULTS_KEY, JSON.stringify(results))
+  const updatedAt = Date.now()
+  localStorage.setItem(RESULTS_UPDATED_KEY, String(updatedAt))
+  void writeDurableSnapshot(RESULTS_KEY, results, updatedAt)
 }
 
 export interface CustomKnowledge {
@@ -152,11 +161,50 @@ export function saveCustomKnowledge(k: CustomKnowledge): CustomKnowledge {
   }
   try {
     localStorage.setItem(CUSTOM_KEY, JSON.stringify(normalized))
+    const updatedAt = Date.now()
+    localStorage.setItem(CUSTOM_UPDATED_KEY, String(updatedAt))
+    void writeDurableSnapshot(CUSTOM_KEY, normalized, updatedAt)
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error)
     throw new Error(`Das lokale Wissen konnte nicht im Browser gespeichert werden (Speicherlimit). ${detail}`)
   }
   return normalized
+}
+
+/**
+ * IndexedDB ist der robuste Langzeitspeicher für größere Graphen. localStorage
+ * bleibt als synchroner Start-Snapshot und Rückfall erhalten; beim Start gewinnt
+ * immer der nach Zeitstempel neuere, erfolgreich validierte Stand.
+ */
+export async function loadDurableState(): Promise<{ custom?: CustomKnowledge; results?: TrialResult[] }> {
+  const [durableCustom, durableResults] = await Promise.all([
+    readDurableSnapshot<Partial<CustomKnowledge>>(CUSTOM_KEY),
+    readDurableSnapshot<Partial<TrialResult>[]>(RESULTS_KEY),
+  ])
+  const localCustomUpdated = Number(localStorage.getItem(CUSTOM_UPDATED_KEY) ?? 0)
+  const localResultsUpdated = Number(localStorage.getItem(RESULTS_UPDATED_KEY) ?? 0)
+  const result: { custom?: CustomKnowledge; results?: TrialResult[] } = {}
+
+  if (durableCustom && durableCustom.updatedAt > localCustomUpdated) {
+    const custom = sanitizeCustomKnowledge(durableCustom.value)
+    localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom))
+    localStorage.setItem(CUSTOM_UPDATED_KEY, String(durableCustom.updatedAt))
+    result.custom = custom
+  } else if (!durableCustom || localCustomUpdated > durableCustom.updatedAt) {
+    const custom = loadCustomKnowledge()
+    if (custom.nodes.length || custom.edges.length) void writeDurableSnapshot(CUSTOM_KEY, custom, localCustomUpdated || Date.now())
+  }
+
+  if (durableResults && durableResults.updatedAt > localResultsUpdated) {
+    const results = normalizeResults(durableResults.value)
+    localStorage.setItem(RESULTS_KEY, JSON.stringify(results))
+    localStorage.setItem(RESULTS_UPDATED_KEY, String(durableResults.updatedAt))
+    result.results = results
+  } else if (!durableResults || localResultsUpdated > durableResults.updatedAt) {
+    const results = loadResults()
+    if (results.length) void writeDurableSnapshot(RESULTS_KEY, results, localResultsUpdated || Date.now())
+  }
+  return result
 }
 
 function inImportScope(provenance: KnowledgeProvenance, sourceId: string): boolean {
