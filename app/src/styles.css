@@ -886,6 +886,43 @@ details summary {
   border-radius: 8px;
   background: var(--surface-2);
 }
+.conversation-knowledge-choices {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.conversation-knowledge-choice {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.conversation-knowledge-choice:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  transform: translateY(-1px);
+}
+.conversation-knowledge-choice strong {
+  font-size: 13px;
+}
+.conversation-knowledge-choice span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.conversation-graph-action {
+  margin-top: 11px;
+}
 .conversation-sources,
 .conversation-technical {
   margin-top: 11px;
