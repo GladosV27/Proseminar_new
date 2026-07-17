@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import test from 'node:test'
+
+const source = fs.readFileSync(new URL('../src/engine/llm.ts', import.meta.url), 'utf8')
+
+test('CPU-Fallback bleibt Vulkan-unabhängig und offline cachebar', () => {
+  assert.match(source, /class WasmLLMEngine/)
+  assert.match(source, /n_gpu_layers:\s*0/)
+  assert.match(source, /n_threads:\s*1/)
+  assert.match(source, /useCache:\s*true/)
+  assert.match(source, /Qwen\/Qwen2\.5-0\.5B-Instruct-GGUF/)
+})

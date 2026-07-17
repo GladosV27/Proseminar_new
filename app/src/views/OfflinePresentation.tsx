@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AppCtx } from '../App'
-import { WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
+import { WASM_LLM_MODELS, WasmLLMEngine, WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
 
 interface ShellStatus {
   buildId: string
@@ -96,9 +96,11 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
       import.meta.env.PROD ? getShellStatus().catch(() => null) : Promise.resolve(null),
       getStorageStatus(),
       Promise.all(
-        WEBLLM_MODELS.map(async (model) => ({
+        [...WEBLLM_MODELS, ...WASM_LLM_MODELS].map(async (model) => ({
           id: model.id,
-          cached: await WebLLMEngine.isCached(model.id).catch(() => false),
+          cached: await (model.id.startsWith('wllama:')
+            ? WasmLLMEngine.isCached(model.id)
+            : WebLLMEngine.isCached(model.id)).catch(() => false),
         })),
       ),
     ])
@@ -112,7 +114,8 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
     void refresh()
   }, [refresh])
 
-  const activeModel = WEBLLM_MODELS.find((model) => model.id === ctx.engine.id)
+  const activeModel = [...WEBLLM_MODELS, ...WASM_LLM_MODELS].find((model) => model.id === ctx.engine.id)
+  const activeCpuModel = WASM_LLM_MODELS.some((model) => model.id === ctx.engine.id)
   const fixedOrigin = window.location.origin === 'http://localhost:4173'
   const shellReady = Boolean(shell && shell.total > 0 && shell.missing.length === 0 && shell.cached >= shell.total)
   const modelReady = Boolean(activeModel)
@@ -154,9 +157,13 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
         state: (smoke.state === 'passed' ? 'ready' : smoke.state === 'running' ? 'checking' : 'missing') as CheckState,
       },
       {
-        label: 'WebGPU verfügbar',
-        detail: ctx.webgpu ? 'On-Device-Inferenz wird von diesem Browser unterstützt' : 'Ohne WebGPU ist nur die extraktive Demo möglich',
-        state: (ctx.webgpu ? 'ready' : 'missing') as CheckState,
+        label: 'Lokales Inferenz-Backend',
+        detail: activeCpuModel
+          ? 'WebAssembly/CPU aktiv · kein WebGPU- oder Vulkan-Zugriff'
+          : ctx.webgpu
+            ? 'WebGPU wird vom Browser gemeldet; der GPU-Vortest bleibt zusätzlich erforderlich'
+            : 'Weder CPU-Modell aktiv noch WebGPU verfügbar',
+        state: (activeCpuModel || ctx.webgpu ? 'ready' : 'missing') as CheckState,
       },
       {
         label: 'Speicher gegen Bereinigung geschützt',
@@ -183,13 +190,13 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
         state: (!ctx.online && browserOffline ? 'ready' : !ctx.online ? 'warning' : 'missing') as CheckState,
       },
     ],
-    [activeModel, browserOffline, cachedModels.length, checking, ctx.online, ctx.webgpu, fixedOrigin, freeBytes, shell, shellReady, smoke, storage],
+    [activeCpuModel, activeModel, browserOffline, cachedModels.length, checking, ctx.online, ctx.webgpu, fixedOrigin, freeBytes, shell, shellReady, smoke, storage],
   )
 
   const criticalReady =
     shellReady &&
     modelReady &&
-    ctx.webgpu &&
+    (activeCpuModel || ctx.webgpu) &&
     !ctx.online &&
     smoke.state === 'passed' &&
     fixedOrigin &&

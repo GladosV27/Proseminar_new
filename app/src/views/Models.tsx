@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { AppCtx } from '../App'
 import { BASE_GRAPH } from '../data/graph'
 import { denseReady, getDenseIndex, loadDenseModel } from '../engine/embeddings'
-import { ExtractiveEngine, WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
+import { ExtractiveEngine, WASM_LLM_MODELS, WasmLLMEngine, WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
 import { runWebGpuPreflight, type DevicePreflightResult } from '../engine/devicePreflight'
 
 export default function Models({ ctx }: { ctx: AppCtx }) {
@@ -89,6 +89,39 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
     }
   }
 
+  async function loadCpuModel(modelId: string) {
+    if (loading) return
+    if (!ctx.online) {
+      try {
+        if (!(await WasmLLMEngine.isCached(modelId))) {
+          setError('Offline-Modus: Das CPU-Modell ist noch nicht vollständig lokal gespeichert. Schalte nur für den einmaligen Download kurz auf Online.')
+          return
+        }
+      } catch (err) {
+        setError(`Cache-Prüfung fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`)
+        return
+      }
+    }
+    setError(null)
+    setLoading(modelId)
+    setProgress({ text: 'Prüfe WebAssembly-Laufzeit …', pct: 0 })
+    try {
+      const engine = new WasmLLMEngine(modelId)
+      await engine.load((text, pct) => setProgress({ text, pct }))
+      await requestPersistentStorage()
+      ctx.setEngine(engine)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(
+        message.includes('Memory64')
+          ? `${message} Aktualisiere Chrome auf dem Handy und öffne die Seite nicht im eingebauten Samsung-/Messenger-Browser.`
+          : message,
+      )
+    } finally {
+      setLoading(null)
+    }
+  }
+
   return (
     <div>
       <div className="eyebrow">On-Device-Inferenz</div>
@@ -96,7 +129,8 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
       <p className="lead">
         Wähle, welches Sprachmodell lokal auf deinem Gerät läuft. Im Online-Modus können Gewichte einmalig geladen und
         im Browser-Cache abgelegt werden. Im Offline-Modus bleiben Retrieval und bereits geladene Modelle lokal; neue
-        Downloads und Live-Recherche sind gesperrt. Es gibt keinerlei Server-Inferenz.
+        Downloads und Live-Recherche sind gesperrt. Es gibt keinerlei Server-Inferenz. Für Android ist der CPU-Pfad
+        die robuste Empfehlung, weil er weder WebGPU noch Vulkan benötigt.
       </p>
 
       <div className="callout" style={{ marginBottom: 14 }}>
@@ -108,9 +142,8 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
 
       {!ctx.webgpu && (
         <div className="callout" style={{ marginBottom: 16 }}>
-          <strong>WebGPU nicht verfügbar.</strong> Dein Browser/Gerät unterstützt kein WebGPU – echte LLM-Inferenz ist
-          hier nicht möglich. Die deterministische <em>Demo-Engine</em> bleibt aktiv, damit Pipeline und Experiment
-          vollständig nutzbar sind (Chrome/Edge ab Version 113 oder Chrome auf Android unterstützen WebGPU).
+          <strong>WebGPU nicht verfügbar oder unzuverlässig.</strong> Nutze unten das empfohlene CPU-Modell. Es ist ein
+          echtes lokales LLM und umgeht WebGPU/Vulkan vollständig; nur die Generierung ist langsamer.
         </div>
       )}
 
@@ -145,6 +178,59 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
           Fehler beim Laden: {error}
         </div>
       )}
+
+      <h2>Empfohlen auf dem Handy</h2>
+      <div className="grid cols-2" style={{ marginBottom: 22 }}>
+        {WASM_LLM_MODELS.map((m) => {
+          const active = ctx.engine.id === m.id
+          const isLoading = loading === m.id
+          const supported = WasmLLMEngine.supported()
+          return (
+            <div className="card cpu-model-card" key={m.id} style={{ borderColor: 'var(--accent)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0 }}>{m.name}</h3>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                  <span className="chip">Empfohlen für Android</span>
+                  <span className="chip">{m.params}</span>
+                </div>
+              </div>
+              <p className="hint" style={{ fontSize: 13 }}>
+                {m.note} · Download ca. {m.downloadMB} MB · benötigt während der Nutzung ungefähr 1–1,5 GB freien RAM.
+              </p>
+              <div className="callout cpu-model-truth">
+                <strong>Wichtig:</strong> Der erste Download braucht Internet. Danach kommen Prompt, Wissensgraph und
+                Antwort nicht beim Modellanbieter an. Auf dem S23+ ist dieser Ein-Thread-CPU-Pfad langsamer, aber vom
+                fehlerhaften Vulkan-Compute-Pfad unabhängig.
+              </div>
+              <button
+                className="btn primary"
+                disabled={!supported || !!loading || active}
+                onClick={() => void loadCpuModel(m.id)}
+              >
+                {active ? '✓ Lokal aktiv' : isLoading ? 'Wird vorbereitet …' : 'CPU-Modell lokal installieren'}
+              </button>
+              {!supported && <p className="hint model-compat-warning">Aktuelles Chrome mit WebAssembly Memory64 erforderlich.</p>}
+              {isLoading && (
+                <div style={{ marginTop: 10 }}>
+                  <div className="progress"><div style={{ width: `${progress.pct * 100}%` }} /></div>
+                  <div className="hint" style={{ marginTop: 4, fontSize: 11.5 }}>{progress.text}</div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+        <div className="card cpu-model-explainer">
+          <div className="eyebrow">Zwei lokale Wege</div>
+          <h3>CPU statt Vulkan</h3>
+          <p className="hint">
+            WebLLM rechnet auf der Smartphone-GPU und scheitert auf deinem Gerät bereits beim Erstellen der
+            Compute-Pipeline. WebAssembly führt dasselbe Grundprinzip als quantisiertes GGUF-Modell in einem lokalen
+            Worker auf der CPU aus. Kein API-Key, kein Cloud-Modell und keine Server-Inferenz.
+          </p>
+        </div>
+      </div>
+
+      <h2>Optional: schnellere WebGPU-Modelle</h2>
 
       <div className="grid cols-2">
         <div className="card" style={{ borderColor: ctx.engine.id === 'extractive' ? 'var(--accent)' : undefined }}>

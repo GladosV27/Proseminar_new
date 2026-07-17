@@ -1,5 +1,6 @@
 import { splitSentences, terms } from './text'
 import type { MLCEngine } from '@mlc-ai/web-llm'
+import type { Wllama } from '@wllama/wllama'
 
 /**
  * LLM-Abstraktion mit zwei austauschbaren Engines:
@@ -29,6 +30,8 @@ export interface LLMEngine {
   generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult>
   /** Unterbricht – sofern von der Engine unterstützt – eine laufende Generierung. */
   interrupt?(): Promise<void> | void
+  /** Gibt große Modellressourcen beim Engine-Wechsel wieder frei. */
+  dispose?(): Promise<void> | void
 }
 
 // ────────────────────────── Demo-Engine (extraktiv, deterministisch) ──────────────────────────
@@ -195,5 +198,144 @@ export class WebLLMEngine implements LLMEngine {
 
   async interrupt(): Promise<void> {
     await this.engine?.interruptGenerate()
+  }
+}
+
+// ──────────────────── WebAssembly/CPU (Vulkan-unabhängig) ────────────────────
+
+export interface WasmLLMModel {
+  id: string
+  name: string
+  params: string
+  downloadMB: number
+  url: string
+  note: string
+}
+
+/**
+ * Kleine, offizielle GGUF-Quantisierung für Smartphones. Anders als WebLLM
+ * nutzt diese Engine ausdrücklich keine GPU-Layer und umgeht damit Dawn,
+ * WebGPU und den Vulkan-Treiber vollständig.
+ */
+export const WASM_LLM_MODELS: WasmLLMModel[] = [
+  {
+    id: 'wllama:qwen2.5-0.5b-instruct-q4-k-m',
+    name: 'Qwen 2.5 0.5B Instruct · CPU',
+    params: '0,5 Mrd.',
+    downloadMB: 491,
+    url: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf',
+    note: 'Vollständig lokale CPU-Inferenz über WebAssembly – ohne WebGPU oder Vulkan.',
+  },
+]
+
+export class WasmLLMEngine implements LLMEngine {
+  readonly id: string
+  readonly label: string
+  readonly execution = 'local' as const
+  private runtime: Wllama | null = null
+  private abortController: AbortController | null = null
+
+  constructor(private modelId = WASM_LLM_MODELS[0].id) {
+    this.id = modelId
+    this.label = WASM_LLM_MODELS.find((model) => model.id === modelId)?.name ?? modelId
+  }
+
+  static supported(): boolean {
+    if (typeof window === 'undefined' || typeof Worker === 'undefined' || typeof WebAssembly === 'undefined') return false
+    try {
+      // wllama 3 / aktuelles llama.cpp benötigt Memory64. Der Test allokiert
+      // nur eine 64-KiB-Seite, bevor ein 491-MB-Download gestartet werden darf.
+      new WebAssembly.Memory({ address: 'i64', initial: 1n } as unknown as WebAssembly.MemoryDescriptor)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  static async isCached(modelId = WASM_LLM_MODELS[0].id): Promise<boolean> {
+    const model = WASM_LLM_MODELS.find((candidate) => candidate.id === modelId)
+    if (!model) return false
+    const { ModelManager } = await import('@wllama/wllama')
+    const cached = await new ModelManager().getModels()
+    return cached.some((entry) => entry.url === model.url && entry.size >= model.downloadMB * 1_000_000 * 0.98)
+  }
+
+  async load(onProgress: (text: string, pct: number) => void): Promise<void> {
+    const model = WASM_LLM_MODELS.find((candidate) => candidate.id === this.modelId)
+    if (!model) throw new Error(`Unbekanntes CPU-Modell: ${this.modelId}`)
+    if (!WasmLLMEngine.supported()) {
+      throw new Error('Dieser Browser unterstützt die benötigte WebAssembly-Memory64-Laufzeit nicht. Bitte aktuelles Chrome verwenden.')
+    }
+
+    onProgress('Lade lokale WebAssembly-Laufzeit …', 0)
+    const [{ Wllama, LoggerWithoutDebug }, wasmModule] = await Promise.all([
+      import('@wllama/wllama'),
+      import('@wllama/wllama/esm/wasm/wllama.wasm?url'),
+    ])
+    const runtime = new Wllama(
+      { default: wasmModule.default },
+      { allowOffline: true, parallelDownloads: 1, logger: LoggerWithoutDebug, suppressNativeLog: true },
+    )
+
+    await runtime.loadModelFromUrl(model.url, {
+      // Erzwingt den Vulkan-unabhängigen Pfad. Auf GitHub Pages ist bewusst
+      // ein Thread gesetzt, weil dort keine COOP/COEP-Header konfigurierbar sind.
+      n_gpu_layers: 0,
+      n_threads: 1,
+      n_ctx: 2048,
+      n_batch: 128,
+      useCache: true,
+      progressCallback: ({ loaded, total }) => {
+        const pct = total > 0 ? Math.min(1, loaded / total) : 0
+        onProgress(
+          pct >= 1
+            ? 'Modell wird auf der CPU initialisiert …'
+            : `Modell wird lokal gespeichert · ${Math.round(loaded / 1_000_000)} / ${Math.round(total / 1_000_000)} MB`,
+          pct,
+        )
+      },
+    })
+    this.runtime = runtime
+    onProgress('CPU-Modell ist lokal bereit', 1)
+  }
+
+  async generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult> {
+    if (!this.runtime) throw new Error('CPU-Modell nicht geladen')
+    this.abortController = new AbortController()
+    try {
+      const stream = await this.runtime.createChatCompletion({
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+        temperature: 0,
+        seed: 42,
+        max_tokens: 180,
+        cache_prompt: true,
+        abortSignal: this.abortController.signal,
+        stream: true,
+      })
+      let text = ''
+      for await (const chunk of stream) {
+        const delta = chunk.choices?.[0]?.delta?.content ?? ''
+        if (delta) {
+          text += delta
+          onToken?.(text)
+        }
+      }
+      return { text: text.trim(), engine: this.id }
+    } finally {
+      this.abortController = null
+    }
+  }
+
+  interrupt(): void {
+    this.abortController?.abort()
+  }
+
+  async dispose(): Promise<void> {
+    this.abortController?.abort()
+    await this.runtime?.exit()
+    this.runtime = null
   }
 }
