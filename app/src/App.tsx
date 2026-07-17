@@ -128,6 +128,10 @@ export default function App() {
   const [seminarRoom] = useState(() => seminarRoomCode())
   const seminarOnline = seminarOnlineConfigured(seminarRoom)
   const [view, setView] = useState<ViewId>(() => (liveQuiz ? 'livequiz' : collaborativeRoom ? 'collab' : 'chat'))
+  // Der Fokusmodus folgt der aktuellen Ansicht, nicht dem nur beim Start
+  // gelesenen Query-Parameter. Sonst bliebe ein QR-Gast nach dem Verlassen
+  // bis zum nächsten Reload ohne Seitennavigation gefangen.
+  const sharedSession = view === 'livequiz' || (collaborativeRoom && view === 'collab')
   const [appMode, setAppMode] = useState<AppMode>(() =>
     liveQuiz || collaborativeRoom || sessionStorage.getItem(APP_MODE_KEY) === 'study' ? 'study' : 'product',
   )
@@ -287,9 +291,16 @@ export default function App() {
     go: setView,
   }
 
+  function exitLiveQuiz() {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('live')
+    window.history.replaceState({}, '', url)
+    setView('chat')
+  }
+
   return (
-    <div className="app">
-      <nav className="sidebar">
+    <div className={`app${sharedSession ? ' shared-session-app' : ''}`}>
+      {!sharedSession && <nav className="sidebar">
         <div className="brand"><em>Noesis</em></div>
         <div className="brand-sub">
           {appMode === 'product'
@@ -362,9 +373,9 @@ export default function App() {
             TU Dortmund · S. Y. Adigüzel
           </div>
         </div>
-      </nav>
+      </nav>}
 
-      <main className="main">
+      <main className={`main${sharedSession ? ' shared-session-main' : ''}`}>
         {engineRestore.state !== 'idle' && (
           <div className={`restore-banner ${engineRestore.state}`} role="status">
             <span className="restore-dot" />
@@ -385,7 +396,7 @@ export default function App() {
         {view === 'rate' && <Rate ctx={ctx} />}
         {view === 'results' && <Results ctx={ctx} />}
         {view === 'quiz' && <Quiz ctx={ctx} />}
-        {view === 'livequiz' && <LiveQuiz />}
+        {view === 'livequiz' && <LiveQuiz onExit={exitLiveQuiz} />}
         {view === 'models' && <Models ctx={ctx} />}
         {view === 'knowledge' && (appMode === 'product' ? <PersonalKnowledge ctx={ctx} /> : <Knowledge ctx={ctx} />)}
       </main>

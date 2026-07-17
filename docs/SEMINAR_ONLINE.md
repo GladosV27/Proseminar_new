@@ -43,7 +43,7 @@ Unter **Supabase Dashboard -> Edge Functions -> Secrets** anlegen:
 - `GROQ_API_KEY`: geheimer API-Schlüssel; niemals in Git oder `.env.example` eintragen
 - `SEMINAR_ROOM_CODE`: temporärer Raumcode, zum Beispiel `PHILO2026`
 - `SEMINAR_ACTIVE_UNTIL`: ISO-Zeitpunkt, nach dem der Raum automatisch schließt, zum Beispiel `2026-07-31T18:00:00+02:00`
-- optional `GROQ_MODEL`: Standard ist `meta-llama/llama-4-scout-17b-16e-instruct`
+- optional `GROQ_MODEL`: Standard ist `openai/gpt-oss-120b` mit niedrigem, verborgenem Reasoning-Aufwand
 - optional `SEMINAR_ALLOWED_ORIGINS`: kommaseparierte Origins; standardmäßig GitHub Pages und die beiden lokalen Entwicklungsadressen
 
 `SEMINAR_ACTIVE_UNTIL` ist verpflichtend: Fehlt der Wert oder ist er ungültig, lehnt die Funktion alle Räume ab. Setze im Groq-Projekt zusätzlich ein hartes Ausgaben-/Nutzungslimit. Der zentrale Supabase-Zähler begrenzt atomar auf 4 Anfragen je temporärer Browser-Sitzung und 28 pro Raum und Minute.
@@ -89,4 +89,4 @@ Für etwa 20 Geräte bleiben Prompts kurz: maximal 1.200 Zeichen Frage, 1.800 Ze
 
 ## Transparenztext in der Präsentation
 
-> Im QR-Seminarmodus wurden Fragen beziehungsweise erkannte Sprachtranskripte, ein kurzer Verlauf und maximal 5.000 Zeichen ausgewählter Graphkontext an ein gehostetes Llama-Modell übermittelt. Persönliche Text-/PDF-Belege wurden nur nach ausdrücklicher Freigabe einbezogen; die Originaldateien und vollständigen Wissensgraphen blieben im jeweiligen Browser. Eine optionale Wikipedia-Suche übertrug die Suchfrage separat an MediaWiki. Beim Live-Sprachdialog konnte der Browser das Mikrofonsignal zusätzlich über einen eigenen Spracherkennungsdienst verarbeiten; Noesis speicherte keine Audiodatei. Dieser Modus diente nur der interaktiven Demonstration und war nicht Teil des Offline-Experiments.
+> Im QR-Seminarmodus wurden Fragen beziehungsweise erkannte Sprachtranskripte, ein kurzer Verlauf und maximal 5.000 Zeichen ausgewählter Graphkontext an das gehostete Sprachmodell `openai/gpt-oss-120b` übermittelt. Persönliche Text-/PDF-Belege wurden nur nach ausdrücklicher Freigabe einbezogen; die Originaldateien und vollständigen Wissensgraphen blieben im jeweiligen Browser. Eine optionale Wikipedia-Suche übertrug die Suchfrage separat an MediaWiki. Beim Live-Sprachdialog konnte der Browser das Mikrofonsignal zusätzlich über einen eigenen Spracherkennungsdienst verarbeiten; Noesis speicherte keine Audiodatei. Dieser Modus diente nur der interaktiven Demonstration und war nicht Teil des Offline-Experiments.

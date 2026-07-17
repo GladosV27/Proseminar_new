@@ -21,50 +21,49 @@ Der **Live-Quizmodus** ist eine Kahoot-artige Präsentationsfunktion. Der Host e
    npm.cmd run dev
    ```
 
-Die App verwendet absichtlich keinen Datenbankzugriff, keine Anmeldung und keine Server-Funktion: Der Realtime-Broadcast-Kanal reicht für einen Seminarraum. Auf dem aktuellen kostenlosen Supabase-Plan sind 200 gleichzeitige Realtime-Verbindungen und zwei Millionen Nachrichten enthalten – 20 Smartphones liegen weit darunter. Siehe [Realtime-Limits](https://supabase.com/docs/guides/realtime/limits) und [Preise](https://supabase.com/pricing).
+Die App verwendet absichtlich keinen Datenbankzugriff, keine Anmeldung und keine Server-Funktion: Supabase Realtime Broadcast reicht für den moderierten Seminarraum. Pro Raum werden zwei öffentliche Topics verwendet:
+
+- `graph-rag-live:RAUMCODE:host`: Nur der Host abonniert dieses Postfach. Smartphones senden Beitritte, Antworten und Synchronisationsanfragen dorthin.
+- `graph-rag-live:RAUMCODE:state`: Nur die Smartphones abonnieren diesen Kanal. Der Host verteilt darüber Lobby, Frage, Auflösung und Punktestand.
+
+Diese Trennung verhindert, dass jede Antwort unnötig an alle Smartphones aufgefächert wird. Zusätzlich sendet der Host höchstens alle 600 ms einen neuen Spielstand. Bei 20 gleichzeitig antwortenden Teilnehmenden entstehen damit im ungünstigsten Sekundenfenster ungefähr 82 berechnete Realtime-Nachrichten pro Sekunde (etwa 40 für Antworten und Host-Empfang sowie höchstens 42 für Zustandsversand und Empfänger). Das bleibt unter dem Free-Limit von 100 Nachrichten pro Sekunde; die App begrenzt Räume deshalb konsequent auf 20 Personen. Siehe [Realtime-Limits](https://supabase.com/docs/guides/realtime/limits) und [Nachrichtenabrechnung](https://supabase.com/docs/guides/platform/manage-your-usage/realtime-messages).
 
 Dieselbe Broadcast-Verbindung trägt den optionalen **gemeinsamen Seminargraphen**. Teilnehmende übertragen dort ausschließlich Spitzname und Themenbegriff. Vorschläge verändern noch nichts: Nur der Host kann einen Begriff freigeben; erst danach fragt das Präsentationsgerät die öffentliche MediaWiki-API ab und speichert den geprüften Import lokal. Die Smartphones erhalten lediglich die Annahme- oder Ablehnungsnachricht.
 
 ## Sicherheitsregel
 
-Der `sb_publishable_…`-Key darf im Browser und damit im gebauten Frontend stehen. **Nie** einen `sb_secret_…`, `service_role`-Key oder ein anderes Geheimnis in `.env`, Git oder Cloudflare eintragen. Der Raum ist für eine moderierte Lehrveranstaltung gedacht, nicht für öffentliche, manipulationssichere Wettbewerbe. Der Host hält Spielstand und Lösungen nur im Arbeitsspeicher; ein Reload/Schließen des Host-Tabs beendet den Raum.
+Der `sb_publishable_…`-Key darf im Browser und damit im gebauten Frontend stehen. **Nie** einen `sb_secret_…`, `service_role`-Key oder ein anderes Geheimnis in `.env`, GitHub-Actions-Variablen oder den gebauten Frontend-Code eintragen. Die öffentlichen Broadcast-Topics sind für eine moderierte Lehrveranstaltung gedacht, nicht für einen öffentlichen, manipulationssicheren Wettbewerb. Der Host hält Spielstand und Lösungen nur im Arbeitsspeicher; ein Reload oder Schließen des Host-Tabs beendet den Raum. Smartphones versuchen nach einem kurzzeitigen Verbindungsabbruch automatisch erneut zu verbinden und fordern anschließend den aktuellen Zustand beim Host an.
 
-## Deployment mit Cloudflare Pages
+## Deployment mit GitHub Pages
 
-GitHub Pages kann das Frontend zwar ausliefern, aber selbst keine Echtzeit-Verbindungen koordinieren. Cloudflare Pages hostet weiterhin nur die statischen Dateien; Supabase ist der getrennte Echtzeitdienst.
+GitHub Pages liefert ausschließlich das statische Frontend aus; Supabase bleibt der getrennte Echtzeitdienst. Der vorhandene GitHub-Actions-Workflow baut und veröffentlicht die App.
 
-1. Kostenloses Konto bei [Cloudflare Pages](https://pages.cloudflare.com/) öffnen und das Git-Repository verbinden.
-2. In den Build-Einstellungen setzen:
+1. Im GitHub-Repository unter *Settings → Pages* als Quelle **GitHub Actions** wählen.
+2. Unter *Settings → Secrets and variables → Actions → Variables* zwei **Repository variables** anlegen:
 
-   | Einstellung | Wert |
+   | Name | Wert |
    |---|---|
-   | Framework | Vite |
-   | Root directory | `app` |
-   | Build command | `npm run build` |
-   | Build output directory | `dist` |
+   | `VITE_SUPABASE_URL` | `https://DEIN-PROJEKT.supabase.co` |
+   | `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_DEIN_OEFFENTLICHER_SCHLUESSEL` |
 
-3. Unter *Settings → Environment variables* für **Production** und **Preview** eintragen:
-
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-4. Deploy auslösen. Die Pages-Adresse, z. B. `https://graph-rag-lab.pages.dev`, einmal im Browser öffnen.
-5. Im Menü **Live-Quiz** auf dem Präsentationslaptop einen Raum eröffnen. Den angezeigten QR-Code projizieren; die Smartphones öffnen dadurch automatisch den richtigen Raum-Link.
-
-Cloudflare Pages Free reicht für diesen Anwendungsfall; der Free-Plan erlaubt derzeit 500 Builds pro Monat und statische Seiten werden global ausgeliefert. Details: [Cloudflare Pages Limits](https://developers.cloudflare.com/pages/platform/limits/).
+3. Auf `main` pushen oder den Workflow unter *Actions* manuell starten. Änderungen an Variablen wirken erst nach einem neuen Build.
+4. Die veröffentlichte Adresse, z. B. `https://GLADOSV27.github.io/Proseminar_new/`, einmal auf Laptop und Smartphone öffnen.
+5. Im Menü **Live-Quiz** auf dem Präsentationslaptop einen Raum eröffnen. Den angezeigten QR-Code projizieren; er enthält bereits Raumcode und Beitrittslink. Die Teilnehmenden bestätigen nur noch ihren Spitznamen.
 
 ## Ablauf im Seminar
 
-1. Vor der Sitzung auf dem Laptop die veröffentlichte Cloudflare-URL aufrufen und kurz einen Test-Raum erstellen.
-2. Im Vortrag **Live-Quiz → Raum eröffnen → 5 Fragen / 2 Hops** wählen.
+1. Vor der Sitzung auf dem Laptop die veröffentlichte GitHub-Pages-URL aufrufen und mit einem Smartphone einen vollständigen Test-Raum durchspielen.
+2. Im Vortrag **Live-Quiz → Raum eröffnen** wählen. Das Quiz nutzt kurze, leicht verständliche Multiple-Choice-Fragen statt anspruchsvoller Pfad-Rätsel.
 3. QR-Code projizieren und warten, bis die Namen in der Lobby erscheinen.
 4. „Erste Frage starten“. Jede Runde dauert 18 Sekunden; der Host kann früher auflösen.
-5. Nach der Auflösung erklärt der Host den Graph-Pfad. Das macht die abstrakte Multi-Hop-Idee unmittelbar sichtbar.
+5. Nach jeder Antwort zeigt die Auflösung die richtige Lösung, eine kurze fachliche Einordnung und ihre Position beziehungsweise Verbindung im Wissensgraphen. So wird aus dem normalen Quiz schrittweise eine verständliche Graph-RAG-Demonstration.
 6. Nach der letzten Frage zeigt die App das Siegerpodest. Raum anschließend schließen.
 
 ## Fehlersuche
 
-- **„Noch nicht verbunden“:** `.env` prüfen, Vite neu starten. Bei Cloudflare müssen beide Variablen in den Build-Einstellungen hinterlegt und danach neu gebaut werden.
+- **„Noch nicht verbunden“:** Lokal `.env` prüfen und Vite neu starten. Auf GitHub müssen beide Actions-Variablen hinterlegt und die Pages-App danach neu gebaut worden sein.
 - **Smartphone findet den Raum nicht:** Beide Geräte brauchen Internet; den QR-Code neu scannen oder den sechsstelligen Code manuell eingeben.
-- **Teilnehmende warten dauerhaft:** Der Host-Tab muss offen bleiben. Nach einem Reload auf dem Host einen neuen Raum starten und neu scannen.
+- **Verbindung war kurz weg:** Das Smartphone verbindet sich erneut und fordert den aktuellen Spielstand beim weiterhin geöffneten Host an.
+- **Teilnehmende warten dauerhaft:** Der Host-Tab muss offen bleiben. Nach einem Host-Reload ist der nur im Arbeitsspeicher gehaltene Raum beendet; einen neuen Raum starten und neu scannen.
+- **Mehr als 20 Personen:** Weitere Beitritte werden absichtlich abgewiesen, damit der Raum innerhalb des kostenlosen Realtime-Nachrichtenlimits bleibt.
 - **Browser blockiert WebSockets:** Seminar-WLAN wechseln oder einmal über Mobilfunk testen.

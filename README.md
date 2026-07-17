@@ -16,7 +16,7 @@
 | [`docs/QUELLENPRUEFUNG.md`](docs/QUELLENPRUEFUNG.md) | Verifizierte Primärquellen für die Ausarbeitung und die Präsentation. |
 | [`docs/OFFLINE_BETRIEB.md`](docs/OFFLINE_BETRIEB.md) | Anleitung für den Online-/Offline-Schalter, die einmalige Modellbereitstellung und den Flugmodus-Test. |
 | [`docs/VORTRAG_OFFLINE.md`](docs/VORTRAG_OFFLINE.md) | Fester Vortragsablauf mit Build-Time-Precache und lokalem Node-Server auf `localhost:4173` – ohne npm-/npx-Aufruf auf der Bühne. |
-| [`docs/LIVE_QUIZ.md`](docs/LIVE_QUIZ.md) | Einrichtung des QR-Code-Live-Quiz mit Supabase Realtime und kostenlosem Cloudflare-Pages-Hosting. |
+| [`docs/LIVE_QUIZ.md`](docs/LIVE_QUIZ.md) | Einrichtung des QR-Code-Live-Quiz mit Supabase Realtime und dem vorhandenen GitHub-Pages-Deployment. |
 | [`docs/SEMINAR_ONLINE.md`](docs/SEMINAR_ONLINE.md) | Datenschutz- und Deployment-Anleitung für den getrennten QR-Seminarmodus mit lokalem Nutzergraphen und gemeinsamem Online-Modell. |
 | [`docs/HAUPTLAUF_CHECKLISTE.md`](docs/HAUPTLAUF_CHECKLISTE.md) | Verbindlicher Freeze-, Mess-, Bewertungs-, Statistik- und Abgabecheck für den empirischen Hauptlauf. |
 
@@ -39,7 +39,7 @@
 - **Technische Qualitätssicherung** – `npm test` prüft natürliche Aktionsbefehle, negative Kommandofälle und einen Graph-RAG-Traversalpfad. GitHub Pages führt die Tests vor jedem Produktions-Build aus. Ein echter Mini-Compute-Test erkennt WebGPU-Geräte, die erst beim Erzeugen einer Compute-Pipeline scheitern.
 - **QR-Seminarmodus** – für Geräte ohne funktionierende WebGPU-Pipeline kann ein gemeinsames Online-Modell Antworten formulieren. Import, Speicherung und Retrieval bleiben lokal; eigene Belege sind standardmäßig gesperrt und werden erst nach expliziter Freigabe als begrenzter Kontext übertragen. Raumablauf, zentraler Rate-Limiter und fester Serverprompt schützen den temporären Endpunkt; Einrichtung in [`SEMINAR_ONLINE.md`](docs/SEMINAR_ONLINE.md).
 - **Pfad-Quiz** – die App würfelt 2–3-Hop-Pfade durch den Graphen als Multiple-Choice-Spiel; zugleich ein unerschöpflicher **Generator für Multi-Hop-Testfragen** mit garantiertem Gold-Evidenzpfad (Export als Katalog-JSON).
-- **Live-Quiz** – Kahoot-artiger, vom Experiment getrennter Präsentationsmodus: Host-Raum, QR-Code-Beitritt, Lobby, 18-Sekunden-Timer, Punkte für Tempo und Richtigkeit, Serien und Siegerpodest. Der kostenlose Realtime-Dienst wird nur für diesen Online-Modus genutzt; Details in [`LIVE_QUIZ.md`](docs/LIVE_QUIZ.md).
+- **Live-Quiz** – Kahoot-artiger, vom Experiment getrennter Präsentationsmodus für bis zu 20 Handys: Host-Raum, QR-Code-Beitritt, Lobby, leicht verständliche Multiple-Choice-Fragen, 18-Sekunden-Timer, Punkte, Serien und Siegerpodest. Die Auflösung ordnet jede Frage fachlich ein und zeigt ihre Verbindung im Wissensgraphen. Zwei getrennte Supabase-Realtime-Topics für Hosteingang und Zustandsverteilung sowie ein 600-ms-Throttle vermeiden unnötigen Fan-out; der öffentliche Modus ist bewusst als moderierte Seminardemo und nicht als manipulationssicherer Wettbewerb ausgelegt. Details in [`LIVE_QUIZ.md`](docs/LIVE_QUIZ.md).
 - **Extras** – 🕰 Zeitreise-Slider im Explorer (1650–1900), 📱 QR-Code-Overlay zum Teilen der App, 📸 Chart-Export als PNG, animierte Pfadverfolgung im Subgraphen, haptisches Feedback und Konfetti bei κ ≥ 0,8.
 
 ## Starten

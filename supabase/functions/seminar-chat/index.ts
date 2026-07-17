@@ -126,7 +126,10 @@ Deno.serve(async (request) => {
     `FRAGE:\n${question}`,
   ].filter(Boolean).join('\n\n')
 
-  const model = Deno.env.get('GROQ_MODEL')?.trim() || 'meta-llama/llama-4-scout-17b-16e-instruct'
+  // Llama 4 Scout wurde am 17.07.2026 auf Groq abgeschaltet. GPT-OSS 120B
+  // ist der offizielle Nachfolger und bleibt mit niedrigem Reasoning-Aufwand
+  // schnell genug für den moderierten Seminarraum.
+  const model = Deno.env.get('GROQ_MODEL')?.trim() || 'openai/gpt-oss-120b'
   let upstream: Response
   try {
     upstream = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -142,6 +145,8 @@ Deno.serve(async (request) => {
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.2,
+        reasoning_effort: 'low',
+        reasoning_format: 'hidden',
         max_completion_tokens: 220,
       }),
       signal: AbortSignal.timeout(20_000),

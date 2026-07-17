@@ -253,6 +253,17 @@ body {
   max-width: 1120px;
 }
 
+/* QR-Einladungen laufen als fokussierte Sitzung ohne App-Navigation. Ein
+   versehentlicher Tabwechsel würde die flüchtige Realtime-Verbindung trennen. */
+.shared-session-app {
+  justify-content: center;
+}
+
+.shared-session-main {
+  width: 100%;
+  min-height: 100vh;
+}
+
 .restore-banner {
   display: flex;
   align-items: center;
@@ -2571,6 +2582,227 @@ code,
   }
 }
 
+/* ── Live-Quiz ── */
+.live-quiz {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.live-quiz :where(.card, .grid, .table-wrap, .force-graph-shell),
+.live-quiz .grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.live-quiz .btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.live-quiz-error {
+  margin-bottom: 14px;
+  border-color: var(--bad);
+}
+
+.live-quiz-landing-grid {
+  max-width: 820px;
+}
+
+.live-quiz-landing-grid.join-only {
+  grid-template-columns: minmax(0, 520px);
+  max-width: 520px;
+}
+
+.live-quiz-join-form .field {
+  margin-top: 12px;
+}
+
+.live-quiz-join-form > .btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 14px;
+}
+
+.live-quiz-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.live-quiz-heading h1 {
+  margin-bottom: 8px;
+}
+
+.live-quiz-lobby-grid {
+  align-items: start;
+}
+
+.live-quiz-room-card {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.live-quiz-qr {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  border-radius: 12px;
+}
+
+.live-quiz-qr-error {
+  width: 100%;
+  border-color: var(--bad);
+  text-align: left;
+}
+
+.live-quiz-room-code {
+  margin: 8px 0;
+  letter-spacing: 4px;
+}
+
+.live-quiz-copy-fallback {
+  width: 100%;
+  margin-top: 13px;
+  text-align: left;
+}
+
+.live-quiz-copy-fallback input {
+  margin-top: 5px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.live-quiz-player-count,
+.live-quiz-scoreboard h2 {
+  margin-top: 0;
+}
+
+.live-quiz-player-list,
+.live-quiz-meta,
+.live-quiz-node-list,
+.live-quiz-host-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.live-quiz-player-remove {
+  appearance: none;
+  margin: -3px -4px -3px 1px;
+  padding: 2px 5px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.live-quiz-player-remove:hover,
+.live-quiz-player-remove:focus-visible {
+  background: color-mix(in srgb, var(--bad) 12%, transparent);
+  color: var(--bad);
+}
+
+.live-quiz-start {
+  margin-top: 16px;
+}
+
+.live-quiz-question-card {
+  margin-bottom: 12px;
+}
+
+.live-quiz-question-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.live-quiz-countdown {
+  width: min(100%, 250px);
+  min-width: 190px;
+}
+
+.live-quiz-prompt {
+  max-width: 44ch;
+  margin: 18px 0;
+  overflow-wrap: anywhere;
+}
+
+.live-quiz-answer {
+  min-height: 66px;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.live-quiz-answer strong {
+  flex: 0 0 1.3em;
+}
+
+.live-quiz-answer span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.live-quiz-reveal {
+  margin-top: 14px;
+}
+
+.live-quiz-explanation-grid {
+  margin-top: 12px;
+}
+
+.live-quiz-classification-card {
+  margin: 0;
+  padding: 14px;
+}
+
+.live-quiz-classification-card h3 {
+  margin: 5px 0 8px;
+}
+
+.live-quiz-classification-card > .hint {
+  margin: 0;
+}
+
+.live-quiz-node-list {
+  margin-top: 12px;
+  gap: 6px;
+}
+
+.live-quiz-relations {
+  margin: 10px 0 0 !important;
+  overflow-wrap: anywhere;
+}
+
+.live-quiz-graph-card {
+  min-height: 230px;
+  margin: 0;
+  padding: 8px;
+}
+
+.live-quiz-graph-card .force-graph-shell {
+  min-height: 220px;
+}
+
+.live-quiz-scoreboard {
+  margin-top: 14px;
+}
+
+.live-quiz-rank {
+  margin-bottom: 0;
+}
+
 /* ── Responsiv: Bottom-Nav auf Mobile ── */
 @media (max-width: 760px) {
   .app {
@@ -2606,6 +2838,9 @@ code,
   }
   .main {
     padding-bottom: 120px;
+  }
+  .shared-session-main {
+    padding: 20px 14px calc(28px + env(safe-area-inset-bottom));
   }
   .offline-heading {
     gap: 14px;
@@ -2748,5 +2983,40 @@ code,
   .explorer-relation-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .live-quiz .grid.cols-2,
+  .live-quiz-landing-grid.join-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .live-quiz .card {
+    padding: 18px 16px;
+  }
+
+  .live-quiz-heading,
+  .live-quiz-question-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .live-quiz-heading .btn,
+  .live-quiz-host-actions .btn,
+  .live-quiz-room-card > .btn {
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .live-quiz-countdown {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .live-quiz-host-actions .btn {
+    width: 100%;
+  }
+
+  .live-quiz-graph-card .force-graph-shell {
+    min-height: 250px;
   }
 }
