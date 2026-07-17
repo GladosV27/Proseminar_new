@@ -4,6 +4,11 @@ import ForceGraph, { communityColor } from '../components/ForceGraph'
 import { COMMUNITIES, NODE_YEARS, TIMELINE_RANGE } from '../data/graph'
 
 const EXPLORER_FOCUS_KEY = 'noesis.explorer.focus.v1'
+const COUNTERFACTUAL_EDGE_KEY = 'noesis.arena.counterfactual-edge.v1'
+
+function edgeKey(source: string, relation: string, target: string): string {
+  return `${source}\u0000${relation}\u0000${target}`
+}
 
 export default function Explorer({ ctx }: { ctx: AppCtx }) {
   const [selected, setSelected] = useState<string | null>(() => {
@@ -17,8 +22,18 @@ export default function Explorer({ ctx }: { ctx: AppCtx }) {
   const [communityFilter, setCommunityFilter] = useState<string>('alle')
   const [timeline, setTimeline] = useState(false)
   const [year, setYear] = useState(1800)
+  const [showHeuristic, setShowHeuristic] = useState(true)
+  const [showMediaWiki, setShowMediaWiki] = useState(true)
 
   const communities = useMemo(() => [...new Set(ctx.graph.nodes.map((n) => n.community))], [ctx.graph])
+  const visibleGraph = useMemo(() => ({
+    nodes: ctx.graph.nodes,
+    edges: ctx.graph.edges.filter((edge) => {
+      const heuristic = edge.provenance?.some((item) => item.confidence === 'heuristic') ?? false
+      const mediaWiki = edge.relation === 'mediawiki_verlinkt_auf'
+      return (showHeuristic || !heuristic) && (showMediaWiki || !mediaWiki)
+    }),
+  }), [ctx.graph, showHeuristic, showMediaWiki])
 
   const highlightIds = useMemo(() => {
     let ids = ctx.graph.nodes.map((n) => n.id)
@@ -44,7 +59,7 @@ export default function Explorer({ ctx }: { ctx: AppCtx }) {
 
   const node = selected ? ctx.graph.nodes.find((n) => n.id === selected) : null
   const nodeEdges = node
-    ? ctx.graph.edges.filter((e) => e.source === node.id || e.target === node.id)
+    ? visibleGraph.edges.filter((e) => e.source === node.id || e.target === node.id)
     : []
 
   const communityName = (id: string) =>
@@ -56,8 +71,8 @@ export default function Explorer({ ctx }: { ctx: AppCtx }) {
       <div className="eyebrow">Wissensgraph</div>
       <h1>Graph-Explorer</h1>
       <p className="lead">
-        Artikel sind Knoten, semantische Beziehungen sind Kanten, Farben markieren Communities. Knoten anklicken für
-        Details, ziehen zum Entwirren.
+        Artikel sind Knoten, Beziehungen sind Kanten, Farben markieren Communities. Ziehe den Hintergrund frei,
+        zoome mit Mausrad oder Pinch und verschiebe einzelne Knoten unabhängig voneinander.
       </p>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -93,10 +108,18 @@ export default function Explorer({ ctx }: { ctx: AppCtx }) {
             </>
           )}
         </label>
+        <label className="graph-layer-toggle">
+          <input type="checkbox" checked={showMediaWiki} onChange={(event) => setShowMediaWiki(event.target.checked)} />
+          MediaWiki-Links
+        </label>
+        <label className="graph-layer-toggle">
+          <input type="checkbox" checked={showHeuristic} onChange={(event) => setShowHeuristic(event.target.checked)} />
+          Heuristische Themenkanten
+        </label>
       </div>
 
       <div className="card" style={{ padding: 8 }}>
-        <ForceGraph graph={ctx.graph} highlightIds={highlightIds} selected={selected} onSelect={setSelected} />
+        <ForceGraph graph={visibleGraph} highlightIds={highlightIds} selected={selected} onSelect={setSelected} />
         <div className="legend" style={{ padding: '4px 12px 8px' }}>
           {communities.map((c) => (
             <span key={c}>
@@ -125,7 +148,8 @@ export default function Explorer({ ctx }: { ctx: AppCtx }) {
                   const other = e.source === node.id ? e.target : e.source
                   const otherNode = ctx.graph.nodes.find((n) => n.id === other)
                   return (
-                    <div key={i}>
+                    <div className="explorer-relation-row" key={i}>
+                      <div>
                       {e.source === node.id ? (
                         <>
                           <span className="hint">{e.label}</span>{' '}
@@ -147,6 +171,18 @@ export default function Explorer({ ctx }: { ctx: AppCtx }) {
                           <span className="hint">{e.label}</span> <span className="hint">→ {node.title}</span>
                         </>
                       )}
+                      </div>
+                      <button
+                        type="button"
+                        className="btn sm"
+                        title="Dieselbe Frage mit und ohne diese Kante vergleichen"
+                        onClick={() => {
+                          sessionStorage.setItem(COUNTERFACTUAL_EDGE_KEY, edgeKey(e.source, e.relation, e.target))
+                          ctx.go('arena')
+                        }}
+                      >
+                        Was wäre ohne diese Kante?
+                      </button>
                     </div>
                   )
                 })}

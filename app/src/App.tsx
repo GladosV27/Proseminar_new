@@ -7,6 +7,7 @@ import { setEmbeddingNetworkEnabled } from './engine/embeddings'
 import { SeminarOnlineEngine, seminarOnlineConfigured, seminarRoomCode } from './engine/seminarOnline'
 import {
   loadCustomKnowledge,
+  loadDurableState,
   loadResults,
   mergedGraph,
   saveCustomKnowledge,
@@ -26,6 +27,8 @@ import Knowledge from './views/Knowledge'
 import PersonalKnowledge from './views/PersonalKnowledge'
 import Quiz from './views/Quiz'
 import LiveQuiz from './views/LiveQuiz'
+import Arena from './views/Arena'
+import CollaborativeGraph from './views/CollaborativeGraph'
 import QrOverlay from './components/QrOverlay'
 
 export type ViewId =
@@ -34,6 +37,8 @@ export type ViewId =
   | 'overview'
   | 'explorer'
   | 'assistant'
+  | 'arena'
+  | 'collab'
   | 'experiment'
   | 'rate'
   | 'results'
@@ -48,6 +53,13 @@ export interface ExperimentStatus {
   total: number
   label: string
   runId: string | null
+}
+
+export interface BackgroundTaskStatus {
+  state: 'idle' | 'running' | 'completed' | 'error'
+  label: string
+  done: number
+  total: number
 }
 
 type AppMode = 'product' | 'study'
@@ -68,6 +80,8 @@ const STUDY_NAV: { id: ViewId; label: string; ico: string }[] = [
   { id: 'overview', label: 'Übersicht', ico: '◈' },
   { id: 'explorer', label: 'Graph-Explorer', ico: '⌘' },
   { id: 'assistant', label: 'Bedingungen testen', ico: '◫' },
+  { id: 'arena', label: 'Live-Arena', ico: '⚔' },
+  { id: 'collab', label: 'Seminargraph', ico: '◎' },
   { id: 'experiment', label: 'Experiment', ico: '△' },
   { id: 'rate', label: 'Bewerten', ico: '⚖' },
   { id: 'results', label: 'Ergebnisse', ico: '▥' },
@@ -102,16 +116,20 @@ export interface AppCtx {
   finishExperiment: (state: 'cancelled' | 'completed') => void
   cancelExperiment: () => void
   experimentCancelled: () => boolean
+  backgroundTask: BackgroundTaskStatus
+  updateBackgroundTask: (task: BackgroundTaskStatus) => void
   go: (v: ViewId) => void
 }
 
 export default function App() {
-  const liveQuiz = new URLSearchParams(window.location.search).has('live')
+  const initialParams = new URLSearchParams(window.location.search)
+  const liveQuiz = initialParams.has('live')
+  const collaborativeRoom = initialParams.has('graphroom')
   const [seminarRoom] = useState(() => seminarRoomCode())
   const seminarOnline = seminarOnlineConfigured(seminarRoom)
-  const [view, setView] = useState<ViewId>(() => (liveQuiz ? 'livequiz' : 'chat'))
+  const [view, setView] = useState<ViewId>(() => (liveQuiz ? 'livequiz' : collaborativeRoom ? 'collab' : 'chat'))
   const [appMode, setAppMode] = useState<AppMode>(() =>
-    liveQuiz || sessionStorage.getItem(APP_MODE_KEY) === 'study' ? 'study' : 'product',
+    liveQuiz || collaborativeRoom || sessionStorage.getItem(APP_MODE_KEY) === 'study' ? 'study' : 'product',
   )
   const [theme, setTheme] = useState<'light' | 'dark'>(() =>
     window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
@@ -137,12 +155,25 @@ export default function App() {
     label: '',
     runId: null,
   })
+  const [backgroundTask, setBackgroundTask] = useState<BackgroundTaskStatus>({
+    state: 'idle', label: '', done: 0, total: 0,
+  })
   const experimentCancelRef = useRef(false)
   const restoreStartedRef = useRef(false)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
   }, [theme])
+
+  useEffect(() => {
+    let cancelled = false
+    void loadDurableState().then((state) => {
+      if (cancelled) return
+      if (state.custom) setCustomState(state.custom)
+      if (state.results) setResultsState(state.results)
+    })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     // Der zeitlich begrenzte QR-Modus darf die dauerhafte Offline-Präferenz
@@ -245,6 +276,8 @@ export default function App() {
       )
     },
     experimentCancelled: () => experimentCancelRef.current,
+    backgroundTask,
+    updateBackgroundTask: setBackgroundTask,
     go: setView,
   }
 
@@ -272,6 +305,15 @@ export default function App() {
             <strong>Messlauf läuft</strong><br />
             {experimentStatus.done}/{experimentStatus.total} · {experimentStatus.label}
             <button className="btn sm" onClick={() => ctx.cancelExperiment()}>Abbrechen</button>
+          </div>
+        )}
+        {backgroundTask.state === 'running' && (
+          <div className="callout background-task-running" role="status">
+            <strong>Hintergrundaufgabe</strong><br />
+            {backgroundTask.label}
+            {backgroundTask.total > 0 && (
+              <div className="progress"><div style={{ width: `${Math.min(100, backgroundTask.done / backgroundTask.total * 100)}%` }} /></div>
+            )}
           </div>
         )}
         <div className="sidebar-foot">
@@ -331,6 +373,8 @@ export default function App() {
         {view === 'overview' && <Overview ctx={ctx} />}
         {view === 'explorer' && <Explorer ctx={ctx} />}
         {view === 'assistant' && <Assistant ctx={ctx} />}
+        {view === 'arena' && <Arena ctx={ctx} />}
+        {view === 'collab' && <CollaborativeGraph ctx={ctx} />}
         {view === 'experiment' && <Experiment ctx={ctx} />}
         {view === 'rate' && <Rate ctx={ctx} />}
         {view === 'results' && <Results ctx={ctx} />}

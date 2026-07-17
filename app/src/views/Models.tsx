@@ -3,6 +3,7 @@ import type { AppCtx } from '../App'
 import { BASE_GRAPH } from '../data/graph'
 import { denseReady, getDenseIndex, loadDenseModel } from '../engine/embeddings'
 import { ExtractiveEngine, WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
+import { runWebGpuPreflight, type DevicePreflightResult } from '../engine/devicePreflight'
 
 export default function Models({ ctx }: { ctx: AppCtx }) {
   const [loading, setLoading] = useState<string | null>(null)
@@ -12,6 +13,16 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
   const [embedProgress, setEmbedProgress] = useState('')
   const [embedError, setEmbedError] = useState<string | null>(null)
   const [embedReady, setEmbedReady] = useState(() => denseReady())
+  const [deviceCheck, setDeviceCheck] = useState<DevicePreflightResult | null>(null)
+  const [deviceChecking, setDeviceChecking] = useState(false)
+
+  async function checkDevice(): Promise<DevicePreflightResult> {
+    setDeviceChecking(true)
+    const result = await runWebGpuPreflight()
+    setDeviceCheck(result)
+    setDeviceChecking(false)
+    return result
+  }
 
   async function requestPersistentStorage() {
     try {
@@ -65,6 +76,8 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
     setLoading(modelId)
     setProgress({ text: 'Initialisiere …', pct: 0 })
     try {
+      const capability = deviceCheck ?? await checkDevice()
+      if (capability.state !== 'ready') throw new Error(capability.detail)
       const engine = new WebLLMEngine(modelId)
       await engine.load((text, pct) => setProgress({ text, pct }))
       await requestPersistentStorage()
@@ -100,6 +113,20 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
           vollständig nutzbar sind (Chrome/Edge ab Version 113 oder Chrome auf Android unterstützen WebGPU).
         </div>
       )}
+
+      <div className={`card device-preflight ${deviceCheck?.state ?? ''}`}>
+        <div>
+          <h3 style={{ margin: 0 }}>GPU-Compute-Vortest</h3>
+          <p className="hint" style={{ margin: '4px 0 0' }}>
+            {deviceCheck
+              ? `${deviceCheck.label}: ${deviceCheck.detail}${deviceCheck.adapterInfo ? ` · ${deviceCheck.adapterInfo}` : ''}`
+              : 'Prüft mit einer echten Mini-Compute-Pipeline, ob WebGPU nur gemeldet wird oder auf diesem Gerät tatsächlich funktioniert.'}
+          </p>
+        </div>
+        <button className="btn" type="button" disabled={deviceChecking} onClick={() => void checkDevice()}>
+          {deviceChecking ? 'Prüfe …' : deviceCheck ? 'Erneut prüfen' : 'Gerät testen'}
+        </button>
+      </div>
 
       <div className="card" style={{ marginBottom: 14, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <div>

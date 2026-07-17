@@ -191,7 +191,7 @@ Das Begleitartefakt **Graph-RAG Lab** implementiert die komplette wissenschaftli
 │   Ergebnis-Dashboard (Genauigkeit × Hop-Tiefe · Evidenz-Diagnostik ·             │
 │   Ressourcen) · JSON/CSV-Export                                                  │
 │                       ▼                                                          │
-│               localStorage (alles bleibt auf dem Gerät)                          │
+│    IndexedDB (robuster Stand) + localStorage (synchroner Start-Snapshot)          │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -204,6 +204,8 @@ Beim Import **eigenen Wissens** bleibt die Dokument→Abschnitt-Kante als überp
 Wikipedia-Wissen lässt sich auf zwei getrennten Wegen ergänzen: Der Nutzer kann über die offizielle MediaWiki-API suchen und bis zu drei Startartikel bewusst auswählen; zusätzlich kann er vor einem Text-/PDF-Import einen einmaligen Auto-Nachimport aktivieren. Die Automatik übermittelt nie den Dokumenttext, sondern höchstens drei Entitätsnamen, die zuvor durch eine eindeutige lokale Namensnennung belegt wurden. Innerhalb des Wikipedia-Teilgraphen entsteht eine Relation nur, wenn `prop=links` im Quellartikel tatsächlich einen internen Link auf das Ziel liefert. URL, Seiten-ID, Revisions-ID, Zielname und Import-Scope bleiben als Provenienz gespeichert. Der allgemeine Chat besitzt außerdem einen persistenten Schalter für fragegetriebene Wikipedia-Recherche bei Wissenslücken. Alle drei Varianten sind Online-Funktionen außerhalb des eingefrorenen Messkorpus.
 
 Entwurfsprinzipien: **Privacy by Design** (keine Telemetrie; Messdaten, Originaldateien und vollständige Nutzergraphen bleiben lokal; optionale Übertragungen werden begrenzt und offengelegt), **Transparenz** (jeder Retrieval-Kontext und jeder extrahierte Subgraph ist in der UI einsehbar – auch als didaktisches Werkzeug für die Seminarpräsentation) und **Austauschbarkeit** (Engine- und Retrieval-Schnittstellen sind so geschnitten, dass dichte Embeddings oder andere Modelle ohne Umbau einsteckbar sind).
+
+Die spätere Produktiteration ergänzt eine frei transformierbare Canvas-Kamera, eine animierte Import-Differenz, eine bewusst als lexikalische Hilfszuordnung gekennzeichnete Satz-zu-Evidenz-Ansicht sowie eine A/B-Arena. Letztere kann nicht nur Graph-RAG und Vektor-RAG vergleichen, sondern auch genau eine ausgewählte Kante für eine Gegenprobe entfernen. Die Evidenzansicht behauptet ausdrücklich keine Einsicht in die interne Modellkausalität. Schreibaktionen werden über eine kleine typisierte und validierte Aktionsschicht ausgeführt, nicht durch unkontrollierte LLM-Toolaufrufe.
 
 ## 6 Interpretationsmatrix
 
