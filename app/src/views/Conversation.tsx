@@ -5,8 +5,10 @@ import type { GraphEdge, KnowledgeGraph } from '../data/types'
 import { ExperimentRunner, type PreparedTrial } from '../engine/experiment'
 import {
   getVoiceCapabilities,
+  listGermanVoices,
   TurnBasedVoiceController,
   VoiceSynthesisError,
+  type GermanVoiceInfo,
   type LiveVoiceSnapshot,
 } from '../engine/liveVoice'
 import {
@@ -16,6 +18,7 @@ import {
   type ResearchProgress,
   type ResearchResult,
 } from '../engine/research'
+import { applyKnowledgeImport } from '../engine/store'
 
 type MessageRole = 'user' | 'assistant'
 type MessageStatus = 'pending' | 'done' | 'stopped' | 'error'
@@ -53,6 +56,10 @@ const SUGGESTIONS = [
   'Was verbindet Schelling mit Kierkegaard?',
   'Warum war der Pantheismusstreit philosophisch bedeutsam?',
 ]
+
+const AUTO_WIKIPEDIA_KEY = 'noesis.wikipedia.auto.v1'
+const VOICE_URI_KEY = 'noesis.voice.uri.v1'
+const VOICE_RATE_KEY = 'noesis.voice.rate.v1'
 
 const CONVERSATION_SYSTEM_PROMPT = [
   'Du bist Noesis, ein freundlicher deutschsprachiger Wissensassistent für Philosophie- und Ideengeschichte.',
@@ -99,16 +106,8 @@ function mergeResearchGraph(graph: KnowledgeGraph, found: ResearchResult): Knowl
  * verändern.
  */
 function persistResearch(ctx: AppCtx, found: ResearchResult): void {
-  const graphNodeIds = new Set(ctx.graph.nodes.map((node) => node.id))
-  const graphEdges = new Set(ctx.graph.edges.map(edgeKey))
-  const nodes = found.nodes.filter((node) => !graphNodeIds.has(node.id))
-  const newEdges = found.edges.filter((edge) => !graphEdges.has(edgeKey(edge)))
-  const edges = appendNewEdges(ctx.custom.edges, newEdges)
-  if (nodes.length === 0 && edges.length === ctx.custom.edges.length) return
-  ctx.setCustom({
-    nodes: [...ctx.custom.nodes, ...nodes],
-    edges,
-  })
+  const applied = applyKnowledgeImport(ctx.custom, found, { replaceSource: false })
+  ctx.setCustom(applied.knowledge)
 }
 
 function wikipediaUrl(title: string): string {
@@ -219,10 +218,14 @@ function modelPrompt(
   prepared: PreparedTrial,
   messages: ConversationMessage[],
   includePersonalKnowledge = true,
+  spoken = false,
 ): string {
   const history = conversationHistory(messages, includePersonalKnowledge)
   return [
     history ? `BISHERIGER GESPRÄCHSVERLAUF (nur für sprachliche Bezüge):\n${history}` : '',
+    spoken
+      ? 'AUSGABEMODUS: Die Antwort wird laut gesprochen. Formuliere wie in einem ruhigen natürlichen Gespräch: kurze vollständige Sätze, keine Markdown-Listen, keine Überschriften, keine Klammerketten und keine vorgelesenen URLs. Nutze gelegentlich eine passende Überleitung, aber keine künstlichen Füllwörter.'
+      : '',
     `KONTEXT:\n${prepared.context}`,
     `FRAGE: ${question}`,
   ]
@@ -256,6 +259,9 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   const [researchProgress, setResearchProgress] = useState<ResearchProgress | null>(null)
   const [sharePersonalKnowledge, setSharePersonalKnowledge] = useState(false)
   const [seminarWikipedia, setSeminarWikipedia] = useState(false)
+  const [autoWikipedia, setAutoWikipedia] = useState(
+    () => localStorage.getItem(AUTO_WIKIPEDIA_KEY) !== 'off',
+  )
   const [voiceOpen, setVoiceOpen] = useState(false)
   const [voiceStage, setVoiceStage] = useState<LiveVoiceStage>('ready')
   const [voiceTranscript, setVoiceTranscript] = useState('')
@@ -264,11 +270,17 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   const [voiceError, setVoiceError] = useState<string | null>(null)
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null)
   const [voiceMuted, setVoiceMuted] = useState(false)
+  const [voiceOptions, setVoiceOptions] = useState<GermanVoiceInfo[]>([])
+  const [voiceURI, setVoiceURI] = useState(() => localStorage.getItem(VOICE_URI_KEY) ?? '')
+  const [voiceRate, setVoiceRate] = useState(() => {
+    const stored = Number(localStorage.getItem(VOICE_RATE_KEY))
+    return Number.isFinite(stored) && stored >= 0.85 && stored <= 1.15 ? stored : 0.98
+  })
   const activeRunRef = useRef<ActiveRun | null>(null)
   const busyRef = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const voiceControllerRef = useRef<TurnBasedVoiceController | null>(null)
-  const askRef = useRef<(question: string) => Promise<string | null>>(async () => null)
+  const askRef = useRef<(question: string, spoken?: boolean) => Promise<string | null>>(async () => null)
   const stopAnswerRef = useRef<() => void>(() => undefined)
   const voiceMutedRef = useRef(false)
   const seminarOnline = ctx.engine.id === 'seminar-online'
@@ -289,6 +301,35 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [messages, pendingLabel])
+
+  useEffect(() => {
+    if (!seminarOnline) localStorage.setItem(AUTO_WIKIPEDIA_KEY, autoWikipedia ? 'on' : 'off')
+  }, [autoWikipedia, seminarOnline])
+
+  useEffect(() => {
+    localStorage.setItem(VOICE_URI_KEY, voiceURI)
+    localStorage.setItem(VOICE_RATE_KEY, String(voiceRate))
+    voiceControllerRef.current?.setPlaybackPreferences({
+      voiceURI: voiceURI || undefined,
+      rate: voiceRate,
+      preferLocalVoice: false,
+      naturalProsody: true,
+      pauseScale: 0.9,
+    })
+  }, [voiceRate, voiceURI])
+
+  useEffect(() => {
+    if (!voiceOpen || !voiceCapabilities.synthesis) return
+    let cancelled = false
+    void listGermanVoices('de-DE', false).then((voices) => {
+      if (cancelled) return
+      setVoiceOptions(voices)
+      if (voices.length > 0 && voiceURI && !voices.some((voice) => voice.voiceURI === voiceURI)) setVoiceURI('')
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [voiceCapabilities.synthesis, voiceOpen, voiceURI])
 
   useEffect(() => {
     return () => {
@@ -327,7 +368,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     setMessages((current) => current.map((message) => (message.id === id ? { ...message, ...patch } : message)))
   }
 
-  async function ask(rawQuestion?: string): Promise<string | null> {
+  async function ask(rawQuestion?: string, spoken = false): Promise<string | null> {
     const question = (rawQuestion ?? input).trim()
     if (!question || busyRef.current) return null
 
@@ -368,7 +409,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     try {
       const canResearch =
         ctx.online &&
-        (!seminarOnline || seminarWikipedia) &&
+        (seminarOnline ? seminarWikipedia : autoWikipedia) &&
         navigator.onLine !== false &&
         (looksUncovered(query, graph) || looksUncovered(question, graph))
 
@@ -435,6 +476,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           prepared,
           historyBeforeQuestion,
           !seminarOnline || sharePersonalKnowledge,
+          spoken,
         ),
         (partial) => {
           if (!run.cancelled) updateMessage(assistantMessage.id, { text: partial })
@@ -529,6 +571,13 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     voiceControllerRef.current = new TurnBasedVoiceController({
       lang: 'de-DE',
       autoContinue: true,
+      playback: {
+        voiceURI: voiceURI || undefined,
+        rate: voiceRate,
+        preferLocalVoice: false,
+        naturalProsody: true,
+        pauseScale: 0.9,
+      },
       onSnapshot: syncVoiceSnapshot,
       onCancelTurn: () => stopAnswerRef.current(),
       onTurnError: (error) => {
@@ -540,7 +589,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       onTurn: async (transcript) => {
         setVoiceLastQuestion(transcript)
         setVoiceLastAnswer('')
-        const answer = await askRef.current(transcript)
+        const answer = await askRef.current(transcript, true)
         if (answer) setVoiceLastAnswer(answer)
         return voiceMutedRef.current || !voiceCapabilities.synthesis ? null : answer
       },
@@ -659,7 +708,9 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
             {seminarOnline
               ? '● Seminar-Modell verbunden'
               : ctx.online
-                ? '● Wikipedia bei Wissenslücken'
+                ? autoWikipedia
+                  ? '● Wikipedia-Automatik aktiv'
+                  : '● Online · Automatik aus'
                 : '○ Offline · Noesis-Netz aus'}
           </button>
         </div>
@@ -676,6 +727,28 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           </div>
           <button className="btn sm" type="button" onClick={() => ctx.go('models')}>
             Lokales Modell wählen
+          </button>
+        </div>
+      )}
+
+      {!seminarOnline && ctx.online && (
+        <div className="callout conversation-engine-note conversation-wikipedia-control">
+          <label className="conversation-wikipedia-auto">
+            <input
+              type="checkbox"
+              checked={autoWikipedia}
+              onChange={(event) => setAutoWikipedia(event.target.checked)}
+            />
+            <span>
+              <strong>Wikipedia automatisch bei Wissenslücken ergänzen</strong>
+              <small>
+                Nur wenn der lokale Graph die Frage voraussichtlich nicht abdeckt, sendet Noesis die Suchfrage an die
+                öffentliche MediaWiki-API. Geladene Artikel und echte MediaWiki-Links werden danach lokal gespeichert.
+              </small>
+            </span>
+          </label>
+          <button className="btn sm" type="button" onClick={() => ctx.go('knowledge')}>
+            Wikipedia gezielt auswählen
           </button>
         </div>
       )}
@@ -881,7 +954,9 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           <div className="hint conversation-composer-hint">
             {seminarOnline
               ? 'Enter sendet · Ausgewählte Belegauszüge werden an das Seminar-Modell übertragen · Originaldateien bleiben lokal'
-              : 'Enter sendet · Shift+Enter fügt eine neue Zeile ein · Wikipedia-Wissen wird nur im Online-Modus ergänzt'}
+              : `Enter sendet · Shift+Enter fügt eine neue Zeile ein · Wikipedia-Automatik ${
+                  ctx.online && autoWikipedia ? 'aktiv' : 'aus'
+                }`}
           </div>
         </form>
       </div>
@@ -895,12 +970,17 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         error={voiceError ?? voiceNotice}
         muted={voiceMuted}
         speechOutputAvailable={voiceCapabilities.synthesis}
+        voices={voiceOptions}
+        selectedVoiceURI={voiceURI}
+        voiceRate={voiceRate}
         engineLabel={ctx.engine.label}
         remoteAnswer={seminarOnline}
         onClose={closeVoice}
         onPrimaryAction={handleVoicePrimaryAction}
         onStopTurn={stopVoiceTurn}
         onToggleMuted={toggleVoiceMuted}
+        onVoiceChange={setVoiceURI}
+        onVoiceRateChange={setVoiceRate}
       />
     </section>
   )

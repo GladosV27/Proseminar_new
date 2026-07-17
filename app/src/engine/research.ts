@@ -1,5 +1,6 @@
-import type { GraphEdge, GraphNode, KnowledgeGraph } from '../data/types'
-import { apiGet, fetchIntro, fetchLinkedTitles, slug } from './ingest'
+import type { GraphEdge, GraphNode, KnowledgeGraph, KnowledgeImportReport, KnowledgeProvenance } from '../data/types'
+import { apiGet, fetchIntro, fetchLinkedTitles, slug, type WikiPage } from './ingest'
+import { createImportReport, stableHash } from './knowledge'
 import { normalize, terms } from './text'
 
 /**
@@ -33,6 +34,7 @@ export interface ResearchResult {
   edges: GraphEdge[]
   /** Titel der Wikipedia-Artikel, auf die sich die Recherche stützt */
   sources: string[]
+  report: KnowledgeImportReport
 }
 
 async function searchTitles(query: string, limit = 3): Promise<string[]> {
@@ -70,18 +72,42 @@ export async function researchQuestion(
   const edges: GraphEdge[] = []
   const sources: string[] = []
   const verifiedLinks = new Map<string, Set<string>>()
-  const researchedPages = new Map<string, string>()
+  const researchedPages = new Map<string, WikiPage>()
+  const importedAt = Date.now()
+  const importScopeId = `wikipedia-research:${stableHash(normalize(question))}`
 
-  const addNode = (title: string, extract: string): string => {
-    const id = slug(title)
+  const provenanceFor = (
+    page: WikiPage,
+    method: 'source-text' | 'mediawiki-link',
+    targetTitle?: string,
+  ): KnowledgeProvenance => ({
+    sourceId: `wikipedia:${page.pageId ?? stableHash(normalize(page.title))}`,
+    importScopeId,
+    sourceKind: 'wikipedia-research',
+    sourceTitle: page.title,
+    importedAt,
+    method,
+    confidence: 'verified',
+    evidence: method === 'source-text'
+      ? page.extract.slice(0, 320)
+      : `${page.title} verlinkt in MediaWiki auf ${targetTitle}.`,
+    url: page.url,
+    pageId: page.pageId,
+    revisionId: page.revisionId,
+    targetTitle,
+  })
+
+  const addNode = (page: WikiPage): string => {
+    const id = slug(page.title)
     if (!existingIds.has(id) && !nodes.some((n) => n.id === id)) {
       nodes.push({
         id,
-        title,
+        title: page.title,
         type: 'konzept',
         community: RESEARCH_COMMUNITY,
-        summary: extract.slice(0, 1100),
+        summary: page.extract.slice(0, 1100),
         custom: true,
+        provenance: [provenanceFor(page, 'source-text')],
       })
     }
     return id
@@ -97,8 +123,8 @@ export async function researchQuestion(
     done++
     if (!root || root.extract.length < 80) continue
     sources.push(root.title)
-    const rootId = addNode(root.title, root.extract)
-    researchedPages.set(rootId, root.title)
+    const rootId = addNode(root)
+    researchedPages.set(rootId, root)
 
     const introNorm = normalize(root.extract)
     let linked: string[] = []
@@ -115,8 +141,8 @@ export async function researchQuestion(
       try {
         const page = await fetchIntro(t)
         if (page && page.extract.length > 120) {
-          const nid = addNode(page.title, page.extract)
-          researchedPages.set(nid, page.title)
+          const nid = addNode(page)
+          researchedPages.set(nid, page)
           if (nid !== rootId && !edges.some((e) => e.source === rootId && e.target === nid)) {
             edges.push({
               source: rootId,
@@ -124,6 +150,7 @@ export async function researchQuestion(
               relation: 'mediawiki_verlinkt_auf',
               label: 'MediaWiki-Link',
               custom: true,
+              provenance: [provenanceFor(root, 'mediawiki-link', page.title)],
             })
           }
         }
@@ -139,10 +166,10 @@ export async function researchQuestion(
   // relational belegter Subgraph. Die Zahl bleibt durch hits/neighborsPerHit
   // eng begrenzt; die Requests laufen parallel.
   await Promise.all(
-    [...researchedPages.entries()].map(async ([id, title]) => {
+    [...researchedPages.entries()].map(async ([id, page]) => {
       if (verifiedLinks.has(id)) return
       try {
-        verifiedLinks.set(id, new Set((await fetchLinkedTitles(title, 200)).map(normalize)))
+        verifiedLinks.set(id, new Set((await fetchLinkedTitles(page.title, 200)).map(normalize)))
       } catch {
         verifiedLinks.set(id, new Set())
       }
@@ -165,12 +192,14 @@ export async function researchQuestion(
           edge.relation === 'mediawiki_verlinkt_auf',
       )
       if (!alreadyKnown && !edges.some((edge) => edge.source === sourceId && edge.target === target.id)) {
+        const sourcePage = researchedPages.get(sourceId)
         edges.push({
           source: sourceId,
           target: target.id,
           relation: 'mediawiki_verlinkt_auf',
           label: 'MediaWiki-Link',
           custom: true,
+          provenance: sourcePage ? [provenanceFor(sourcePage, 'mediawiki-link', target.title)] : undefined,
         })
       }
     }
@@ -181,7 +210,17 @@ export async function researchQuestion(
   }
 
   onProgress?.({ step: 'Recherche abgeschlossen.', done: totalSteps, total: totalSteps })
-  return { nodes, edges, sources }
+  const report = createImportReport({
+    sourceId: importScopeId,
+    sourceKind: 'wikipedia-research',
+    sourceTitle: sources.join(' · ') || question.slice(0, 120),
+    importedAt,
+    localOnly: false,
+    nodes,
+    edges,
+    graph: existing,
+  })
+  return { nodes, edges, sources, report }
 }
 
 /** Heuristik: Findet das lokale Wissen vermutlich keine Antwort? */

@@ -7,7 +7,15 @@ import type {
   KnowledgeSourceKind,
 } from '../data/types'
 import type { PdfReadResult } from './pdf'
-import { createImportReport, evidenceExcerpt, stableHash } from './knowledge'
+import {
+  THEMATIC_LINK_DEFAULTS,
+  createImportReport,
+  evidenceExcerpt,
+  inferSimilarityEdges,
+  inferTopicEdges,
+  stableHash,
+  type ThematicTextNode,
+} from './knowledge'
 import { normalize, splitSentences } from './text'
 
 /**
@@ -102,6 +110,25 @@ function mentionEdges(
   return { edges, ambiguous }
 }
 
+function belongsToImportScope(node: GraphNode, sourceId: string): boolean {
+  return node.provenance?.some((value) =>
+    value.importScopeId === sourceId || value.sourceId === sourceId,
+  ) ?? false
+}
+
+/**
+ * Ein Reimport darf nicht mit seinem alten, gleich darauf zu ersetzenden Stand
+ * verglichen werden. Alle anderen Basis- und Nutzerknoten bleiben als mögliche
+ * lokale Ähnlichkeitsziele erhalten.
+ */
+function similarityTargets(graph: KnowledgeGraph, sourceId: string): GraphNode[] {
+  return graph.nodes.filter((node) => !belongsToImportScope(node, sourceId))
+}
+
+function mentionExclusions(sourceId: string, edges: GraphEdge[]): Map<string, ReadonlySet<string>> {
+  return new Map([[sourceId, new Set(edges.filter((edge) => edge.source === sourceId).map((edge) => edge.target))]])
+}
+
 function sourceProvenance(args: {
   sourceId: string
   sourceKind: KnowledgeSourceKind
@@ -148,6 +175,20 @@ export function ingestText(
     provenance: [provenance],
   }
   const mentions = mentionEdges(id, cleanText, graph, provenance)
+  const similarity = inferSimilarityEdges(
+    [{ node, text: cleanText, provenance }],
+    similarityTargets(graph, sourceId),
+    { excludedTargets: mentionExclusions(id, mentions.edges) },
+  )
+  const edges = [...mentions.edges, ...similarity.edges]
+  const warnings = cleanText.length > node.summary.length
+    ? ['Der Notizknoten speichert nur eine Kurzfassung; Kanten behalten den belegenden Textausschnitt.']
+    : []
+  if (edges.length === 0) {
+    warnings.push(
+      `Keine eindeutige Entität und keine lokale Ähnlichkeit ≥ ${THEMATIC_LINK_DEFAULTS.similarityMinScore.toFixed(2)} gefunden; es wurde keine Beziehung geraten.`,
+    )
+  }
   const report = createImportReport({
     sourceId,
     sourceKind: 'manual-text',
@@ -155,15 +196,13 @@ export function ingestText(
     importedAt,
     localOnly: true,
     nodes: [node],
-    edges: mentions.edges,
+    edges,
     graph,
     truncated: cleanText.length > node.summary.length,
-    warnings: cleanText.length > node.summary.length
-      ? ['Der Notizknoten speichert nur eine Kurzfassung; Kanten behalten den belegenden Textausschnitt.']
-      : [],
+    warnings,
     skippedReasons: mentions.ambiguous ? { 'mehrdeutige Entitätsnennung': mentions.ambiguous } : {},
   })
-  return { node, edges: mentions.edges, report }
+  return { node, edges, report }
 }
 
 interface PdfChunk {
@@ -232,7 +271,9 @@ export interface PdfIngestOptions {
 
 /**
  * Überführt lokal extrahierten PDF-Text in Dokument- und Abschnittsknoten.
- * Kanten entstehen nur aus Dokumentstruktur oder expliziten Namensnennungen.
+ * Die Dokumentstruktur bleibt als Herkunftsanker erhalten. Inhaltliche Kanten
+ * entstehen dagegen ausschließlich aus exakten Namensnennungen, gewichteter
+ * Themenüberlappung oder Ähnlichkeit oberhalb dokumentierter Schwellen.
  */
 export function ingestPdfDocument(
   title: string,
@@ -275,7 +316,8 @@ export function ingestPdfDocument(
     },
   ]
   const edges: GraphEdge[] = []
-  let previousId: string | null = null
+  const sectionSources: ThematicTextNode[] = []
+  const excludedTargets = new Map<string, ReadonlySet<string>>()
   let ambiguousMentions = 0
   for (const [index, section] of sections.entries()) {
     const id = `${documentId}_abschnitt_${index + 1}`
@@ -297,7 +339,7 @@ export function ingestPdfDocument(
       confidence: 'verified',
       evidence: section.text.slice(0, 320),
     }
-    nodes.push({
+    const sectionNode: GraphNode = {
       id,
       title: `${cleanTitle} · Abschnitt ${index + 1}`,
       type: 'konzept',
@@ -305,7 +347,9 @@ export function ingestPdfDocument(
       summary: section.text,
       custom: true,
       provenance: [sectionProvenance],
-    })
+    }
+    nodes.push(sectionNode)
+    sectionSources.push({ node: sectionNode, text: section.text, provenance: sectionBase })
     const structuralProvenance: KnowledgeProvenance = {
       ...sectionBase,
       method: 'document-structure',
@@ -320,24 +364,37 @@ export function ingestPdfDocument(
       custom: true,
       provenance: [structuralProvenance],
     })
-    if (previousId) {
-      edges.push({
-        source: previousId,
-        target: id,
-        relation: 'danach_folgt',
-        label: 'danach folgt',
-        custom: true,
-        provenance: [structuralProvenance],
-      })
-    }
     const mentions = mentionEdges(id, section.text, graph, sectionBase, section.start)
     edges.push(...mentions.edges)
+    excludedTargets.set(id, new Set(mentions.edges.map((edge) => edge.target)))
     ambiguousMentions += mentions.ambiguous
-    previousId = id
   }
+
+  // Dokumentinterne Topic-Kanten hängen nur von den Texten ab – nicht davon,
+  // ob zwei Abschnitte zufällig nebeneinander stehen.
+  const topicLinks = inferTopicEdges(sectionSources)
+  // Brücken in den bereits vorhandenen Graphen werden lokal über TF-IDF
+  // bestimmt. Exakte Entity-Nennungen haben Vorrang und werden nicht durch
+  // eine zweite, schwächere Ähnlichkeitskante dupliziert.
+  const similarityLinks = inferSimilarityEdges(
+    sectionSources,
+    similarityTargets(graph, sourceId),
+    { excludedTargets },
+  )
+  edges.push(...topicLinks.edges, ...similarityLinks.edges)
 
   const warnings: string[] = []
   if (chunked.truncated) warnings.push('Der Dokumentimport wurde an einem lokalen Speicherlimit gekürzt.')
+  const semanticEdgeCount = edges.filter((edge) =>
+    edge.relation === 'erwaehnt' ||
+    edge.relation === 'teilt_thema_mit' ||
+    edge.relation === 'thematisch_aehnlich',
+  ).length
+  if (semanticEdgeCount === 0) {
+    warnings.push(
+      `Neben der belegten Dokumentstruktur wurde keine sichere Entity-, Topic- (≥ ${THEMATIC_LINK_DEFAULTS.topicMinScore.toFixed(2)}) oder Ähnlichkeitskante (≥ ${THEMATIC_LINK_DEFAULTS.similarityMinScore.toFixed(2)}) gefunden; es wurde keine Beziehung geraten.`,
+    )
+  }
   const report = createImportReport({
     sourceId,
     sourceKind: 'pdf',

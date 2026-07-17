@@ -188,13 +188,20 @@ export default function ForceGraph({
         const emphasized = emphasizedEdges.has(key)
         const pulsing = key === pulseKey
         const touched = Boolean(active && (e.source === active || e.target === active)) || emphasized || pulsing
-        ctx.strokeStyle = touched ? resolveColor('var(--accent)') : line
+        const heuristic = e.provenance?.some((item) => item.confidence === 'heuristic') ?? false
+        ctx.setLineDash(heuristic ? [5, 4] : [])
+        ctx.strokeStyle = touched
+          ? resolveColor('var(--accent)')
+          : heuristic
+            ? resolveColor('var(--cat-5)')
+            : line
         ctx.lineWidth = pulsing ? 3.2 : emphasized ? 2.2 : touched ? 1.8 : 1
         ctx.globalAlpha = emphasized || pulsing ? 0.98 : a.highlight && b.highlight ? (touched ? 0.95 : 0.55) : 0.12
         ctx.beginPath()
         ctx.moveTo(a.x, a.y)
         ctx.lineTo(b.x, b.y)
         ctx.stroke()
+        ctx.setLineDash([])
       })
       ctx.globalAlpha = 1
 

@@ -12,8 +12,12 @@ import {
   startRecognitionSession,
   startSpeechPlayback,
   voiceRecognitionAvailable,
+  type SpeakOptions,
   type SpeechPlayback,
 } from '../engine/liveVoice'
+
+export { listGermanVoices } from '../engine/liveVoice'
+export type { GermanVoiceInfo, SpeakOptions, VoicePlaybackPreferences } from '../engine/liveVoice'
 
 let activePlayback: SpeechPlayback | null = null
 
@@ -32,15 +36,16 @@ export function dictate(onInterim: (text: string) => void): { promise: Promise<s
   return { promise: session.result, cancel: () => session.abort() }
 }
 
-export function speak(text: string): void {
+export function speak(text: string, options: SpeakOptions = {}): SpeechPlayback {
   stopSpeaking()
-  const playback = startSpeechPlayback(text, { lang: 'de-DE', rate: 1.05 })
+  const playback = startSpeechPlayback(text, { lang: 'de-DE', rate: 1, ...options })
   activePlayback = playback
   void playback.done
     .catch(() => undefined)
     .finally(() => {
       if (activePlayback === playback) activePlayback = null
     })
+  return playback
 }
 
 export function stopSpeaking(): void {
@@ -51,9 +56,9 @@ export function stopSpeaking(): void {
 
 export function speaking(): boolean {
   try {
-    return speechSynthesisAvailable() && window.speechSynthesis.speaking
+    return Boolean(activePlayback) || (speechSynthesisAvailable() && window.speechSynthesis.speaking)
   } catch {
-    return false
+    return Boolean(activePlayback)
   }
 }
 
