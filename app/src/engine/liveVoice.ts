@@ -791,6 +791,8 @@ export interface TurnBasedVoiceControllerOptions {
   speakResponses?: boolean
   autoContinue?: boolean
   playback?: VoicePlaybackPreferences
+  /** Optional local/neural output implementation. Falls back to Web Speech. */
+  startPlayback?: (text: string, options: SpeakOptions) => SpeechPlayback
   /** Quiet hand-off between the final spoken segment and a fresh microphone session. */
   turnGapMs?: number
   /** Lets the device speaker decay before listening after a barge-in. */
@@ -984,10 +986,13 @@ export class TurnBasedVoiceController {
         const shouldSpeak = (this.options.speakResponses ?? true) && Boolean(answer?.trim())
         if (shouldSpeak && answer) {
           this.update({ phase: 'speaking' })
-          const playback = startSpeechPlayback(answer, {
+          const playbackOptions = {
             lang: this.options.lang ?? 'de-DE',
             ...this.playbackPreferences,
-          })
+          }
+          const playback = this.options.startPlayback
+            ? this.options.startPlayback(answer, playbackOptions)
+            : startSpeechPlayback(answer, playbackOptions)
           this.playback = playback
           try {
             await playback.done
