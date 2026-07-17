@@ -25,6 +25,8 @@ export interface LLMEngine {
   readonly id: string
   readonly label: string
   generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult>
+  /** Unterbricht – sofern von der Engine unterstützt – eine laufende Generierung. */
+  interrupt?(): Promise<void> | void
 }
 
 // ────────────────────────── Demo-Engine (extraktiv, deterministisch) ──────────────────────────
@@ -144,7 +146,11 @@ export class WebLLMEngine implements LLMEngine {
     return typeof navigator !== 'undefined' && 'gpu' in navigator
   }
 
-  /** Prüft vor einem Offline-Start, ob sämtliche Modellartefakte im Browser-Cache liegen. */
+  /**
+   * Vorprüfung der von WebLLM erkannten Modellgewichte. Erst ein vollständiges
+   * load() plus Probeantwort im Flugmodus belegt die Offline-Bereitschaft auch
+   * für Konfiguration, Tokenizer und Runtime.
+   */
   static async isCached(modelId: string): Promise<boolean> {
     const { hasModelInCache } = await import('@mlc-ai/web-llm')
     return hasModelInCache(modelId)
@@ -181,5 +187,9 @@ export class WebLLMEngine implements LLMEngine {
       }
     }
     return { text: text.trim(), engine: this.id }
+  }
+
+  async interrupt(): Promise<void> {
+    await this.engine?.interruptGenerate()
   }
 }

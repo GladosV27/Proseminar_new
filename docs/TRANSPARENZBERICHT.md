@@ -24,6 +24,18 @@ Der KI-Anteil ist substanziell und nicht auf Rechtschreibkorrekturen beschränkt
 
 **Wichtige Abgrenzung:** Die lokal über WebLLM ausgeführten Sprachmodelle sind im Hauptversuch keine Hilfsmittel für die Erstellung, sondern der **Untersuchungsgegenstand**. Ihre Antworten werden als Messdaten gespeichert und bewertet.
 
+### 1.1 Vom Messlabor zum vorzeigbaren Produkt
+
+Eine späte, aber wichtige Iteration entstand aus meiner eigenen Kritik an der App: Obwohl viele Einzelfunktionen vorhanden waren, wirkte die Oberfläche eher wie eine Sammlung technischer Werkzeuge als wie ein klares Endprodukt. Ich entschied deshalb, dass im normalen Vortragsmodus nur das Ergebnis sichtbar sein sollte: ein natürlicher, Wikipedia-angereicherter Wissenschat, der seine Quellen und Beziehungen bei Bedarf offenlegt. Experiment, Bewertung, Modelle, Import und Quiz blieben erhalten, wurden aber hinter einen ausdrücklich wählbaren Studienmodus verschoben.
+
+| Entwicklungsschritt | Ehrliche Hürde | Beitrag von ChatGPT | Meine Entscheidung und Kontrolle |
+|---|---|---|---|
+| Produktfokus | Die Funktionsfülle verdeckte den eigentlichen Nutzen. | Vorschlag und Umsetzung einer getrennten Produkt- und Studiennavigation sowie eines mehrstufigen Chatverlaufs. | Ich legte fest, dass Gespräch, Wissensraum und Offline-Check die einzige Standardoberfläche bilden. |
+| Natürliches Gespräch | Der bisherige Assistent beantwortete nur Einzelfragen und wirkte mit der Demo-Engine nicht wie ChatGPT. | Implementierung von Gesprächshistorie, Anschlussfragen, Streaming, Unsicherheitsregel und Quellenchips. | Ich akzeptiere die Demo-Engine nur als technischen Fallback; für die Vorführung muss ein echtes lokales WebLLM-Modell geladen und getestet sein. |
+| Wikipedia-Anreicherung | Eine bloße Namensnennung im Text ist noch keine belastbare Graphrelation. | Überarbeitung der Recherchepipeline und automatische lokale Persistenz der gefundenen Artikel. | Ich verlangte, dass neue Recherchekanten ausschließlich aus tatsächlich von MediaWiki gelieferten Links entstehen; das eingefrorene Experiment bleibt davon getrennt. |
+| Offline-Vortrag | Der erste Service Worker löschte beim Aktualisieren unbeabsichtigt auch fremde Modellcaches und lud die App-Dateien nicht vollständig vor. | Diagnose, versionierter Build-Time-Precache, fester lokaler Starter und sichtbarer Bereitschaftstest. | Ich übernahm den engeren Offline-Anspruch: vollständig lokal erst nach einmaliger Vorbereitung im selben Browserprofil und erfolgreicher Probeantwort bei ausgeschaltetem WLAN. |
+| Prüfung | Ein erfolgreicher TypeScript-Build beweist weder Modellcache noch Bühnenablauf. | Automatisierte Build-, Manifest- und HTTP-Prüfungen sowie eine Preflight-Seite für App-Shell, WebGPU, Speicher, Modell und Probeantwort. | Den abschließenden Flugmodus-Test mit dem konkreten Vortragsgerät muss ich selbst noch durchführen und dokumentieren: ⬜. |
+
 ## 2 Reproduzierbarkeit des Experiments
 
 ### 2.1 Artefakt, Korpus und Fragenkatalog

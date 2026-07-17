@@ -169,21 +169,31 @@ export async function fetchIntro(title: string): Promise<WikiPage | null> {
   return null
 }
 
-export async function fetchLinkedTitles(title: string, limit = 60): Promise<string[]> {
-  const data = await apiGet({
-    action: 'query',
-    prop: 'links',
-    plnamespace: '0',
-    pllimit: String(limit),
-    redirects: '1',
-    titles: title,
-  })
-  const pages = data?.query?.pages ?? {}
+export async function fetchLinkedTitles(title: string, limit = 200): Promise<string[]> {
   const out: string[] = []
-  for (const key of Object.keys(pages)) {
-    for (const l of pages[key]?.links ?? []) out.push(l.title)
-  }
-  return out
+  let continuation: string | undefined
+
+  do {
+    const data = await apiGet({
+      action: 'query',
+      prop: 'links',
+      plnamespace: '0',
+      pllimit: String(Math.min(500, Math.max(1, limit - out.length))),
+      redirects: '1',
+      titles: title,
+      ...(continuation ? { plcontinue: continuation } : {}),
+    })
+    const pages = data?.query?.pages ?? {}
+    for (const key of Object.keys(pages)) {
+      for (const link of pages[key]?.links ?? []) {
+        if (!out.includes(link.title)) out.push(link.title)
+        if (out.length >= limit) return out
+      }
+    }
+    continuation = data?.continue?.plcontinue
+  } while (continuation && out.length < limit)
+
+  return out.slice(0, limit)
 }
 
 /**

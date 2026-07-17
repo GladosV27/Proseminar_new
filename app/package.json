@@ -6,8 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "tsc -b && vite build && node ./scripts/generate-sw.mjs",
+    "preview": "vite preview",
+    "offline:prepare": "npm run build",
+    "offline:start": "node ./scripts/offline-server.mjs --open"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",

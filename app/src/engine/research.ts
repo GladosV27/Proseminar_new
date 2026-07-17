@@ -11,7 +11,8 @@ import { normalize, terms } from './text'
  *  2. Intro-Auszüge der Treffer laden (Knoten)
  *  3. Pro Treffer die im Intro tatsächlich erwähnten verlinkten Nachbarn laden
  *     (filtert Datums-/Listen-Rauschen) → weitere Knoten + `verlinkt_auf`-Kanten
- *  4. Querkanten über Intro-Erwähnungen zwischen allen Recherche-Knoten
+ *  4. Quer- und Brückenkanten nur dann, wenn MediaWiki den Link tatsächlich
+ *     im Quellartikel ausliefert – bloße Namensnennungen reichen nicht aus.
  *
  * Wichtig für die Methodik: Recherche-Wissen landet in der Community
  * `recherche` und ist damit klar vom eingefrorenen Experiment-Korpus getrennt.
@@ -48,8 +49,8 @@ async function searchTitles(query: string, limit = 3): Promise<string[]> {
 /**
  * Recherchiert Wikipedia-Wissen zu einer Frage und liefert einen kleinen
  * Recherche-Cluster zurück. Bereits vorhandene Knoten (gleiche ID im
- * übergebenen Graphen) werden nicht dupliziert; stattdessen entstehen
- * Brückenkanten, wenn Recherche-Texte vorhandene Entitäten erwähnen.
+ * übergebenen Graphen) werden nicht dupliziert; Brückenkanten entstehen nur,
+ * wenn MediaWiki im jeweiligen Quellartikel tatsächlich auf die Entität linkt.
  */
 export async function researchQuestion(
   question: string,
@@ -68,6 +69,8 @@ export async function researchQuestion(
   const nodes: GraphNode[] = []
   const edges: GraphEdge[] = []
   const sources: string[] = []
+  const verifiedLinks = new Map<string, Set<string>>()
+  const researchedPages = new Map<string, string>()
 
   const addNode = (title: string, extract: string): string => {
     const id = slug(title)
@@ -95,6 +98,7 @@ export async function researchQuestion(
     if (!root || root.extract.length < 80) continue
     sources.push(root.title)
     const rootId = addNode(root.title, root.extract)
+    researchedPages.set(rootId, root.title)
 
     const introNorm = normalize(root.extract)
     let linked: string[] = []
@@ -103,6 +107,7 @@ export async function researchQuestion(
     } catch {
       /* Nachbarn sind optional */
     }
+    verifiedLinks.set(rootId, new Set(linked.map(normalize)))
     const relevant = linked.filter((t) => t.length > 3 && introNorm.includes(normalize(t))).slice(0, neighborsPerHit)
 
     for (const t of relevant) {
@@ -111,8 +116,15 @@ export async function researchQuestion(
         const page = await fetchIntro(t)
         if (page && page.extract.length > 120) {
           const nid = addNode(page.title, page.extract)
+          researchedPages.set(nid, page.title)
           if (nid !== rootId && !edges.some((e) => e.source === rootId && e.target === nid)) {
-            edges.push({ source: rootId, target: nid, relation: 'verlinkt_auf', label: 'verlinkt auf', custom: true })
+            edges.push({
+              source: rootId,
+              target: nid,
+              relation: 'mediawiki_verlinkt_auf',
+              label: 'MediaWiki-Link',
+              custom: true,
+            })
           }
         }
       } catch {
@@ -122,22 +134,50 @@ export async function researchQuestion(
     }
   }
 
-  if (nodes.length === 0) {
-    throw new Error('Zu dieser Frage konnten keine verwertbaren Artikel geladen werden.')
-  }
+  // Auch für die aufgenommenen Nachbarartikel deren echte Linklisten laden.
+  // So entsteht kein bloßer Stern um den Suchtreffer, sondern ein kleiner,
+  // relational belegter Subgraph. Die Zahl bleibt durch hits/neighborsPerHit
+  // eng begrenzt; die Requests laufen parallel.
+  await Promise.all(
+    [...researchedPages.entries()].map(async ([id, title]) => {
+      if (verifiedLinks.has(id)) return
+      try {
+        verifiedLinks.set(id, new Set((await fetchLinkedTitles(title, 200)).map(normalize)))
+      } catch {
+        verifiedLinks.set(id, new Set())
+      }
+    }),
+  )
 
-  // Querkanten unter den Recherche-Knoten + Brücken zu vorhandenen Knoten
-  const mentionTargets = [...nodes, ...existing.nodes]
-  for (const a of nodes) {
-    const aNorm = normalize(a.summary)
-    for (const b of mentionTargets) {
-      if (a.id === b.id) continue
-      if (b.title.length > 3 && aNorm.includes(normalize(b.title))) {
-        if (!edges.some((e) => e.source === a.id && e.target === b.id)) {
-          edges.push({ source: a.id, target: b.id, relation: 'erwaehnt', label: 'erwähnt', custom: true })
-        }
+  // Quer- und Brückenkanten nur aus verifizierten MediaWiki-Links. Dadurch
+  // behauptet der Wissensbaum keine Relation allein aufgrund einer zufälligen
+  // Namensnennung im Text.
+  const targets = [...nodes, ...existing.nodes]
+  for (const [sourceId, links] of verifiedLinks) {
+    for (const target of targets) {
+      if (sourceId === target.id) continue
+      const names = [target.title, ...(target.aliases ?? [])].map(normalize)
+      if (!names.some((name) => links.has(name))) continue
+      const alreadyKnown = existing.edges.some(
+        (edge) =>
+          edge.source === sourceId &&
+          edge.target === target.id &&
+          edge.relation === 'mediawiki_verlinkt_auf',
+      )
+      if (!alreadyKnown && !edges.some((edge) => edge.source === sourceId && edge.target === target.id)) {
+        edges.push({
+          source: sourceId,
+          target: target.id,
+          relation: 'mediawiki_verlinkt_auf',
+          label: 'MediaWiki-Link',
+          custom: true,
+        })
       }
     }
+  }
+
+  if (nodes.length === 0 && edges.length === 0 && sources.length === 0) {
+    throw new Error('Zu dieser Frage konnten keine verwertbaren Artikel geladen werden.')
   }
 
   onProgress?.({ step: 'Recherche abgeschlossen.', done: totalSteps, total: totalSteps })

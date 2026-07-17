@@ -135,11 +135,15 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
         {WEBLLM_MODELS.map((m) => {
           const active = ctx.engine.id === m.id
           const isLoading = loading === m.id
+          const recommendedForFable = m.id === 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC'
           return (
-            <div className="card" key={m.id} style={{ borderColor: active ? 'var(--accent)' : undefined }}>
+            <div className="card" key={m.id} style={{ borderColor: active || recommendedForFable ? 'var(--accent)' : undefined }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                 <h3>{m.name}</h3>
-                <span className="chip">{m.params}</span>
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  {recommendedForFable && <span className="chip">Empfohlen für Fable</span>}
+                  <span className="chip">{m.params}</span>
+                </div>
               </div>
               <p className="hint" style={{ fontSize: 13 }}>
                 {m.note} · Speicherbedarf ca. {(m.vramMB / 1000).toFixed(1).replace('.', ',')} GB

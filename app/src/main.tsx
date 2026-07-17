@@ -9,7 +9,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
-// PWA: nach dem ersten Besuch offline nutzbar (nur im Produktions-Build)
+// PWA: Der Produktions-Build registriert die versionierte, vollständig
+// vorab gecachte App-Shell. Modellgewichte werden davon getrennt verwaltet.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {
