@@ -193,7 +193,7 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
     try {
       const result = await ctx.engine.generate(
         'Antworte knapp auf Deutsch und verwende nur den bereitgestellten Kontext.',
-        'KONTEXT:\nFable verbindet einen lokalen Wissensgraphen mit einem lokalen Sprachmodell.\n\nFRAGE: Was verbindet Fable?',
+        'KONTEXT:\nNoesis verbindet einen lokalen Wissensgraphen mit einem lokalen Sprachmodell.\n\nFRAGE: Was verbindet Noesis?',
       )
       if (!result.text.trim()) throw new Error('Das Modell lieferte keinen Text.')
       setSmoke({ state: 'passed', text: `Probe bestanden: „${result.text.slice(0, 160)}${result.text.length > 160 ? '…' : ''}“` })
@@ -207,7 +207,7 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
       <div className="eyebrow">Bühnenmodus · lokaler Preflight</div>
       <div className="offline-heading">
         <div>
-          <h1>Ist Fable wirklich offline bereit?</h1>
+          <h1>Ist Noesis wirklich offline bereit?</h1>
           <p className="lead">
             Ein grüner Schalter allein beweist nichts. Dieser Check trennt App-Dateien, Modell, Browser-Speicher und den
             echten Flugmodus-Test sichtbar voneinander.

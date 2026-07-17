@@ -8,7 +8,7 @@
 
 | Pfad | Inhalt |
 |---|---|
-| [`app/`](app/) | **Fable / Graph-RAG Lab** – ein natürlicher, Wikipedia-angereicherter Wissenschat und sein wissenschaftlicher Messstand als lokale Web-App (React + TypeScript). Nach der einmaligen Vorbereitung laufen LLM-Inferenz, Retrieval und Speicherung lokal; es gibt keine Server-Inferenz und kein eigenes Backend. |
+| [`app/`](app/) | **Noesis / Graph-RAG Lab** – ein natürlicher, Wikipedia-angereicherter philosophischer Wissensdialog und sein wissenschaftlicher Messstand als lokale Web-App (React + TypeScript). Nach der einmaligen Vorbereitung laufen LLM-Inferenz, Retrieval und Speicherung lokal; es gibt keine Server-Inferenz und kein eigenes Backend. |
 | [`docs/AUSARBEITUNG.md`](docs/AUSARBEITUNG.md) | Wissenschaftliche Ausarbeitung: Motivation, verwandte Arbeiten, Forschungsfragen & Hypothesen, komplettes Experimentaldesign (Metriken, Statistik, Protokoll), Architektur, Limitationen, Zeitplan, Fragenkatalog. |
 | [`docs/TRANSPARENZBERICHT.md`](docs/TRANSPARENZBERICHT.md) | Vorlage für den abzugebenden Transparenz-Bericht (KI-Einsatz + Reproduzierbarkeit). |
 | [`docs/Praesentation_Graph-RAG_Schaffungsprozess.pptx`](docs/Praesentation_Graph-RAG_Schaffungsprozess.pptx) | Aktuelle, editierbare Seminarpräsentation: technische Entwicklung und reflektierter KI-Schaffungsprozess als gemeinsamer Erzählbogen. |
@@ -21,7 +21,7 @@
 
 ## Die App in 60 Sekunden
 
-- **Fable Wissensgespräch (Standardansicht)** – natürlicher Multi-Turn-Chat über Philosophie- und Ideengeschichte. Fable löst Anschlussbezüge auf, verbindet passende Graphknoten und legt Quellen auf Wunsch offen. Im Online-Modus recherchiert es echte MediaWiki-Verbindungen bei Wissenslücken und speichert sie lokal; dieses angereicherte Wissen bleibt anschließend offline nutzbar.
+- **Noesis · philosophischer Wissensdialog (Standardansicht)** – natürlicher Multi-Turn-Chat über Philosophie- und Ideengeschichte. Noesis löst Anschlussbezüge auf, verbindet passende Graphknoten und legt Quellen auf Wunsch offen. Im Online-Modus recherchiert es echte MediaWiki-Verbindungen bei Wissenslücken und speichert sie lokal; dieses angereicherte Wissen bleibt anschließend offline nutzbar.
 - **Zwei bewusst getrennte Oberflächen** – im Vortrags-/Produktmodus sind nur Gespräch, Wissensraum und Offline-Check sichtbar. Ein optionaler Studienmodus öffnet Experiment, Bewertung, Ergebnisse, Modellwahl, Wissensimport und Quiz.
 - **Übersicht** – Projekt, Korpus-Statistik, die drei Bedingungen.
 - **Graph-Explorer** – interaktiver Wissensgraph (75 Knoten, 165 typisierte Kanten, 5 manuell zugeordnete thematische Communities zur Domäne »Deutscher Idealismus«), Suche, Community-Filter und Knoten-Details. Zusammenfassungen, Relationen und Community-Zuordnungen wurden auf Grundlage ausgewählter Wikipedia-Inhalte manuell kuratiert und für das Experiment eingefroren.

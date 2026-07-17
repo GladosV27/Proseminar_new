@@ -40,7 +40,7 @@ Eine späte, aber wichtige Iteration entstand aus meiner eigenen Kritik an der A
 
 ### 2.1 Artefakt, Korpus und Fragenkatalog
 
-- Repository: `GladosV27/Proseminar_Fable`, Commit des eingefrorenen Messstands: ⬜ `<Commit-Hash>`
+- Repository: `GladosV27/Proseminar_new`, Commit des eingefrorenen Messstands: ⬜ `<Commit-Hash>`
 - App: `app/` (React + TypeScript), Start: `npm install && npm run dev`
 - Messkorpus: `app/src/data/graph.ts` (75 Knoten, 165 typisierte Kanten und fünf manuell zugeordnete thematische Communities, vor den Messläufen eingefroren)
 - Herkunft des Korpus: Ich habe Zusammenfassungen, typisierte Relationen und Community-Zuordnungen auf Basis ausgewählter Wikipedia-Inhalte manuell kuratiert und als Messstand eingefroren.

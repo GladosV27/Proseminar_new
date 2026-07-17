@@ -236,7 +236,7 @@ export default function App() {
   return (
     <div className="app">
       <nav className="sidebar">
-        <div className="brand"><em>Fable</em></div>
+        <div className="brand"><em>Noesis</em></div>
         <div className="brand-sub">
           {appMode === 'product'
             ? 'Wissen im Zusammenhang · lokal erklärt'

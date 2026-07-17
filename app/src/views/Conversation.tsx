@@ -46,7 +46,7 @@ const SUGGESTIONS = [
 ]
 
 const CONVERSATION_SYSTEM_PROMPT = [
-  'Du bist Fable, ein freundlicher deutschsprachiger Wissensassistent für Philosophie- und Ideengeschichte.',
+  'Du bist Noesis, ein freundlicher deutschsprachiger Wissensassistent für Philosophie- und Ideengeschichte.',
   'Führe ein natürliches, zusammenhängendes Gespräch und beantworte die aktuelle Frage gewöhnlich in zwei bis fünf klaren Sätzen.',
   'Stütze Tatsachenbehauptungen ausschließlich auf den bereitgestellten Kontext; der Gesprächsverlauf dient nur dazu, Bezüge wie „er“, „dieses Werk“ oder „dort“ zu verstehen.',
   'Erfinde weder Fakten noch Beziehungen. Wenn der Kontext keine sichere Antwort erlaubt, sage offen: „Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.“',
@@ -164,7 +164,7 @@ function conversationHistory(messages: ConversationMessage[]): string {
   if (usable.length === 0) return ''
   return usable
     .map((message) => {
-      const label = message.role === 'user' ? 'NUTZER' : 'FABLE'
+      const label = message.role === 'user' ? 'NUTZER' : 'NOESIS'
       const compact = message.text.replace(/\s+/g, ' ').trim().slice(0, 700)
       return `${label}: ${compact}`
     })
@@ -203,7 +203,7 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
   const pendingLabel = useMemo(() => {
     if (phase === 'research') return researchProgress?.step ?? 'Wikipedia wird nach passendem Wissen durchsucht …'
     if (phase === 'retrieval') return 'Passende Knoten und Beziehungen werden zusammengestellt …'
-    if (phase === 'generation') return 'Fable formuliert die Antwort …'
+    if (phase === 'generation') return 'Noesis formuliert die Antwort …'
     if (phase === 'stopping') return 'Die laufende Ausgabe wird beendet …'
     return ''
   }, [phase, researchProgress])
@@ -395,9 +395,9 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
       <header className="conversation-hero">
         <div>
           <div className="eyebrow">Wikipedia · Wissensgraph · lokal</div>
-          <h1>Fable Wissensgespräch</h1>
+          <h1>Noesis · philosophischer Wissensdialog</h1>
           <p className="lead">
-            Sprich natürlich über Philosophie- und Ideengeschichte. Fable verbindet passende Knoten, macht seine Quellen
+            Sprich natürlich über Philosophie- und Ideengeschichte. Noesis verbindet passende Knoten, macht seine Quellen
             sichtbar und erweitert sein Wissen bei Bedarf über echte Wikipedia-Verknüpfungen.
           </p>
         </div>
@@ -438,7 +438,7 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
               <div>
                 <h2>Worüber möchtest du sprechen?</h2>
                 <p>
-                  Du kannst direkt fragen oder mit einem Vorschlag beginnen. Anschlussfragen versteht Fable aus dem
+                  Du kannst direkt fragen oder mit einem Vorschlag beginnen. Anschlussfragen versteht Noesis aus dem
                   bisherigen Gespräch heraus.
                 </p>
                 <div className="conversation-suggestions">
@@ -466,7 +466,7 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
                 key={message.id}
               >
                 <div className="conversation-message-label">
-                  {message.role === 'user' ? 'Du' : 'Fable'}
+                  {message.role === 'user' ? 'Du' : 'Noesis'}
                 </div>
                 <div className="conversation-bubble">
                   {message.text ? (
@@ -548,10 +548,10 @@ export default function Conversation({ ctx }: { ctx: AppCtx }) {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={handleComposerKeyDown}
-            placeholder={ctx.online ? 'Frag Fable etwas …' : 'Frag das lokal gespeicherte Wissen …'}
+            placeholder={ctx.online ? 'Frag Noesis etwas …' : 'Frag das lokal gespeicherte Wissen …'}
             rows={2}
             disabled={busy}
-            aria-label="Nachricht an Fable"
+            aria-label="Nachricht an Noesis"
           />
           <div className="conversation-composer-actions">
             {busy ? (

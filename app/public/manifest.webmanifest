@@ -1,7 +1,7 @@
 {
-  "name": "Graph-RAG Lab · On-Device Wissensassistent",
-  "short_name": "Graph-RAG Lab",
-  "description": "Vektor-RAG und Graph-RAG auf einem manuell kuratierten, eingefrorenen Wissensgraphen für On-Device-LLMs – Proseminar-Experiment, TU Dortmund.",
+  "name": "Noesis · Philosophischer Wissensdialog",
+  "short_name": "Noesis",
+  "description": "Lokaler, Wikipedia-angereicherter Wissensdialog über Philosophie- und Ideengeschichte – wissenschaftlich untersucht im Graph-RAG Lab.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
