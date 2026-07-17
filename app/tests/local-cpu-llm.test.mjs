@@ -8,6 +8,8 @@ test('CPU-Fallback bleibt Vulkan-unabhängig und offline cachebar', () => {
   assert.match(source, /class WasmLLMEngine/)
   assert.match(source, /n_gpu_layers:\s*0/)
   assert.match(source, /n_threads:\s*1/)
+  assert.match(source, /WASM_LLM_CONTEXT_TOKENS\s*=\s*4096/)
+  assert.match(source, /compactWasmPrompt/)
   assert.match(source, /useCache:\s*true/)
   assert.match(source, /Qwen\/Qwen2\.5-0\.5B-Instruct-GGUF/)
 })
