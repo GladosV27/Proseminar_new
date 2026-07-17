@@ -55,6 +55,9 @@ export interface PreparedTrial {
 export interface PrepareOpts {
   retrieval?: RetrievalMode
   k?: number
+  /** Product-chat optimization only; omitted experiment runs keep the frozen defaults. */
+  graph?: { depth: number; beam: number; maxNodes: number }
+  hybridExtra?: number
 }
 
 export const ORDER_STRATEGY = 'seeded-question-shuffle+cyclic-condition-counterbalance-v1'
@@ -227,7 +230,7 @@ export class ExperimentRunner {
 
     // graph & hybrid teilen die Subgraph-Extraktion
     const graphRetrievalStarted = performance.now()
-    const sub = this.graphIndex.extract(questionText)
+    const sub = this.graphIndex.extract(questionText, opts.graph)
     let retrievalMs = performance.now() - graphRetrievalStarted
     const subgraph = {
       nodes: sub.nodes.map((n) => n.id),
@@ -262,9 +265,10 @@ export class ExperimentRunner {
     // hybrid: Subgraph + Vektor-Chunks, die der Graph nicht ohnehin enthält
     const inSub = new Set(sub.nodes.map((n) => n.id))
     const vectorRetrievalStarted = performance.now()
-    const vectorChunks = await this.retrieveChunks(questionText, k + 4, retrieval)
+    const hybridExtra = Math.max(0, opts.hybridExtra ?? 3)
+    const vectorChunks = await this.retrieveChunks(questionText, k + Math.max(2, hybridExtra), retrieval)
     retrievalMs += performance.now() - vectorRetrievalStarted
-    const extra = vectorChunks.filter((c) => !inSub.has(c.id)).slice(0, 3)
+    const extra = vectorChunks.filter((c) => !inSub.has(c.id)).slice(0, hybridExtra)
     const ctx =
       sub.context + (extra.length ? '\n\nZUSÄTZLICHE ARTIKEL (Ähnlichkeitssuche):\n' + extra.map((c) => `[${c.title}] ${c.text}`).join('\n\n') : '')
     return {

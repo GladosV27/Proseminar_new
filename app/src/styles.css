@@ -995,6 +995,35 @@ details summary {
   border-color: color-mix(in srgb, var(--good) 38%, var(--line));
   color: var(--good);
 }
+.conversation-retrieval-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 3px 5px 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+.conversation-retrieval-picker select {
+  min-height: 22px;
+  padding: 2px 22px 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  outline: none;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: 650 10.5px/1.2 var(--font-sans);
+  text-transform: none;
+}
+.conversation-retrieval-picker:focus-within {
+  border-color: var(--accent);
+}
 .conversation-engine-note {
   display: flex;
   align-items: center;
@@ -1317,6 +1346,26 @@ details summary {
 .conversation-sources,
 .conversation-technical {
   margin-top: 11px;
+}
+.conversation-retrieval-badge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent-soft) 28%, transparent);
+}
+.conversation-retrieval-badge strong {
+  color: var(--accent-deep);
+  font-size: 10px;
+}
+.conversation-retrieval-badge span {
+  color: var(--muted);
+  font: 9.5px/1.35 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 .conversation-sources summary,
 .conversation-technical summary {

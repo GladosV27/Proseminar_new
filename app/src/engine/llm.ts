@@ -22,12 +22,22 @@ export interface GenerateResult {
   engine: string
 }
 
+export interface GenerateOptions {
+  /** Per-call cap; experiment runs omit it and retain their frozen defaults. */
+  maxTokens?: number
+}
+
 export interface LLMEngine {
   readonly id: string
   readonly label: string
   /** Ausführungsort – verhindert, dass private Extraktionsaufgaben versehentlich an Remote-Engines gehen. */
   readonly execution: 'local' | 'remote'
-  generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult>
+  generate(
+    system: string,
+    user: string,
+    onToken?: (partial: string) => void,
+    options?: GenerateOptions,
+  ): Promise<GenerateResult>
   /** Unterbricht – sofern von der Engine unterstützt – eine laufende Generierung. */
   interrupt?(): Promise<void> | void
   /** Gibt große Modellressourcen beim Engine-Wechsel wieder frei. */
@@ -173,7 +183,12 @@ export class WebLLMEngine implements LLMEngine {
     this.engine = engine
   }
 
-  async generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult> {
+  async generate(
+    system: string,
+    user: string,
+    onToken?: (partial: string) => void,
+    options: GenerateOptions = {},
+  ): Promise<GenerateResult> {
     if (!this.engine) throw new Error('Modell nicht geladen')
     const stream = (await this.engine.chat.completions.create({
       messages: [
@@ -181,7 +196,7 @@ export class WebLLMEngine implements LLMEngine {
         { role: 'user', content: user },
       ],
       temperature: 0,
-      max_tokens: 220,
+      max_tokens: Math.min(220, Math.max(32, options.maxTokens ?? 220)),
       stream: true,
     })) as AsyncIterable<{ choices: { delta?: { content?: string } }[] }>
 
@@ -316,7 +331,12 @@ export class WasmLLMEngine implements LLMEngine {
     onProgress('CPU-Modell ist lokal bereit', 1)
   }
 
-  async generate(system: string, user: string, onToken?: (partial: string) => void): Promise<GenerateResult> {
+  async generate(
+    system: string,
+    user: string,
+    onToken?: (partial: string) => void,
+    options: GenerateOptions = {},
+  ): Promise<GenerateResult> {
     if (!this.runtime) throw new Error('CPU-Modell nicht geladen')
     const fittedUserPrompt = compactWasmPrompt(system, user)
     this.abortController = new AbortController()
@@ -328,7 +348,10 @@ export class WasmLLMEngine implements LLMEngine {
         ],
         temperature: 0,
         seed: 42,
-        max_tokens: WASM_LLM_OUTPUT_TOKENS,
+        max_tokens: Math.min(
+          WASM_LLM_OUTPUT_TOKENS,
+          Math.max(32, options.maxTokens ?? WASM_LLM_OUTPUT_TOKENS),
+        ),
         cache_prompt: true,
         abortSignal: this.abortController.signal,
         stream: true,
