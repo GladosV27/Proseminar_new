@@ -1,6 +1,6 @@
 # Quellenprüfung
 
-**Stand:** 9. Juli 2026  
+**Stand:** 17. Juli 2026
 Diese Liste enthält nur Quellen, die für Aussagen in Ausarbeitung und Präsentation verwendet werden. Sie ersetzt keine Quellenprüfung der einzelnen Wikipedia-Artikel im Messkorpus.
 
 | Einsatz im Projekt | Verifizierte Primärquelle | Prüfergebnis |
@@ -11,8 +11,9 @@ Diese Liste enthält nur Quellen, die für Aussagen in Ausarbeitung und Präsent
 | Multi-Hop-Fragen mit Evidenz | Yang et al. (2018), [*HotpotQA: A Dataset for Diverse, Explainable Multi-hop Question Answering*](https://aclanthology.org/D18-1259/), EMNLP | Gold-Evidenz und Multi-Hop-Charakter der Fragen korrekt belegt. |
 | Browser-Inferenz | MLC AI, [WebLLM-Dokumentation](https://webllm.mlc.ai/docs/index.html) und [WebLLM-Paper](https://arxiv.org/abs/2412.15803) | WebGPU-beschleunigte Inferenz im Browser ist belegt; die tatsächliche Gerätekompatibilität wird im Pilot auf dem Zielgerät geprüft. |
 | Mobile Kleinmodelle | Abdin et al. (2024), [*Phi-3 Technical Report: A Highly Capable Language Model Locally on Your Phone*](https://arxiv.org/abs/2404.14219) | Das Paper belegt die Machbarkeit eines kompakten 3,8B-Modells im mobilen Setting. Es ist keine Leistungszusage für das eigene Gerät. |
-| Wikipedia-Import außerhalb des Messlaufs | [MediaWiki Action API](https://www.mediawiki.org/wiki/API:Action_API/en) | Die optionale Live-Recherche nutzt die API nur außerhalb des eingefrorenen Messkorpus. |
-| Browser-Sprachdialog | W3C Web Speech Community Group, [*Web Speech API*](https://webaudio.github.io/web-speech-api/) | Die Spezifikation belegt Spracherkennung, kontinuierliche beziehungsweise einzelne Sprachzüge und Sprachsynthese. Sie ist gegenüber der konkreten Implementierung ausdrücklich offen für server- oder clientbasierte Verarbeitung; deshalb behauptet Noesis keine garantierte Offline-Sprachverarbeitung. |
+| Wikipedia-Suche außerhalb des Messlaufs | MediaWiki, [*API:Search*](https://www.mediawiki.org/wiki/API:Search/en) und [*API:Search and discovery*](https://www.mediawiki.org/wiki/API:Search_and_discovery/en) | Die manuelle Suche und die fragegetriebene Recherche verwenden die offizielle Action API. Übermittelt werden nur Suchphrase beziehungsweise freigegebene Entitätsnamen; private Dokumenttexte werden nicht gesendet. |
+| Verifizierte Wikipedia-Relationen | MediaWiki, [*API:Query*](https://www.mediawiki.org/wiki/API:Query) | `prop=links` liefert interne Links eines Quellartikels. Noesis erzeugt nur daraus eine `mediawiki_verlinkt_auf`-Kante und speichert URL, Seiten-/Revisions-ID und Zieltitel als Provenienz; die Funktion bleibt außerhalb des eingefrorenen Messkorpus. |
+| Browser-Sprachdialog | W3C Web Speech Community Group, [*Web Speech API*](https://webaudio.github.io/web-speech-api/) | Die Spezifikation belegt Spracherkennung, einzelne Sprachzüge, auswählbare Synthesestimmen und Parameter wie Rate/Pitch. Sie ist gegenüber der konkreten Implementierung ausdrücklich offen für server- oder clientbasierte Verarbeitung; deshalb behauptet Noesis weder eine garantierte Offline-Sprachverarbeitung noch eine geräteunabhängige Stimmenqualität. |
 
 ## Korpusquellen und Attribution
 

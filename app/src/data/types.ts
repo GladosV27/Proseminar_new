@@ -14,6 +14,8 @@ export type EvidenceMethod =
   | 'source-text'
   | 'document-structure'
   | 'explicit-mention'
+  | 'topic-overlap'
+  | 'lexical-similarity'
   | 'mediawiki-link'
   | 'llm-triple'
 
@@ -47,6 +49,12 @@ export interface KnowledgeProvenance {
   pageId?: number
   revisionId?: number
   targetTitle?: string
+  /** Deterministischer Heuristik-Score einer thematischen Kante (0..1). */
+  score?: number
+  /** Beim Import angewandte Mindestschwelle; macht Entscheidungen prüfbar. */
+  threshold?: number
+  /** Die tatsächlich in beiden Texten beobachteten, normalisierten Begriffe. */
+  sharedTerms?: string[]
   /** Inhaltssignatur, sofern die Quelle lokal sicher gehasht werden konnte. */
   contentFingerprint?: string
 }

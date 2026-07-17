@@ -399,11 +399,32 @@ export interface SpeakOptions {
   rate?: number
   pitch?: number
   volume?: number
+  /** Select a concrete browser/OS voice, as returned by listGermanVoices(). */
+  voiceURI?: string
   /** Keep chunks modest; some mobile browsers drop very long utterances. */
   maxChunkLength?: number
   preferLocalVoice?: boolean
+  /** Scales the deliberately short pauses between clauses and sentences. */
+  pauseScale?: number
+  /** Disable only when a strictly uniform, accessibility-oriented delivery is wanted. */
+  naturalProsody?: boolean
   onChunkStart?: (chunk: string, index: number, total: number) => void
 }
+
+/** Stable, serialisable information for a voice picker in the UI. */
+export interface GermanVoiceInfo {
+  voiceURI: string
+  name: string
+  lang: string
+  localService: boolean
+  default: boolean
+}
+
+/** Preferences the controller applies to the next and all following answers. */
+export type VoicePlaybackPreferences = Pick<
+  SpeakOptions,
+  'voiceURI' | 'rate' | 'pitch' | 'volume' | 'preferLocalVoice' | 'pauseScale' | 'naturalProsody'
+>
 
 export interface SpeechPlayback {
   readonly done: Promise<void>
@@ -430,57 +451,206 @@ async function availableVoices(timeoutMs = 750): Promise<SpeechSynthesisVoice[]>
   })
 }
 
-function selectVoice(voices: SpeechSynthesisVoice[], lang: string, preferLocal: boolean): SpeechSynthesisVoice | null {
-  const target = lang.toLowerCase()
-  const language = target.split('-')[0]
-  const ranked = voices
-    .map((voice) => {
-      const voiceLang = voice.lang.toLowerCase()
-      let score = 0
-      if (voiceLang === target) score += 10
-      else if (voiceLang.startsWith(`${language}-`) || voiceLang === language) score += 5
-      if (preferLocal && voice.localService) score += 2
-      if (voice.default) score += 1
-      return { voice, score }
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-  return ranked[0]?.voice ?? null
+function normalizeLanguageTag(value: string): string {
+  return value.trim().replace('_', '-').toLowerCase()
 }
 
-function speechChunks(text: string, maxLength: number): string[] {
-  const normalized = text.replace(/\s+/g, ' ').trim()
-  if (!normalized) return []
-  const sentences = normalized.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) ?? [normalized]
-  const chunks: string[] = []
+function voiceScore(
+  voice: SpeechSynthesisVoice,
+  lang: string,
+  preferLocal: boolean,
+  originalIndex: number,
+): number {
+  const target = normalizeLanguageTag(lang)
+  const language = target.split('-')[0]
+  const voiceLang = normalizeLanguageTag(voice.lang)
+  const searchableName = `${voice.name} ${voice.voiceURI}`.toLowerCase()
+  let score = 0
+
+  if (voiceLang === target) score += 100
+  else if (voiceLang.startsWith(`${language}-`) || voiceLang === language) score += 55
+  if (target === 'de-de' && /\b(deutsch|german|germany|de-de)\b/i.test(searchableName)) score += 12
+  if (/\b(natural|neural|premium|enhanced|studio)\b/i.test(searchableName)) score += 14
+  if (preferLocal && voice.localService) score += 18
+  if (voice.default) score += 4
+
+  // Keep browser order deterministic when two voices have otherwise equal metadata.
+  return score - originalIndex / 10_000
+}
+
+function rankVoices(
+  voices: SpeechSynthesisVoice[],
+  lang: string,
+  preferLocal: boolean,
+): SpeechSynthesisVoice[] {
+  const language = normalizeLanguageTag(lang).split('-')[0]
+  return voices
+    .map((voice, index) => ({ voice, score: voiceScore(voice, lang, preferLocal, index) }))
+    .filter(({ voice }) => {
+      const voiceLang = normalizeLanguageTag(voice.lang)
+      return voiceLang === language || voiceLang.startsWith(`${language}-`)
+    })
+    .sort((a, b) => b.score - a.score)
+    .map(({ voice }) => voice)
+}
+
+function selectVoice(
+  voices: SpeechSynthesisVoice[],
+  lang: string,
+  preferLocal: boolean,
+  voiceURI?: string,
+): SpeechSynthesisVoice | null {
+  if (voiceURI) {
+    const requested = voices.find((voice) => voice.voiceURI === voiceURI)
+    if (requested) return requested
+  }
+  return rankVoices(voices, lang, preferLocal)[0] ?? null
+}
+
+/** Lists German voices in the same preference order used for playback. */
+export async function listGermanVoices(
+  lang = 'de-DE',
+  preferLocalVoice = true,
+): Promise<GermanVoiceInfo[]> {
+  const voices = await availableVoices()
+  return rankVoices(voices, lang, preferLocalVoice).map((voice) => ({
+    voiceURI: voice.voiceURI,
+    name: voice.name,
+    lang: voice.lang,
+    localService: voice.localService,
+    default: voice.default,
+  }))
+}
+
+interface SpeechSegment {
+  text: string
+  pauseAfterMs: number
+  rateFactor: number
+  pitchDelta: number
+}
+
+interface SentencePart {
+  text: string
+  paragraphEnd: boolean
+}
+
+type SentenceSegmenter = {
+  segment(input: string): Iterable<{ segment: string }>
+}
+
+type SentenceSegmenterConstructor = new (
+  locale?: string | string[],
+  options?: { granularity: 'sentence' },
+) => SentenceSegmenter
+
+function speechParagraphs(text: string): string[] {
+  const prepared = text
+    .replace(/\r\n?/g, '\n')
+    .replace(/```(?:[\w-]+)?\s*([\s\S]*?)```/g, '$1')
+    .replace(/\[([^\]]+)]\([^\s)]+(?:\s+"[^"]*")?\)/g, '$1')
+    .replace(/https?:\/\/\S+/gi, ' Weblink ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+)/gm, '\n')
+    .replace(/[*_~]+/g, '')
+    .replace(/\[(?:\d+(?:\s*[,;–-]\s*\d+)*)]/g, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(nbsp|amp|quot);/gi, (_, entity: string) => ({ nbsp: ' ', amp: ' und ', quot: ' ' })[entity.toLowerCase()] ?? ' ')
+    .replace(/[|]+/g, ', ')
+    .replace(/[\t\f\v]+/g, ' ')
+
+  return prepared
+    .split(/\n\s*\n+/)
+    .map((paragraph) => paragraph.replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+}
+
+function sentencesIn(paragraph: string, lang: string): string[] {
+  const segmenterConstructor = (Intl as typeof Intl & { Segmenter?: SentenceSegmenterConstructor }).Segmenter
+  if (segmenterConstructor) {
+    const segmenter = new segmenterConstructor(lang, { granularity: 'sentence' })
+    return Array.from(segmenter.segment(paragraph), ({ segment }) => segment.trim()).filter(Boolean)
+  }
+  return (paragraph.match(/[^.!?…]+(?:[.!?…]+|$)/g) ?? [paragraph]).map((part) => part.trim()).filter(Boolean)
+}
+
+function splitAtWords(text: string, maxLength: number): string[] {
+  const parts: string[] = []
+  let current = ''
+  for (const word of text.trim().split(/\s+/)) {
+    if (!current) current = word
+    else if (`${current} ${word}`.length <= maxLength) current += ` ${word}`
+    else {
+      parts.push(current)
+      current = word
+    }
+  }
+  if (current) parts.push(current)
+  return parts
+}
+
+function splitLongSentence(sentence: string, maxLength: number): string[] {
+  if (sentence.length <= maxLength) return [sentence]
+  const clauses = sentence.match(/[^,;:–—]+(?:[,;:–—]+|$)/g) ?? [sentence]
+  const parts: string[] = []
   let current = ''
 
-  const pushWords = (value: string) => {
-    const words = value.trim().split(/\s+/)
-    for (const word of words) {
-      if (!current) current = word
-      else if (`${current} ${word}`.length <= maxLength) current += ` ${word}`
-      else {
-        chunks.push(current)
-        current = word
-      }
-    }
-  }
-
-  for (const sentence of sentences) {
-    const trimmed = sentence.trim()
-    if (!trimmed) continue
-    if (!current && trimmed.length <= maxLength) current = trimmed
-    else if (current && `${current} ${trimmed}`.length <= maxLength) current += ` ${trimmed}`
+  for (const rawClause of clauses) {
+    const clause = rawClause.trim()
+    if (!clause) continue
+    if (!current && clause.length <= maxLength) current = clause
+    else if (current && `${current} ${clause}`.length <= maxLength) current += ` ${clause}`
     else {
-      if (current) chunks.push(current)
+      if (current) parts.push(current)
       current = ''
-      if (trimmed.length <= maxLength) current = trimmed
-      else pushWords(trimmed)
+      if (clause.length <= maxLength) current = clause
+      else parts.push(...splitAtWords(clause, maxLength))
     }
   }
-  if (current) chunks.push(current)
-  return chunks
+  if (current) parts.push(current)
+  return parts
+}
+
+function spokenPunctuation(text: string, isFinalPart: boolean): string {
+  const trimmed = text.trim()
+  if (!trimmed) return ''
+  if (/[.!?…,:;–—]$/.test(trimmed)) return trimmed
+  return `${trimmed}${isFinalPart ? '.' : ','}`
+}
+
+function createSpeechSegments(text: string, lang: string, maxLength: number): SpeechSegment[] {
+  const sentenceParts: SentencePart[] = []
+  const paragraphs = speechParagraphs(text)
+  paragraphs.forEach((paragraph) => {
+    const sentences = sentencesIn(paragraph, lang)
+    sentences.forEach((sentence, sentenceIndex) => {
+      sentenceParts.push({
+        text: sentence,
+        paragraphEnd: sentenceIndex === sentences.length - 1,
+      })
+    })
+  })
+
+  const segments: SpeechSegment[] = []
+  for (const sentencePart of sentenceParts) {
+    const parts = splitLongSentence(sentencePart.text, maxLength)
+    parts.forEach((part, partIndex) => {
+      const isFinalPart = partIndex === parts.length - 1
+      const spokenText = spokenPunctuation(part, isFinalPart)
+      const isQuestion = isFinalPart && /\?$/.test(spokenText)
+      const isParagraphEnd = isFinalPart && sentencePart.paragraphEnd
+      let pauseAfterMs = isParagraphEnd ? 210 : isFinalPart ? 115 : 65
+      if (/[;:]$/.test(spokenText)) pauseAfterMs = Math.max(pauseAfterMs, 85)
+      if (/,$/.test(spokenText)) pauseAfterMs = Math.max(pauseAfterMs, 60)
+      segments.push({
+        text: spokenText,
+        pauseAfterMs,
+        rateFactor: isQuestion ? 0.98 : /[;:]$/.test(spokenText) ? 0.985 : 1,
+        pitchDelta: isQuestion ? 0.025 : 0,
+      })
+    })
+  }
+  return segments
 }
 
 function speakUtterance(
@@ -536,21 +706,38 @@ export function startSpeechPlayback(text: string, options: SpeakOptions = {}): S
   let finished = false
   let rejectCancellation: (error: VoiceSynthesisError) => void = () => undefined
   const lang = options.lang ?? 'de-DE'
-  const rate = Math.min(2, Math.max(0.5, options.rate ?? 1.03))
+  const rate = Math.min(2, Math.max(0.5, options.rate ?? 1))
   const pitch = Math.min(2, Math.max(0, options.pitch ?? 1))
   const volume = Math.min(1, Math.max(0, options.volume ?? 1))
   const maxChunkLength = Math.max(80, options.maxChunkLength ?? 220)
-  const chunks = speechChunks(text, maxChunkLength)
+  const pauseScale = Math.min(3, Math.max(0, options.pauseScale ?? 1))
+  const naturalProsody = options.naturalProsody ?? true
+  const segments = createSpeechSegments(text, lang, maxChunkLength)
 
   const sequence = (async () => {
-    if (chunks.length === 0) return
+    if (segments.length === 0) return
     const voices = await availableVoices()
     if (cancelled) throw new VoiceSynthesisError('cancelled', 'Das Vorlesen wurde beendet.')
-    const voice = selectVoice(voices, lang, options.preferLocalVoice ?? true)
-    for (let index = 0; index < chunks.length; index += 1) {
-      const chunk = chunks[index]
-      options.onChunkStart?.(chunk, index, chunks.length)
-      await speakUtterance(synth, chunk, { lang, rate, pitch, volume }, voice, () => cancelled)
+    const voice = selectVoice(voices, lang, options.preferLocalVoice ?? true, options.voiceURI)
+    for (let index = 0; index < segments.length; index += 1) {
+      const segment = segments[index]
+      options.onChunkStart?.(segment.text, index, segments.length)
+      const segmentRate = Math.min(2, Math.max(0.5, rate * (naturalProsody ? segment.rateFactor : 1)))
+      const segmentPitch = Math.min(2, Math.max(0, pitch + (naturalProsody ? segment.pitchDelta : 0)))
+      await speakUtterance(
+        synth,
+        segment.text,
+        { lang, rate: segmentRate, pitch: segmentPitch, volume },
+        voice,
+        () => cancelled,
+      )
+      if (cancelled) throw new VoiceSynthesisError('cancelled', 'Das Vorlesen wurde beendet.')
+      if (naturalProsody && index < segments.length - 1 && segment.pauseAfterMs > 0 && pauseScale > 0) {
+        await new Promise<void>((resolve) => {
+          window.setTimeout(resolve, Math.round(segment.pauseAfterMs * pauseScale))
+        })
+        if (cancelled) throw new VoiceSynthesisError('cancelled', 'Das Vorlesen wurde beendet.')
+      }
     }
   })()
   const cancellation = new Promise<never>((_, reject) => {
@@ -603,6 +790,11 @@ export interface TurnBasedVoiceControllerOptions {
   lang?: string
   speakResponses?: boolean
   autoContinue?: boolean
+  playback?: VoicePlaybackPreferences
+  /** Quiet hand-off between the final spoken segment and a fresh microphone session. */
+  turnGapMs?: number
+  /** Lets the device speaker decay before listening after a barge-in. */
+  bargeInDelayMs?: number
 }
 
 /**
@@ -617,6 +809,8 @@ export class TurnBasedVoiceController {
   private generation = 0
   private recognition: RecognitionSession | null = null
   private playback: SpeechPlayback | null = null
+  private playbackPreferences: VoicePlaybackPreferences
+  private restartTimer: number | null = null
   private snapshot: LiveVoiceSnapshot = {
     phase: 'idle',
     finalTranscript: '',
@@ -627,10 +821,20 @@ export class TurnBasedVoiceController {
 
   constructor(options: TurnBasedVoiceControllerOptions) {
     this.options = options
+    this.playbackPreferences = { ...options.playback }
   }
 
   getSnapshot(): LiveVoiceSnapshot {
     return { ...this.snapshot }
+  }
+
+  /** Merges voice/rate settings without interrupting the current spoken answer. */
+  setPlaybackPreferences(preferences: VoicePlaybackPreferences): void {
+    this.playbackPreferences = { ...this.playbackPreferences, ...preferences }
+  }
+
+  getPlaybackPreferences(): VoicePlaybackPreferences {
+    return { ...this.playbackPreferences }
   }
 
   start(): void {
@@ -645,6 +849,7 @@ export class TurnBasedVoiceController {
       this.update({ phase: 'error', error })
       return
     }
+    this.clearScheduledListen()
     this.active = true
     this.paused = false
     this.generation += 1
@@ -653,6 +858,7 @@ export class TurnBasedVoiceController {
 
   pause(): void {
     if (!this.active) return
+    this.clearScheduledListen()
     this.paused = true
     this.generation += 1
     this.recognition?.abort()
@@ -664,17 +870,19 @@ export class TurnBasedVoiceController {
 
   resume(): void {
     if (!this.active || !this.paused) return
+    this.clearScheduledListen()
     this.paused = false
     this.generation += 1
     const generation = this.generation
-    this.update({ phase: 'listening', finalTranscript: '', interimTranscript: '', error: null })
+    this.update({ finalTranscript: '', interimTranscript: '', error: null })
     // Chrome/Android meldet sonst bei sehr schnellem Pause→Fortsetzen
     // gelegentlich noch eine laufende Recognition-Instanz ("busy").
-    window.setTimeout(() => this.listen(generation), 220)
+    this.scheduleListen(generation, 220)
   }
 
   /** Ends the voice session. An in-flight model request is signalled separately. */
   stop(): void {
+    this.clearScheduledListen()
     this.active = false
     this.paused = false
     this.generation += 1
@@ -692,15 +900,16 @@ export class TurnBasedVoiceController {
     })
   }
 
-  /** Stops the spoken answer and immediately opens the microphone for a new turn. */
+  /** Stops the spoken answer, then opens the microphone after a short echo-safe delay. */
   interruptSpeech(): void {
     if (!this.active || this.paused || this.snapshot.phase !== 'speaking' || !this.playback) return
+    this.clearScheduledListen()
     this.recognition?.abort()
     this.recognition = null
     this.playback?.cancel()
     this.playback = null
     this.generation += 1
-    this.listen(this.generation)
+    this.scheduleListen(this.generation, Math.max(80, this.options.bargeInDelayMs ?? 180))
   }
 
   private update(patch: Partial<LiveVoiceSnapshot>): void {
@@ -710,6 +919,27 @@ export class TurnBasedVoiceController {
 
   private shouldContinue(generation: number): boolean {
     return this.active && !this.paused && generation === this.generation
+  }
+
+  private clearScheduledListen(): void {
+    if (this.restartTimer === null) return
+    window.clearTimeout(this.restartTimer)
+    this.restartTimer = null
+  }
+
+  private scheduleListen(generation: number, delayMs: number): void {
+    this.clearScheduledListen()
+    this.restartTimer = window.setTimeout(() => {
+      this.restartTimer = null
+      if (!this.shouldContinue(generation)) return
+      this.listen(generation)
+    }, Math.max(0, delayMs))
+  }
+
+  private scheduleNextListen(generation: number, delayMs: number): void {
+    if (!this.shouldContinue(generation)) return
+    this.generation += 1
+    this.scheduleListen(this.generation, delayMs)
   }
 
   private listen(generation: number): void {
@@ -754,7 +984,10 @@ export class TurnBasedVoiceController {
         const shouldSpeak = (this.options.speakResponses ?? true) && Boolean(answer?.trim())
         if (shouldSpeak && answer) {
           this.update({ phase: 'speaking' })
-          const playback = startSpeechPlayback(answer, { lang: this.options.lang ?? 'de-DE' })
+          const playback = startSpeechPlayback(answer, {
+            lang: this.options.lang ?? 'de-DE',
+            ...this.playbackPreferences,
+          })
           this.playback = playback
           try {
             await playback.done
@@ -774,8 +1007,7 @@ export class TurnBasedVoiceController {
         }
         if (!this.shouldContinue(generation)) return
         if (this.options.autoContinue ?? true) {
-          this.generation += 1
-          this.listen(this.generation)
+          this.scheduleNextListen(generation, Math.max(80, this.options.turnGapMs ?? 220))
         } else {
           this.paused = true
           this.update({ phase: 'paused' })
@@ -786,11 +1018,7 @@ export class TurnBasedVoiceController {
 
   private restartAfterEmptyTurn(generation: number): void {
     if (!this.shouldContinue(generation)) return
-    window.setTimeout(() => {
-      if (!this.shouldContinue(generation)) return
-      this.generation += 1
-      this.listen(this.generation)
-    }, 180)
+    this.scheduleNextListen(generation, 180)
   }
 
   private handleError(error: unknown, generation: number): void {

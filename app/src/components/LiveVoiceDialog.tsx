@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
+import type { GermanVoiceInfo } from '../engine/liveVoice'
+
 export type LiveVoiceStage =
   | 'ready'
   | 'listening'
@@ -17,12 +20,17 @@ interface LiveVoiceDialogProps {
   error: string | null
   muted: boolean
   speechOutputAvailable: boolean
+  voices: GermanVoiceInfo[]
+  selectedVoiceURI: string
+  voiceRate: number
   engineLabel: string
   remoteAnswer: boolean
   onClose: () => void
   onPrimaryAction: () => void
   onStopTurn: () => void
   onToggleMuted: () => void
+  onVoiceChange: (voiceURI: string) => void
+  onVoiceRateChange: (rate: number) => void
 }
 
 function MicrophoneIcon({ muted = false }: { muted?: boolean }) {
@@ -59,15 +67,15 @@ function stageCopy(stage: LiveVoiceStage): { eyebrow: string; heading: string; d
   if (stage === 'thinking') {
     return {
       eyebrow: 'Frage verstanden',
-      heading: 'Noesis denkt nach',
-      detail: 'Passendes Wissen und seine Beziehungen werden gerade zusammengestellt.',
+      heading: 'Noesis verarbeitet deine Frage',
+      detail: 'Die Frage wurde übernommen und der Antwortlauf ist aktiv.',
     }
   }
   if (stage === 'speaking') {
     return {
       eyebrow: 'Antwort',
       heading: 'Noesis spricht',
-      detail: 'Du kannst die Antwort jederzeit unterbrechen und direkt weiterfragen.',
+      detail: 'Die Antwort wird satzweise mit kurzen Pausen vorgelesen. Du kannst sie jederzeit unterbrechen und weiterfragen.',
     }
   }
   if (stage === 'paused') {
@@ -105,6 +113,12 @@ function stageCopy(stage: LiveVoiceStage): { eyebrow: string; heading: string; d
   }
 }
 
+const THINKING_DETAILS = [
+  'Die Frage wurde übernommen und der Antwortlauf ist aktiv.',
+  'Je nach Einstellung werden passendes Wissen und seine Beziehungen ausgewählt.',
+  'Die vollständige Textantwort ist noch nicht fertig. Du kannst den laufenden Zug jederzeit stoppen.',
+]
+
 export default function LiveVoiceDialog({
   open,
   stage,
@@ -114,16 +128,35 @@ export default function LiveVoiceDialog({
   error,
   muted,
   speechOutputAvailable,
+  voices,
+  selectedVoiceURI,
+  voiceRate,
   engineLabel,
   remoteAnswer,
   onClose,
   onPrimaryAction,
   onStopTurn,
   onToggleMuted,
+  onVoiceChange,
+  onVoiceRateChange,
 }: LiveVoiceDialogProps) {
   const dialogRef = useRef<HTMLElement>(null)
   const onCloseRef = useRef(onClose)
+  const [thinkingDetailIndex, setThinkingDetailIndex] = useState(0)
   onCloseRef.current = onClose
+
+  useEffect(() => {
+    if (!open || stage !== 'thinking') {
+      setThinkingDetailIndex(0)
+      return
+    }
+    const secondMessage = window.setTimeout(() => setThinkingDetailIndex(1), 3_200)
+    const thirdMessage = window.setTimeout(() => setThinkingDetailIndex(2), 7_000)
+    return () => {
+      window.clearTimeout(secondMessage)
+      window.clearTimeout(thirdMessage)
+    }
+  }, [open, stage])
 
   useEffect(() => {
     if (!open) return
@@ -141,7 +174,7 @@ export default function LiveVoiceDialog({
       }
       if (event.key !== 'Tab' || !dialog) return
       const focusable = Array.from(
-        dialog.querySelectorAll<HTMLElement>('button:not(:disabled), details > summary, [tabindex]:not([tabindex="-1"])'),
+        dialog.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled), input:not(:disabled), details > summary, [tabindex]:not([tabindex="-1"])'),
       )
       if (focusable.length === 0) return
       const first = focusable[0]
@@ -164,7 +197,10 @@ export default function LiveVoiceDialog({
   }, [open])
 
   if (!open) return null
-  const copy = stageCopy(stage)
+  const baseCopy = stageCopy(stage)
+  const copy = stage === 'thinking'
+    ? { ...baseCopy, detail: THINKING_DETAILS[thinkingDetailIndex] }
+    : baseCopy
   const primaryDisabled = stage === 'thinking' || stage === 'unsupported' || stage === 'offline'
   const primaryLabel = stage === 'listening'
     ? 'Mikrofon pausieren'
@@ -276,6 +312,37 @@ export default function LiveVoiceDialog({
           </button>
         </footer>
 
+        {speechOutputAvailable && (
+          <details className="live-voice-settings">
+            <summary>Stimme &amp; Sprechtempo</summary>
+            <div className="live-voice-settings-grid">
+              <label>
+                <span>Deutsche Stimme</span>
+                <select value={selectedVoiceURI} onChange={(event) => onVoiceChange(event.target.value)}>
+                  <option value="">Automatisch · beste verfügbare Stimme</option>
+                  {voices.map((voice) => (
+                    <option value={voice.voiceURI} key={voice.voiceURI}>
+                      {voice.name} · {voice.lang}{voice.localService ? ' · auf dem Gerät' : ' · Browserdienst'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Tempo <output>{Math.round(voiceRate * 100)} %</output></span>
+                <input
+                  type="range"
+                  min="0.85"
+                  max="1.15"
+                  step="0.01"
+                  value={voiceRate}
+                  onChange={(event) => onVoiceRateChange(Number(event.target.value))}
+                />
+              </label>
+            </div>
+            <p>Die Auswahl gilt ab der nächsten Antwort. Welche Stimmen natürlich klingen, hängt vom Browser und Betriebssystem ab.</p>
+          </details>
+        )}
+
         <details className="live-voice-privacy">
           <summary>Was geschieht mit meiner Stimme?</summary>
           <p>
@@ -289,4 +356,3 @@ export default function LiveVoiceDialog({
     </div>
   )
 }
-import { useEffect, useRef } from 'react'
