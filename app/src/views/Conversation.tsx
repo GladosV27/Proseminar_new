@@ -4,7 +4,7 @@ import AnswerEvidence from '../components/AnswerEvidence'
 import LiveGraphDiff from '../components/LiveGraphDiff'
 import LiveVoiceDialog, { type LiveVoiceStage } from '../components/LiveVoiceDialog'
 import type { GraphEdge, KnowledgeGraph } from '../data/types'
-import { ExperimentRunner, type PreparedTrial } from '../engine/experiment'
+import { CONDITION_INFO, ExperimentRunner, type PreparedTrial } from '../engine/experiment'
 import {
   getVoiceCapabilities,
   listGermanVoices,
@@ -39,6 +39,7 @@ type MessageRole = 'user' | 'assistant'
 type MessageStatus = 'pending' | 'done' | 'stopped' | 'error'
 type ConversationPhase = 'idle' | 'research' | 'retrieval' | 'generation' | 'stopping'
 type VoiceProvider = 'browser' | 'piper-de'
+type ChatRetrievalMode = 'auto' | 'vector' | 'graph' | 'hybrid'
 
 interface SourceRef {
   id: string
@@ -63,6 +64,8 @@ interface ConversationMessage {
   /** Nach einem Import direkt zum neuen Knoten im Wissensraum springen. */
   graphFocus?: { nodeId: string; title: string }
   graphDelta?: { addedNodeIds: string[]; addedEdgeKeys: string[] }
+  chatRetrievalMode?: ChatRetrievalMode
+  generationMs?: number
 }
 
 interface ActiveRun {
@@ -82,6 +85,7 @@ const AUTO_WIKIPEDIA_KEY = 'noesis.wikipedia.auto.v1'
 const VOICE_URI_KEY = 'noesis.voice.uri.v1'
 const VOICE_RATE_KEY = 'noesis.voice.rate.v1'
 const VOICE_PROVIDER_KEY = 'noesis.voice.provider.v1'
+const CHAT_RETRIEVAL_KEY = 'noesis.chat.retrieval.v1'
 const EXPLORER_FOCUS_KEY = 'noesis.explorer.focus.v1'
 const CHAT_PREFILL_KEY = 'noesis.chat.prefill.v1'
 
@@ -92,6 +96,18 @@ const CONVERSATION_SYSTEM_PROMPT = [
   'Erfinde weder Fakten noch Beziehungen. Wenn der Kontext keine sichere Antwort erlaubt, sage offen: „Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.“',
   'Erwähne Retrieval, Graph-RAG oder technische Zwischenschritte nur, wenn die Person ausdrücklich danach fragt.',
 ].join(' ')
+
+const CHAT_RETRIEVAL_LABELS: Record<ChatRetrievalMode, string> = {
+  auto: 'Automatisch',
+  vector: 'Vektor',
+  graph: 'Graph',
+  hybrid: 'Hybrid',
+}
+
+function storedChatRetrievalMode(): ChatRetrievalMode {
+  const stored = localStorage.getItem(CHAT_RETRIEVAL_KEY)
+  return stored === 'vector' || stored === 'graph' || stored === 'hybrid' ? stored : 'auto'
+}
 
 function newId(prefix: string): string {
   const suffix = typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -227,19 +243,23 @@ function retrievalQuestion(question: string, messages: ConversationMessage[]): s
   return isFollowUp ? `${previous}\nAnschlussfrage: ${question}` : question
 }
 
-function conversationHistory(messages: ConversationMessage[], includePersonalKnowledge = true): string {
+function conversationHistory(
+  messages: ConversationMessage[],
+  includePersonalKnowledge = true,
+  limits = { messages: 6, chars: 700 },
+): string {
   const usable = messages
     .filter((message) =>
       message.status === 'done' &&
       message.text.trim() &&
       (includePersonalKnowledge || !message.containsPersonalKnowledge),
     )
-    .slice(-6)
+    .slice(-limits.messages)
   if (usable.length === 0) return ''
   return usable
     .map((message) => {
       const label = message.role === 'user' ? 'NUTZER' : 'NOESIS'
-      const compact = message.text.replace(/\s+/g, ' ').trim().slice(0, 700)
+      const compact = message.text.replace(/\s+/g, ' ').trim().slice(0, limits.chars)
       return `${label}: ${compact}`
     })
     .join('\n')
@@ -251,8 +271,13 @@ function modelPrompt(
   messages: ConversationMessage[],
   includePersonalKnowledge = true,
   spoken = false,
+  compact = false,
 ): string {
-  const history = conversationHistory(messages, includePersonalKnowledge)
+  const history = conversationHistory(
+    messages,
+    includePersonalKnowledge,
+    compact ? { messages: 4, chars: 360 } : undefined,
+  )
   return [
     history ? `BISHERIGER GESPRÄCHSVERLAUF (nur für sprachliche Bezüge):\n${history}` : '',
     spoken
@@ -263,6 +288,19 @@ function modelPrompt(
   ]
     .filter(Boolean)
     .join('\n\n')
+}
+
+function resolveChatCondition(
+  mode: ChatRetrievalMode,
+  query: string,
+  runner: ExperimentRunner,
+): 'vector' | 'graph' | 'hybrid' {
+  if (mode !== 'auto') return mode
+  const entities = runner.graphIndex.linkEntities(query).length
+  const relational = /\b(verbind|zusammenh|bezieh|zwischen|weg von|reihenfolge|über wen|beeinfluss|kritisiert|lehrer|schüler|nachfolger|heirat|studiert|gemeinsam)\w*/i.test(query)
+  if (entities >= 2) return 'hybrid'
+  if (relational) return 'graph'
+  return 'vector'
 }
 
 function sourceRelationList(graph: KnowledgeGraph): string[] {
@@ -294,6 +332,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   const [autoWikipedia, setAutoWikipedia] = useState(
     () => localStorage.getItem(AUTO_WIKIPEDIA_KEY) !== 'off',
   )
+  const [chatRetrievalMode, setChatRetrievalMode] = useState<ChatRetrievalMode>(storedChatRetrievalMode)
   const [voiceOpen, setVoiceOpen] = useState(false)
   const [voiceStage, setVoiceStage] = useState<LiveVoiceStage>('ready')
   const [voiceTranscript, setVoiceTranscript] = useState('')
@@ -343,6 +382,10 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   useEffect(() => {
     if (!seminarOnline) localStorage.setItem(AUTO_WIKIPEDIA_KEY, autoWikipedia ? 'on' : 'off')
   }, [autoWikipedia, seminarOnline])
+
+  useEffect(() => {
+    localStorage.setItem(CHAT_RETRIEVAL_KEY, chatRetrievalMode)
+  }, [chatRetrievalMode])
 
   useEffect(() => {
     localStorage.setItem(VOICE_URI_KEY, voiceURI)
@@ -602,12 +645,22 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       if (run.cancelled) return null
       setPhase('retrieval')
       const runner = new ExperimentRunner(graph)
+      const chatCondition = resolveChatCondition(chatRetrievalMode, query, runner)
+      const compactLocal = ctx.engine.id.startsWith('wllama:')
+      const prepareOptions = {
+        retrieval: ctx.retrieval,
+        k: compactLocal ? 3 : 4,
+        graph: compactLocal
+          ? { depth: 2, beam: 3, maxNodes: 8 }
+          : { depth: 3, beam: 4, maxNodes: 12 },
+        hybridExtra: compactLocal ? 1 : 2,
+      } as const
       let prepared: PreparedTrial
       try {
-        prepared = await runner.prepare(query, 'graph', { retrieval: ctx.retrieval })
+        prepared = await runner.prepare(query, chatCondition, prepareOptions)
       } catch (error) {
         if (ctx.retrieval !== 'dense') throw error
-        prepared = await runner.prepare(query, 'graph', { retrieval: 'tfidf' })
+        prepared = await runner.prepare(query, chatCondition, { ...prepareOptions, retrieval: 'tfidf' })
         notices.push('Dichte Embeddings waren lokal nicht bereit; für diese Antwort wurde automatisch auf TF-IDF zurückgefallen.')
       }
 
@@ -627,6 +680,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       }
       updateMessage(assistantMessage.id, {
         prepared,
+        chatRetrievalMode,
         sources,
         technicalGraph: technicalSubgraph(prepared, graph),
         notices,
@@ -634,6 +688,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       })
 
       setPhase('generation')
+      const generationStarted = performance.now()
       const result = await ctx.engine.generate(
         CONVERSATION_SYSTEM_PROMPT,
         modelPrompt(
@@ -642,16 +697,19 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           historyBeforeQuestion,
           !seminarOnline || sharePersonalKnowledge,
           spoken,
+          compactLocal,
         ),
         (partial) => {
           if (!run.cancelled) updateMessage(assistantMessage.id, { text: partial })
         },
+        { maxTokens: compactLocal ? 112 : 150 },
       )
       if (run.cancelled) return null
       answerForVoice = result.text.trim() || 'Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.'
       updateMessage(assistantMessage.id, {
         text: answerForVoice,
         status: 'done',
+        generationMs: Math.round(performance.now() - generationStarted),
       })
     } catch (error) {
       if (run.cancelled) return null
@@ -880,6 +938,19 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         <div className="conversation-status-row" aria-label="Status des Wissensassistenten">
           <span className="chip">{ctx.graph.nodes.length} Wissensknoten</span>
           <span className="chip">{ctx.engine.label}</span>
+          <label className="conversation-retrieval-picker" title="Nur für den Noesis-Chat; das Experiment bleibt unverändert">
+            <span>Antwortweg</span>
+            <select
+              value={chatRetrievalMode}
+              disabled={busy}
+              onChange={(event) => setChatRetrievalMode(event.target.value as ChatRetrievalMode)}
+              aria-label="Retrieval-Verfahren für den Noesis-Chat"
+            >
+              {(Object.keys(CHAT_RETRIEVAL_LABELS) as ChatRetrievalMode[]).map((mode) => (
+                <option value={mode} key={mode}>{CHAT_RETRIEVAL_LABELS[mode]}</option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             className={`chip conversation-online-toggle ${ctx.online ? 'online' : ''}`}
@@ -1033,6 +1104,19 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
                     </div>
                   ) : null}
 
+                  {message.role === 'assistant' && message.prepared && message.status === 'done' && (
+                    <div className="conversation-retrieval-badge">
+                      <strong>
+                        {message.chatRetrievalMode === 'auto' ? 'Automatisch → ' : ''}
+                        {CONDITION_INFO[message.prepared.condition].short}
+                      </strong>
+                      <span>
+                        {message.prepared.retrievedIds.length} Inhalte · {message.prepared.context.length.toLocaleString('de-DE')} Kontextzeichen · {Math.round(message.prepared.retrievalMs)} ms Retrieval
+                        {message.generationMs !== undefined ? ` · ${(message.generationMs / 1000).toFixed(1).replace('.', ',')} s Modell` : ''}
+                      </span>
+                    </div>
+                  )}
+
                   {message.notices?.map((notice) => (
                     <div className="hint conversation-notice" key={notice}>{notice}</div>
                   ))}
@@ -1105,7 +1189,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
                     <details className="conversation-technical">
                       <summary>Technischen Kontext einblenden</summary>
                       <div className="conversation-technical-meta">
-                        Graph-RAG · Subgraph-Extraktion · {message.prepared.retrievedIds.length} Knoten ·{' '}
+                        {CONDITION_INFO[message.prepared.condition].label} · {message.prepared.retrievedIds.length} Inhalte ·{' '}
                         {message.prepared.retrievalMs} ms Retrieval
                       </div>
                       {relations.length > 0 && (
