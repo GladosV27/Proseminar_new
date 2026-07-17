@@ -1,0 +1,16 @@
+{
+  "name": "Noesis · Philosophischer Wissensdialog",
+  "short_name": "Noesis",
+  "description": "Lokaler, Wikipedia-angereicherter Wissensdialog über Philosophie- und Ideengeschichte – wissenschaftlich untersucht im Graph-RAG Lab.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f0eee6",
+  "theme_color": "#f0eee6",
+  "lang": "de",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

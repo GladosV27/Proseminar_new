@@ -1,0 +1,333 @@
+{"kind":"deck","id":"pr/ulrzvg","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"","type":"master","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Titelfolie","type":"title","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"subtitle","type":"subtitle","textPreview":"Master-Untertitelformat bearbeiten"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout2.xml","name":"Titel und Inhalt","type":"obj","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"inhaltsplatzhalter 2","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout3.xml","name":"Abschnitts-\nüberschrift","type":"secHead","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout4.xml","name":"Zwei Inhalte","type":"twoObj","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"inhaltsplatzhalter 2","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"inhaltsplatzhalter 3","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout5.xml","name":"Vergleich","type":"twoTxTwoObj","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten"},{"name":"inhaltsplatzhalter 3","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten"},{"name":"inhaltsplatzhalter 5","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout6.xml","name":"Nur Titel","type":"titleOnly","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout7.xml","name":"Leer","type":"blank","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout8.xml","name":"Inhalt mit Überschrift","type":"objTx","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"inhaltsplatzhalter 2","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout9.xml","name":"Bild mit Überschrift","type":"picTx","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"picture","type":"picture"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout10.xml","name":"Titel und vertikaler Text","type":"vertTx","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout11.xml","name":"Vertikaler Titel und Text","type":"vertTitleAndTx","placeholders":[{"name":"title","type":"title","textPreview":"Mastertitelformat bearbeiten"},{"name":"body","type":"body","textPreview":"Mastertextformat bearbeiten | Zweite Ebene | Dritte Ebene | Vierte Ebene | Fünfte Ebene"},{"name":"dateTime","type":"dateTime","textPreview":"09.07.2026"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹Nr.›"}]}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"PROSEMINAR · SOSE 2026","textShapes":4}
+{"kind":"shape","id":"sh/7qp4be9c","slide":1,"name":"Rechteck 3","bbox":[0,0,754.67,720]}
+{"kind":"textbox","id":"sh/65g3298r","slide":1,"name":"Textfeld 4","text":"PROSEMINAR · SOSE 2026","textPreview":"PROSEMINAR · SOSE 2026","textChars":22,"textLines":1,"bbox":[82.67,69.33,413.33,18.58]}
+{"kind":"textbox","id":"sh/ts7md4r2","slide":1,"name":"Textfeld 5","text":"Graph-RAG\nauf dem Smartphone","textPreview":"Graph-RAG | auf dem Smartphone","textChars":28,"textLines":2,"bbox":[82.67,176,653.33,252.04]}
+{"kind":"textbox","id":"sh/sryl4zqx","slide":1,"name":"Textfeld 6","text":"Hilft explizite Struktur kleinen lokalen Sprachmodellen bei Multi-Hop-Fragen?","textPreview":"Hilft explizite Struktur kleinen lokalen Sprachmodellen bei Multi-Hop-Fragen?","textChars":77,"textLines":1,"bbox":[85.33,461.33,557.33,64.62]}
+{"kind":"shape","id":"sh/fu94fe98","slide":1,"name":"Rechteck 7","bbox":[85.33,560,117.33,4]}
+{"kind":"textbox","id":"sh/utg3698n","slide":1,"name":"Textfeld 8","text":"Sinan Yavuz Adigüzel · TU Dortmund","textPreview":"Sinan Yavuz Adigüzel · TU Dortmund","textChars":34,"textLines":1,"bbox":[85.33,605.33,480,20.2]}
+{"kind":"image","id":"im/jqxw72dk","slide":1,"name":"Grafik 2","bbox":[0,0,1280,720]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":""}
+{"kind":"slide","id":"sl/hwbqtkby","slide":2,"title":"AUSGANGSPUNKT","textShapes":10}
+{"kind":"textbox","id":"sh/9072xkry","slide":2,"name":"Textfeld 1","text":"AUSGANGSPUNKT","textPreview":"AUSGANGSPUNKT","textChars":13,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/ozy1ofad","slide":2,"name":"Textfeld 2","text":"Lokale KI schützt Daten – aber weiß nicht alles.","textPreview":"Lokale KI schützt Daten – aber weiß nicht alles.","textChars":48,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/b29kza94","slide":2,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/a10jqpsj","slide":2,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/x4r21kru","slide":2,"name":"Textfeld 5","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/w3i1sfa9","slide":2,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/r65knqtk","slide":2,"name":"Textfeld 7","text":"Privat heisst nicht allwissend.","textPreview":"Privat heisst nicht allwissend.","textChars":31,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/q5wjelsz","slide":2,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/ove9o7yd","slide":2,"name":"Textfeld 9","text":"PRIVAT","textPreview":"PRIVAT","textChars":6,"textLines":1,"bbox":[77.33,245.33,473.33,74.32]}
+{"kind":"textbox","id":"sh/9wnqhczy","slide":2,"name":"Textfeld 10","text":"klein · lokal · nach dem Download offline","textPreview":"klein · lokal · nach dem Download offline","textChars":41,"textLines":1,"bbox":[77.33,333.33,480,33.93]}
+{"kind":"textbox","id":"sh/mtwrmxg7","slide":2,"name":"Textfeld 11","text":"LÜCKENHAFT","textPreview":"LÜCKENHAFT","textChars":10,"textLines":1,"bbox":[713.33,245.33,473.33,67.86]}
+{"kind":"textbox","id":"sh/nu58f2hs","slide":2,"name":"Textfeld 12","text":"Faktenwissen fehlt. Antworten können plausibel klingen und dennoch falsch sein.","textPreview":"Faktenwissen fehlt. Antworten können plausibel klingen und dennoch falsch sein.","textChars":79,"textLines":1,"bbox":[713.33,333.33,473.33,101.78]}
+{"kind":"shape","id":"sh/p0vy54na","slide":2,"name":"Gerade Verbindung mit Pfeil 13","bbox":[640,246.67,0,233.33]}
+{"kind":"textbox","id":"sh/xk7qlczu","slide":2,"name":"Textfeld 14","text":"Die zentrale Frage lautet deshalb nicht: Wie groß ist das Modell? Sondern: Welches Wissen erhält es im richtigen Moment?","textPreview":"Die zentrale Frage lautet deshalb nicht: Wie groß ist das Modell? Sondern: Welches Wissen erhält es im richtigen Moment?","textChars":120,"textLines":1,"bbox":[248,549.33,786.67,61.39]}
+{"kind":"notes","id":"nt/hwbqtkby","slide":2,"text":""}
+{"kind":"slide","id":"sl/ofy9wn61","slide":3,"title":"THEORIE","textShapes":11}
+{"kind":"textbox","id":"sh/cza94vmx","slide":3,"name":"Textfeld 1","text":"THEORIE","textPreview":"THEORIE","textChars":7,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/d0jax03i","slide":3,"name":"Textfeld 2","text":"RAG ergänzt das Gedächtnis des Modells zur Laufzeit.","textPreview":"RAG ergänzt das Gedächtnis des Modells zur Laufzeit.","textChars":52,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/298ryl4v","slide":3,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/3ah8rqlg","slide":3,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/obq90bml","slide":3,"name":"Textfeld 5","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/pcjqtg36","slide":3,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/m5cra54z","slide":3,"name":"Textfeld 7","text":"RAG erweitert Modellwissen.","textPreview":"RAG erweitert Modellwissen.","textChars":27,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/n6ls3alk","slide":3,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/n2l4fq98","slide":3,"name":"Textfeld 9","text":"PARAMETRISCHES WISSEN","textPreview":"PARAMETRISCHES WISSEN","textChars":21,"textLines":1,"bbox":[114.67,257.33,333.33,24.23]}
+{"kind":"textbox","id":"sh/m1c3mlsn","slide":3,"name":"Textfeld 10","text":"Was das Modell bereits in seinen Gewichten gelernt hat.","textPreview":"Was das Modell bereits in seinen Gewichten gelernt hat.","textChars":55,"textLines":1,"bbox":[114.67,325.33,306.67,148.64]}
+{"kind":"shape","id":"sh/tgry9ofu","slide":3,"name":"Gerade Verbindung mit Pfeil 11","bbox":[501.33,376,202.67,0]}
+{"kind":"textbox","id":"sh/83ulovat","slide":3,"name":"Textfeld 12","text":"+ Kontext","textPreview":"+ Kontext","textChars":9,"textLines":1,"bbox":[517.33,317.33,168,29.08]}
+{"kind":"textbox","id":"sh/v6l4jq94","slide":3,"name":"Textfeld 13","text":"RETRIEVAL-AUGMENTED GENERATION","textPreview":"RETRIEVAL-AUGMENTED GENERATION","textChars":30,"textLines":1,"bbox":[813.33,257.33,306.67,48.47]}
+{"kind":"textbox","id":"sh/a5c3ql8z","slide":3,"name":"Textfeld 14","text":"Relevantes, überprüfbares Wissen wird für eine konkrete Frage bereitgestellt.","textPreview":"Relevantes, überprüfbares Wissen wird für eine konkrete Frage bereitgestellt.","textChars":77,"textLines":1,"bbox":[813.33,325.33,314.67,222.96]}
+{"kind":"textbox","id":"sh/x8nml0ra","slide":3,"name":"Textfeld 15","text":"Meine Arbeit prüft, ob die Form dieses Kontexts bei mehrstufigen Fragen einen Unterschied macht.","textPreview":"Meine Arbeit prüft, ob die Form dieses Kontexts bei mehrstufigen Fragen einen Unterschied macht.","textChars":96,"textLines":1,"bbox":[221.33,578.67,837.33,58.16]}
+{"kind":"notes","id":"nt/ofy9wn61","slide":3,"text":""}
+{"kind":"slide","id":"sl/jyx0ra1s","slide":4,"title":"THEORIE","textShapes":13}
+{"kind":"textbox","id":"sh/1cj2d8b6","slide":4,"name":"Textfeld 1","text":"THEORIE","textPreview":"THEORIE","textChars":7,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/0ba143al","slide":4,"name":"Textfeld 2","text":"Graph-RAG macht Beziehungen sichtbar.","textPreview":"Graph-RAG macht Beziehungen sichtbar.","textChars":37,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/rm1k7yt4","slide":4,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/ql8jytsj","slide":4,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/doj29oba","slide":4,"name":"Textfeld 5","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/sna103ap","slide":4,"name":"Textfeld 6","text":"Vektor-RAG","textPreview":"Vektor-RAG","textChars":10,"textLines":1,"bbox":[104,245.33,360,35.54]}
+{"kind":"textbox","id":"sh/3ihk3et8","slide":4,"name":"Textfeld 7","text":"[Hegel]\n[Berlin]\n[Schelling]","textPreview":"[Hegel] | [Berlin] | [Schelling]","textChars":28,"textLines":3,"bbox":[104,294.67,381.33,111.48]}
+{"kind":"textbox","id":"sh/ih8ju9sn","slide":4,"name":"Textfeld 8","text":"relevante Schnipsel – aber getrennt","textPreview":"relevante Schnipsel – aber getrennt","textChars":35,"textLines":1,"bbox":[104,466.67,360,24.23]}
+{"kind":"shape","id":"sh/ilwf69kv","slide":4,"name":"Gerade Verbindung mit Pfeil 9","bbox":[578.67,333.33,108,0]}
+{"kind":"textbox","id":"sh/5cva1cfq","slide":4,"name":"Textfeld 10","text":"Graph-RAG","textPreview":"Graph-RAG","textChars":9,"textLines":1,"bbox":[780,245.33,373.33,35.54]}
+{"kind":"shape","id":"sh/knex8j21","slide":4,"name":"Gerade Verbindung mit Pfeil 11","bbox":[824,360,96,0]}
+{"kind":"shape","id":"sh/5ony1oj6","slide":4,"name":"Gerade Verbindung mit Pfeil 12","bbox":[962.67,360,96,0]}
+{"kind":"shape","id":"sh/w72947yt","slide":4,"name":"Ellipse 13","bbox":[781.33,330.67,56,56]}
+{"kind":"shape","id":"sh/x8vaxsfe","slide":4,"name":"Ellipse 14","bbox":[920,330.67,56,56]}
+{"kind":"shape","id":"sh/a5kr2xg3","slide":4,"name":"Ellipse 15","bbox":[1058.67,330.67,56,56]}
+{"kind":"textbox","id":"sh/v6tsv2xo","slide":4,"name":"Textfeld 16","text":"Hegel","textPreview":"Hegel","textChars":5,"textLines":1,"bbox":[758.67,405.33,101.33,22.62]}
+{"kind":"textbox","id":"sh/g36tgryd","slide":4,"name":"Textfeld 17","text":"Schelling","textPreview":"Schelling","textChars":9,"textLines":1,"bbox":[893.33,405.33,109.33,22.62]}
+{"kind":"textbox","id":"sh/h4fa9wfy","slide":4,"name":"Textfeld 18","text":"Kierkegaard","textPreview":"Kierkegaard","textChars":11,"textLines":1,"bbox":[1029.33,405.33,114.67,21]}
+{"kind":"textbox","id":"sh/p0batw72","slide":4,"name":"Textfeld 19","text":"Die Kette bleibt im Kontext sichtbar.","textPreview":"Die Kette bleibt im Kontext sichtbar.","textChars":37,"textLines":1,"bbox":[730.67,485.33,440,25.85]}
+{"kind":"textbox","id":"sh/oz29krqh","slide":4,"name":"Textfeld 20","text":"Das ist die Multi-Hop-Hypothese: Nicht mehr Text allein, sondern besser verbundene Evidenz.","textPreview":"Das ist die Multi-Hop-Hypothese: Nicht mehr Text allein, sondern besser verbundene Evidenz.","textChars":91,"textLines":1,"bbox":[200,590.67,880,58.16]}
+{"kind":"notes","id":"nt/jyx0ra1s","slide":4,"text":""}
+{"kind":"slide","id":"sl/i107q5of","slide":5,"title":"FORSCHUNGSFRAGE UND HYPOTHESEN","textShapes":7}
+{"kind":"textbox","id":"sh/dgbulwnm","slide":5,"name":"Textfeld 1","text":"FORSCHUNGSFRAGE UND HYPOTHESEN","textPreview":"FORSCHUNGSFRAGE UND HYPOTHESEN","textChars":30,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/cf2tcr61","slide":5,"name":"Textfeld 2","text":"Wann lohnt sich ein Wissensgraph?","textPreview":"Wann lohnt sich ein Wissensgraph?","textChars":33,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/z2tcnm5s","slide":5,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/yhkbe1o7","slide":5,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/l4bupwny","slide":5,"name":"Textfeld 5","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/032tgr6d","slide":5,"name":"Textfeld 6","text":"Verbessert Graph-RAG auf einem kuratierten, typisierten Wissensgraphen die Antwortqualität kleiner On-Device-LLMs gegenüber Vektor-RAG und einer kontextfreien Baseline?","textPreview":"Verbessert Graph-RAG auf einem kuratierten, typisierten Wissensgraphen die Antwortqualität kleiner On-Device-LLMs gegenüber Vektor-RAG un...","textChars":168,"textLines":1,"bbox":[168,242.67,944,116.33]}
+{"kind":"shape","id":"sh/n6dcr65o","slide":5,"name":"Rechteck 7","bbox":[234.67,406.67,808,2.67]}
+{"kind":"textbox","id":"sh/m5kbi1oj","slide":5,"name":"Textfeld 8","text":"H1  RAG schlägt die Baseline · H2  bei einfachen Fragen annähernd gleich · H3  Graph-RAG profitiert bei 2–3 Hops","textPreview":"H1  RAG schlägt die Baseline · H2  bei einfachen Fragen annähernd gleich · H3  Graph-RAG profitiert bei 2–3 Hops","textChars":112,"textLines":1,"bbox":[208,448,864,50.08]}
+{"kind":"textbox","id":"sh/w32dkbuh","slide":5,"name":"Textfeld 9","text":"H4  bessere Enthaltung möglich · H5  mehr Kontext und höhere End-to-End-Kosten erwartet","textPreview":"H4  bessere Enthaltung möglich · H5  mehr Kontext und höhere End-to-End-Kosten erwartet","textChars":87,"textLines":1,"bbox":[304,520,672,50.08]}
+{"kind":"notes","id":"nt/i107q5of","slide":5,"text":""}
+{"kind":"slide","id":"sl/x8f69ofe","slide":6,"title":"MODELLIERUNG","textShapes":17}
+{"kind":"textbox","id":"sh/yhg7epsj","slide":6,"name":"Textfeld 1","text":"MODELLIERUNG","textPreview":"MODELLIERUNG","textChars":12,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/zi98nu94","slide":6,"name":"Textfeld 2","text":"Ein kleines, kontrolliertes Wissensuniversum.","textPreview":"Ein kleines, kontrolliertes Wissensuniversum.","textChars":45,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/87ipkzal","slide":6,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/98rqt4r6","slide":6,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/ml07i9sv","slide":6,"name":"Textfeld 5","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/7m98ru9g","slide":6,"name":"Textfeld 6","text":"75`nKnoten","textPreview":"75`nKnoten","textChars":10,"textLines":1,"bbox":[90.67,240,273.33,119.56]}
+{"kind":"textbox","id":"sh/oryp8fah","slide":6,"name":"Textfeld 7","text":"165 typisierte Beziehungen","textPreview":"165 typisierte Beziehungen","textChars":26,"textLines":1,"bbox":[90.67,381.33,293.33,25.85]}
+{"kind":"shape","id":"sh/pc76hkr2","slide":6,"name":"Rechteck 8","bbox":[77.33,226.67,313.33,218.67]}
+{"kind":"textbox","id":"sh/h4bupgn6","slide":6,"name":"Textfeld 9","text":"75","textPreview":"75","textChars":2,"textLines":1,"bbox":[90.67,240,273.33,59.78]}
+{"kind":"textbox","id":"sh/w32twb6l","slide":6,"name":"Textfeld 10","text":"Knoten","textPreview":"Knoten","textChars":6,"textLines":1,"bbox":[90.67,306.67,273.33,29.08]}
+{"kind":"textbox","id":"sh/v2tcn650","slide":6,"name":"Textfeld 11","text":"165 typisierte Beziehungen","textPreview":"165 typisierte Beziehungen","textChars":26,"textLines":1,"bbox":[90.67,381.33,293.33,25.85]}
+{"kind":"shape","id":"sh/u907axkf","slide":6,"name":"Gerade Verbindung mit Pfeil 12","bbox":[421.33,242.67,0,288]}
+{"kind":"textbox","id":"sh/5svutgni","slide":6,"name":"Textfeld 13","text":"40`nFragen","textPreview":"40`nFragen","textChars":10,"textLines":1,"bbox":[474.67,240,266.67,119.56]}
+{"kind":"textbox","id":"sh/47mt0b6x","slide":6,"name":"Textfeld 14","text":"10 Direkt · 14 Zwei-Hop · 8 Drei-Hop","textPreview":"10 Direkt · 14 Zwei-Hop · 8 Drei-Hop","textChars":36,"textLines":1,"bbox":[474.67,381.33,344,25.85]}
+{"kind":"shape","id":"sh/j6dcr65c","slide":6,"name":"Rechteck 15","bbox":[461.33,226.67,366.67,218.67]}
+{"kind":"textbox","id":"sh/i54bylor","slide":6,"name":"Textfeld 16","text":"40","textPreview":"40","textChars":2,"textLines":1,"bbox":[474.67,240,266.67,59.78]}
+{"kind":"textbox","id":"sh/twfux0ne","slide":6,"name":"Textfeld 17","text":"Fragen","textPreview":"Fragen","textChars":6,"textLines":1,"bbox":[474.67,306.67,273.33,29.08]}
+{"kind":"textbox","id":"sh/svmt4v6t","slide":6,"name":"Textfeld 18","text":"10 Direkt · 14 Zwei-Hop · 8 Drei-Hop","textPreview":"10 Direkt · 14 Zwei-Hop · 8 Drei-Hop","textChars":36,"textLines":1,"bbox":[474.67,381.33,344,25.85]}
+{"kind":"shape","id":"sh/of2tcvy9","slide":6,"name":"Gerade Verbindung mit Pfeil 19","bbox":[856,242.67,0,288]}
+{"kind":"textbox","id":"sh/dcnm98zm","slide":6,"name":"Textfeld 20","text":"Kernvergleich","textPreview":"Kernvergleich","textChars":13,"textLines":1,"bbox":[909.33,245.33,253.33,32.31]}
+{"kind":"textbox","id":"sh/qpwnet0b","slide":6,"name":"Textfeld 21","text":"B0  kein Kontext\nB1  Vektor-RAG\nB2  Graph-RAG","textPreview":"B0  kein Kontext | B1  Vektor-RAG | B2  Graph-RAG","textChars":45,"textLines":3,"bbox":[909.33,312,253.33,96.94]}
+{"kind":"textbox","id":"sh/bq547yhw","slide":6,"name":"Textfeld 22","text":"Domäne: Deutscher Idealismus · Wikipedia-basierte Inhalte · manuell kuratierter und eingefrorener Messgraph","textPreview":"Domäne: Deutscher Idealismus · Wikipedia-basierte Inhalte · manuell kuratierter und eingefrorener Messgraph","textChars":107,"textLines":1,"bbox":[197.33,584,885.33,48.47]}
+{"kind":"notes","id":"nt/x8f69ofe","slide":6,"text":""}
+{"kind":"slide","id":"sl/gnmp4jqx","slide":7,"title":"EXPERIMENT","textShapes":14}
+{"kind":"textbox","id":"sh/cb2tkvap","slide":7,"name":"Textfeld 1","text":"EXPERIMENT","textPreview":"EXPERIMENT","textChars":10,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/dcbud0ra","slide":7,"name":"Textfeld 2","text":"Die Reihenfolge darf das Ergebnis nicht prägen.","textPreview":"Die Reihenfolge darf das Ergebnis nicht prägen.","textChars":47,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/ydkbm5sv","slide":7,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/zedcfa9g","slide":7,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/kzmdova1","slide":7,"name":"Textfeld 5","text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/l0vuh0rm","slide":7,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/eh0ba1sr","slide":7,"name":"Textfeld 7","text":"Reihenfolge darf nicht verzerren.","textPreview":"Reihenfolge darf nicht verzerren.","textChars":33,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/fi9c369c","slide":7,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"shape","id":"sh/baxkjqlk","slide":7,"name":"Rechteck 9","bbox":[66.67,200,1133.33,173.33]}
+{"kind":"shape","id":"sh/x4j6p47q","slide":7,"name":"Gerade Verbindung mit Pfeil 10","bbox":[186.67,402.67,906.67,0]}
+{"kind":"shape","id":"sh/xcz2l03q","slide":7,"name":"Ellipse 11","bbox":[162.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/cbq1sv25","slide":7,"name":"Textfeld 12","text":"Gleicher Prompt","textPreview":"Gleicher Prompt","textChars":15,"textLines":1,"bbox":[90.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/n6x0fqlo","slide":7,"name":"Textfeld 13","text":"Modell, Temperatur und Antwortlimit bleiben konstant.","textPreview":"Modell, Temperatur und Antwortlimit bleiben konstant.","textChars":53,"textLines":1,"bbox":[66.67,450.67,240,43.62]}
+{"kind":"shape","id":"sh/25ojml43","slide":7,"name":"Ellipse 14","bbox":[462.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/p8fih03e","slide":7,"name":"Textfeld 15","text":"Seed + Rotation","textPreview":"Seed + Rotation","textChars":15,"textLines":1,"bbox":[390.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/o761ov2t","slide":7,"name":"Textfeld 16","text":"Fragen werden gemischt; Bedingungen rotieren zyklisch.","textPreview":"Fragen werden gemischt; Bedingungen rotieren zyklisch.","textChars":54,"textLines":1,"bbox":[366.67,450.67,240,43.62]}
+{"kind":"shape","id":"sh/f2d0b6lc","slide":7,"name":"Ellipse 17","bbox":[762.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/eh4jil4r","slide":7,"name":"Textfeld 18","text":"3 Wiederholungen","textPreview":"3 Wiederholungen","textChars":16,"textLines":1,"bbox":[690.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/id4ju1oz","slide":7,"name":"Textfeld 19","text":"Jeder Lauf bleibt getrennt gespeichert.","textPreview":"Jeder Lauf bleibt getrennt gespeichert.","textChars":39,"textLines":1,"bbox":[666.67,450.67,240,43.62]}
+{"kind":"shape","id":"sh/jedkn654","slide":7,"name":"Ellipse 20","bbox":[1062.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/4fm1wb6p","slide":7,"name":"Textfeld 21","text":"E2E-Zeit","textPreview":"E2E-Zeit","textChars":8,"textLines":1,"bbox":[990.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/50v2pgna","slide":7,"name":"Textfeld 22","text":"Retrieval, Vorbereitung und Generierung werden sichtbar.","textPreview":"Retrieval, Vorbereitung und Generierung werden sichtbar.","textChars":56,"textLines":1,"bbox":[966.67,450.67,240,43.62]}
+{"kind":"textbox","id":"sh/q143ylov","slide":7,"name":"Textfeld 23","text":"40 Fragen × 3 Bedingungen × 2 Modelle × 3 Wiederholungen = 720 Kern-Trials","textPreview":"40 Fragen × 3 Bedingungen × 2 Modelle × 3 Wiederholungen = 720 Kern-Trials","textChars":74,"textLines":1,"bbox":[246.67,586.67,786.67,27.47]}
+{"kind":"notes","id":"nt/gnmp4jqx","slide":7,"text":""}
+{"kind":"slide","id":"sl/fu1gfa1s","slide":8,"title":"AUSWERTUNG","textShapes":11}
+{"kind":"textbox","id":"sh/18byd4zy","slide":8,"name":"Textfeld 1","text":"AUSWERTUNG","textPreview":"AUSWERTUNG","textChars":10,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/g72x4zyd","slide":8,"name":"Textfeld 2","text":"Ein Ergebnis muss erklärbar sein.","textPreview":"Ein Ergebnis muss erklärbar sein.","textChars":33,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/ri9g7uhw","slide":8,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/6h0fypgb","slide":8,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/tkby9kzm","slide":8,"name":"Textfeld 5","text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/sjix0zy1","slide":8,"name":"Textfeld 6","text":"Antworten","textPreview":"Antworten","textChars":9,"textLines":1,"bbox":[109.33,273.33,300,45.24]}
+{"kind":"textbox","id":"sh/je9g3ahk","slide":8,"name":"Textfeld 7","text":"Korrekt? Teilweise? Enthaltung? Verblindete Doppelbewertung.","textPreview":"Korrekt? Teilweise? Enthaltung? Verblindete Doppelbewertung.","textChars":60,"textLines":1,"bbox":[109.33,340,300,87.24]}
+{"kind":"textbox","id":"sh/id0fu50z","slide":8,"name":"Textfeld 8","text":"Evidenz","textPreview":"Evidenz","textChars":7,"textLines":1,"bbox":[490.67,273.33,300,45.24]}
+{"kind":"textbox","id":"sh/o7ydoret","slide":8,"name":"Textfeld 9","text":"War der Goldpfad überhaupt im Kontext – oder scheiterte das Retrieval?","textPreview":"War der Goldpfad überhaupt im Kontext – oder scheiterte das Retrieval?","textChars":70,"textLines":1,"bbox":[490.67,340,300,87.24]}
+{"kind":"textbox","id":"sh/98rehwve","slide":8,"name":"Textfeld 10","text":"Ressourcen","textPreview":"Ressourcen","textChars":10,"textLines":1,"bbox":[872,273.33,300,45.24]}
+{"kind":"textbox","id":"sh/m5gvmhwn","slide":8,"name":"Textfeld 11","text":"p50/p95 der End-to-End-Zeit, Retrievalzeit und Kontextgröße.","textPreview":"p50/p95 der End-to-End-Zeit, Retrievalzeit und Kontextgröße.","textChars":60,"textLines":1,"bbox":[872,340,300,87.24]}
+{"kind":"textbox","id":"sh/n6pwfmd8","slide":8,"name":"Textfeld 12","text":"So kann ein Nullbefund genauso aufschlussreich sein wie ein Graph-RAG-Vorteil.","textPreview":"So kann ein Nullbefund genauso aufschlussreich sein wie ein Graph-RAG-Vorteil.","textChars":78,"textLines":1,"bbox":[221.33,578.67,837.33,29.08]}
+{"kind":"notes","id":"nt/fu1gfa1s","slide":8,"text":""}
+{"kind":"slide","id":"sl/udsvah03","slide":9,"title":"UMSETZUNG","textShapes":10}
+{"kind":"textbox","id":"sh/1cfmhgne","slide":9,"name":"Textfeld 1","text":"UMSETZUNG","textPreview":"UMSETZUNG","textChars":9,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/0b65obm9","slide":9,"name":"Textfeld 2","text":"Die App verbindet Korpus, Retrieval und lokales Modell.","textPreview":"Die App verbindet Korpus, Retrieval und lokales Modell.","textChars":55,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/nex4jq5k","slide":9,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/mdonql4z","slide":9,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/9gzml0nq","slide":9,"name":"Textfeld 5","text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/ofq5svm5","slide":9,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/bih4na5w","slide":9,"name":"Textfeld 7","text":"Die App macht den Vergleich messbar.","textPreview":"Die App macht den Vergleich messbar.","textChars":36,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/ah8nu54b","slide":9,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"shape","id":"sh/2l4faloj","slide":9,"name":"Gerade Verbindung mit Pfeil 9","bbox":[264,400,197.33,0]}
+{"kind":"shape","id":"sh/nmdg3q54","slide":9,"name":"Gerade Verbindung mit Pfeil 10","bbox":[602.67,400,197.33,0]}
+{"kind":"shape","id":"sh/onmxcv69","slide":9,"name":"Gerade Verbindung mit Pfeil 11","bbox":[941.33,400,160,0]}
+{"kind":"shape","id":"sh/3y107axw","slide":9,"name":"Ellipse 12","bbox":[218.67,370.67,58.67,58.67]}
+{"kind":"shape","id":"sh/cnu1kzyd","slide":9,"name":"Ellipse 13","bbox":[557.33,370.67,58.67,58.67]}
+{"kind":"shape","id":"sh/do3id4fy","slide":9,"name":"Ellipse 14","bbox":[896,370.67,58.67,58.67]}
+{"kind":"shape","id":"sh/qlcjipgn","slide":9,"name":"Ellipse 15","bbox":[1101.33,370.67,58.67,58.67]}
+{"kind":"textbox","id":"sh/bml0buxs","slide":9,"name":"Textfeld 16","text":"Eingefrorener Korpus","textPreview":"Eingefrorener Korpus","textChars":20,"textLines":1,"bbox":[146.67,458.67,202.67,25.85]}
+{"kind":"textbox","id":"sh/0ru1ozyp","slide":9,"name":"Textfeld 17","text":"Vektor- und Graphindex","textPreview":"Vektor- und Graphindex","textChars":22,"textLines":1,"bbox":[485.33,458.67,202.67,51.7]}
+{"kind":"textbox","id":"sh/lsn2h4fa","slide":9,"name":"Textfeld 18","text":"WebGPU-LLM im Browser","textPreview":"WebGPU-LLM im Browser","textChars":21,"textLines":1,"bbox":[824,458.67,202.67,51.7]}
+{"kind":"textbox","id":"sh/98ji147e","slide":9,"name":"Textfeld 19","text":"Export und Bewertung","textPreview":"Export und Bewertung","textChars":20,"textLines":1,"bbox":[1040,458.67,181.33,51.7]}
+{"kind":"textbox","id":"sh/87a18zqt","slide":9,"name":"Textfeld 20","text":"Kein eigenes Backend: Messdaten, Nutzerwissen und Modellinferenz bleiben auf dem Gerät.","textPreview":"Kein eigenes Backend: Messdaten, Nutzerwissen und Modellinferenz bleiben auf dem Gerät.","textChars":87,"textLines":1,"bbox":[224,580,832,58.16]}
+{"kind":"notes","id":"nt/udsvah03","slide":9,"text":""}
+{"kind":"slide","id":"sl/m90b6t0r","slide":10,"title":"UMSETZUNG UND HÜRDEN","textShapes":12}
+{"kind":"textbox","id":"sh/xc3mho32","slide":10,"name":"Textfeld 1","text":"UMSETZUNG UND HÜRDEN","textPreview":"UMSETZUNG UND HÜRDEN","textChars":20,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/cbu58j2h","slide":10,"name":"Textfeld 2","text":"Eine faire Studie entsteht nicht nur durch mehr Code.","textPreview":"Eine faire Studie entsteht nicht nur durch mehr Code.","textChars":53,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/zelojyl8","slide":10,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/ydcnatkn","slide":10,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/l036l83y","slide":10,"name":"Textfeld 5","text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/kzu5c32t","slide":10,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/725onyl4","slide":10,"name":"Textfeld 7","text":"Faire Messung ist mehr als Code.","textPreview":"Faire Messung ist mehr als Code.","textChars":32,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/m1cnetkj","slide":10,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/s7yt4b21","slide":10,"name":"Textfeld 9","text":"1 · Reproduzierbarkeit","textPreview":"1 · Reproduzierbarkeit","textChars":22,"textLines":1,"bbox":[104,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/d87uxg3m","slide":10,"name":"Textfeld 10","text":"Wikipedia ändert sich. Deshalb habe ich einen kuratierten Messgraphen eingefroren.","textPreview":"Wikipedia ändert sich. Deshalb habe ich einen kuratierten Messgraphen eingefroren.","textChars":82,"textLines":1,"bbox":[104,304,328,82.4]}
+{"kind":"textbox","id":"sh/q5gb21kb","slide":10,"name":"Textfeld 11","text":"2 · Faire Bedingungen","textPreview":"2 · Faire Bedingungen","textChars":21,"textLines":1,"bbox":[472,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/r6pcv6lw","slide":10,"name":"Textfeld 12","text":"Graph-Kontexte können länger sein. Budgetkontrolle, gleiche Prompts und Rotation reduzieren Verzerrungen.","textPreview":"Graph-Kontexte können länger sein. Budgetkontrolle, gleiche Prompts und Rotation reduzieren Verzerrungen.","textChars":105,"textLines":1,"bbox":[472,304,328,109.86]}
+{"kind":"textbox","id":"sh/0bit8b2d","slide":10,"name":"Textfeld 13","text":"3 · Mobile Laufzeit","textPreview":"3 · Mobile Laufzeit","textChars":19,"textLines":1,"bbox":[840,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/1cru1g3y","slide":10,"name":"Textfeld 14","text":"WebGPU, Modell- und Embedding-Downloads, Wärme und Cache-Zustände können Messungen beeinflussen.","textPreview":"WebGPU, Modell- und Embedding-Downloads, Wärme und Cache-Zustände können Messungen beeinflussen.","textChars":96,"textLines":1,"bbox":[840,304,328,109.86]}
+{"kind":"textbox","id":"sh/e9gb61k7","slide":10,"name":"Textfeld 15","text":"Weitere Prüfaufgabe vor dem Hauptlauf: Fakten, Goldpfade und Hop-Tiefen des Katalogs einzeln gegen den Korpus kontrollieren.","textPreview":"Weitere Prüfaufgabe vor dem Hauptlauf: Fakten, Goldpfade und Hop-Tiefen des Katalogs einzeln gegen den Korpus kontrollieren.","textChars":124,"textLines":1,"bbox":[221.33,557.33,837.33,58.16]}
+{"kind":"notes","id":"nt/m90b6t0r","slide":10,"text":""}
+{"kind":"slide","id":"sl/jetc3ut0","slide":11,"title":"ENTWICKLUNG","textShapes":14}
+{"kind":"textbox","id":"sh/xcryxg7y","slide":11,"name":"Textfeld 1","text":"ENTWICKLUNG","textPreview":"ENTWICKLUNG","textChars":11,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/wbih4b6d","slide":11,"name":"Textfeld 2","text":"Das Projekt entstand in prüfbaren Schleifen.","textPreview":"Das Projekt entstand in prüfbaren Schleifen.","textChars":44,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/n69grmpw","slide":11,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/250zy18b","slide":11,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/98rytw72","slide":11,"name":"Textfeld 5","text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/o7ih0r6h","slide":11,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/72t03qp0","slide":11,"name":"Textfeld 7","text":"Das Projekt entstand in prüfbaren Schleifen.","textPreview":"Das Projekt entstand in prüfbaren Schleifen.","textChars":44,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/61kzalof","slide":11,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"shape","id":"sh/ofqtgnyt","slide":11,"name":"Rechteck 9","bbox":[66.67,200,1133.33,173.33]}
+{"kind":"shape","id":"sh/eh8fex47","slide":11,"name":"Gerade Verbindung mit Pfeil 10","bbox":[186.67,402.67,906.67,0]}
+{"kind":"shape","id":"sh/mdobedg3","slide":11,"name":"Ellipse 11","bbox":[162.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/nehs7iho","slide":11,"name":"Textfeld 12","text":"Idee + Korpus","textPreview":"Idee + Korpus","textChars":13,"textLines":1,"bbox":[90.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/0b6tc3yx","slide":11,"name":"Textfeld 13","text":"Forschungsfrage, 75 Knoten und 40 Testfragen.","textPreview":"Forschungsfrage, 75 Knoten und 40 Testfragen.","textChars":45,"textLines":1,"bbox":[66.67,450.67,240,43.62]}
+{"kind":"shape","id":"sh/1cfa58zi","slide":11,"name":"Ellipse 14","bbox":[462.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/epobatgr","slide":11,"name":"Textfeld 15","text":"Messdesign","textPreview":"Messdesign","textChars":10,"textLines":1,"bbox":[390.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/zaxs3yhc","slide":11,"name":"Textfeld 16","text":"Seeds, Rotation, E2E-Zeit und Doppelbewertung.","textPreview":"Seeds, Rotation, E2E-Zeit und Doppelbewertung.","textChars":46,"textLines":1,"bbox":[366.67,450.67,240,43.62]}
+{"kind":"shape","id":"sh/cn6t83y1","slide":11,"name":"Ellipse 17","bbox":[762.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/dofa18z6","slide":11,"name":"Textfeld 18","text":"Offline + Wissen","textPreview":"Offline + Wissen","textChars":16,"textLines":1,"bbox":[690.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/tsnip0ny","slide":11,"name":"Textfeld 19","text":"Lokale Pakete, Dense Retrieval, PDFs und MediaWiki-Links.","textPreview":"Lokale Pakete, Dense Retrieval, PDFs und MediaWiki-Links.","textChars":57,"textLines":1,"bbox":[666.67,450.67,240,43.62]}
+{"kind":"shape","id":"sh/87ehgv6d","slide":11,"name":"Ellipse 20","bbox":[1062.67,378.67,48,48]}
+{"kind":"textbox","id":"sh/7650nq5s","slide":11,"name":"Textfeld 21","text":"Demo + Prüfung","textPreview":"Demo + Prüfung","textChars":14,"textLines":1,"bbox":[990.67,290.67,192,24.23]}
+{"kind":"textbox","id":"sh/65wzelo7","slide":11,"name":"Textfeld 22","text":"Live-Quiz, Modellvergleich, Ablation und Export.","textPreview":"Live-Quiz, Modellvergleich, Ablation und Export.","textChars":48,"textLines":1,"bbox":[966.67,450.67,240,43.62]}
+{"kind":"textbox","id":"sh/l43ilgn2","slide":11,"name":"Textfeld 23","text":"Kein Schritt war im ersten Chat „fertig“: testen → Fehler zeigen → korrigieren → erneut prüfen.","textPreview":"Kein Schritt war im ersten Chat „fertig“: testen → Fehler zeigen → korrigieren → erneut prüfen.","textChars":95,"textLines":1,"bbox":[246.67,586.67,786.67,54.4]}
+{"kind":"notes","id":"nt/jetc3ut0","slide":11,"text":""}
+{"kind":"slide","id":"sl/8f2psfyx","slide":12,"title":"EHRLICHE TECHNISCHE HÜRDEN","textShapes":12}
+{"kind":"textbox","id":"sh/1gbm9s3a","slide":12,"name":"Textfeld 1","text":"EHRLICHE TECHNISCHE HÜRDEN","textPreview":"EHRLICHE TECHNISCHE HÜRDEN","textChars":26,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/0f2lgnmp","slide":12,"name":"Textfeld 2","text":"„Offline“ war mehr als ein Schalter.","textPreview":"„Offline“ war mehr als ein Schalter.","textChars":36,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/ra943il8","slide":12,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/q903ad4n","slide":12,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/dcbm583y","slide":12,"name":"Textfeld 5","text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/sb2lcnmd","slide":12,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/b6d4f2lc","slide":12,"name":"Textfeld 7","text":"„Offline“ war mehr als ein Schalter.","textPreview":"„Offline“ war mehr als ein Schalter.","textChars":36,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/a543mx4r","slide":12,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/wvupgz6t","slide":12,"name":"Textfeld 9","text":"1 · CDN statt lokal","textPreview":"1 · CDN statt lokal","textChars":19,"textLines":1,"bbox":[104,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/xw3q94ne","slide":12,"name":"Textfeld 10","text":"Dynamische Imports liefen über esm.run. Lokale Pakete beseitigten die Abhängigkeit; Modellgewichte werden einmalig geladen.","textPreview":"Dynamische Imports liefen über esm.run. Lokale Pakete beseitigten die Abhängigkeit; Modellgewichte werden einmalig geladen.","textChars":123,"textLines":1,"bbox":[104,304,328,108.8]}
+{"kind":"textbox","id":"sh/atc7epon","slide":12,"name":"Textfeld 11","text":"2 · HTML statt Modell","textPreview":"2 · HTML statt Modell","textChars":21,"textLines":1,"bbox":[472,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/bulo7u58","slide":12,"name":"Textfeld 12","text":"Dense verlangte q8, verfügbar war int8. Eine HTML-404 wurde als JSON gelesen – der Dateiname war die Ursache.","textPreview":"Dense verlangte q8, verfügbar war int8. Eine HTML-404 wurde als JSON gelesen – der Dateiname war die Ursache.","textChars":109,"textLines":1,"bbox":[472,304,328,109.86]}
+{"kind":"textbox","id":"sh/orapcf6h","slide":12,"name":"Textfeld 13","text":"3 · Zustand ging verloren","textPreview":"3 · Zustand ging verloren","textChars":25,"textLines":1,"bbox":[840,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/9sj65kn2","slide":12,"name":"Textfeld 14","text":"Der Test lief nach Seitenwechsel weiter, aber die Anzeige war weg. Status und Abbruch mussten global werden.","textPreview":"Der Test lief nach Seitenwechsel weiter, aber die Anzeige war weg. Status und Abbruch mussten global werden.","textChars":108,"textLines":1,"bbox":[840,304,328,109.86]}
+{"kind":"textbox","id":"sh/mps7a5or","slide":12,"name":"Textfeld 15","text":"KI half beim Diagnostizieren und Patchen. Sichtbar wurden die Fehler durch meine Screenshots, Tests und Anforderungen.","textPreview":"KI half beim Diagnostizieren und Patchen. Sichtbar wurden die Fehler durch meine Screenshots, Tests und Anforderungen.","textChars":118,"textLines":1,"bbox":[221.33,557.33,837.33,58.16]}
+{"kind":"notes","id":"nt/8f2psfyx","slide":12,"text":""}
+{"kind":"slide","id":"sl/hgzapcr6","slide":13,"title":"METHODISCHE KURSKORREKTUREN","textShapes":12}
+{"kind":"textbox","id":"sh/q50nydsj","slide":13,"name":"Textfeld 1","text":"METHODISCHE KURSKORREKTUREN","textPreview":"METHODISCHE KURSKORREKTUREN","textChars":27,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/bq9orito","slide":13,"name":"Textfeld 2","text":"Mehr Features sind noch keine Validität.","textPreview":"Mehr Features sind noch keine Validität.","textChars":40,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/o3i5w3ad","slide":13,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/p4r6p8by","slide":13,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/21gnuts7","slide":13,"name":"Textfeld 5","text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/32ponyts","slide":13,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/gzy5s3a1","slide":13,"name":"Textfeld 7","text":"Mehr Features sind noch keine Validität.","textPreview":"Mehr Features sind noch keine Validität.","textChars":40,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/1076lobm","slide":13,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/hcfy9k3u","slide":13,"name":"Textfeld 9","text":"1 · Altdaten vermischt","textPreview":"1 · Altdaten vermischt","textChars":22,"textLines":1,"bbox":[104,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/gb6x0zm9","slide":13,"name":"Textfeld 10","text":"n = 532 bündelte alte Läufe. runId, letzter-Lauf-Filter und Löschfunktion verhindern Scheinpräzision.","textPreview":"n = 532 bündelte alte Läufe. runId, letzter-Lauf-Filter und Löschfunktion verhindern Scheinpräzision.","textChars":101,"textLines":1,"bbox":[104,304,328,108.8]}
+{"kind":"textbox","id":"sh/vaxg7ulo","slide":13,"name":"Textfeld 11","text":"2 · Graph-Vorteil unklar","textPreview":"2 · Graph-Vorteil unklar","textChars":24,"textLines":1,"bbox":[472,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/u9ofyp43","slide":13,"name":"Textfeld 12","text":"Budget-Kontrolle und Graph−Kanten-Ablation trennen Textmenge von expliziter Relationsdarstellung.","textPreview":"Budget-Kontrolle und Graph−Kanten-Ablation trennen Textmenge von expliziter Relationsdarstellung.","textChars":97,"textLines":1,"bbox":[472,304,328,109.86]}
+{"kind":"textbox","id":"sh/t8fy5k3i","slide":13,"name":"Textfeld 13","text":"3 · Auto-Score zu grob","textPreview":"3 · Auto-Score zu grob","textChars":22,"textLines":1,"bbox":[840,253.33,336,29.08]}
+{"kind":"textbox","id":"sh/876xwfmx","slide":13,"name":"Textfeld 14","text":"Goldbegriffe bleiben Vorprüfung. Verblindete Doppelbewertung und Cohen’s κ sind maßgeblich.","textPreview":"Goldbegriffe bleiben Vorprüfung. Verblindete Doppelbewertung und Cohen’s κ sind maßgeblich.","textChars":91,"textLines":1,"bbox":[840,304,328,109.86]}
+{"kind":"textbox","id":"sh/7mdg3als","slide":13,"name":"Textfeld 15","text":"KI schlug Kontrollen und Statistik vor; ich muss Entscheidungen begründen und Bewertungen real durchführen.","textPreview":"KI schlug Kontrollen und Statistik vor; ich muss Entscheidungen begründen und Bewertungen real durchführen.","textChars":107,"textLines":1,"bbox":[221.33,557.33,837.33,58.16]}
+{"kind":"notes","id":"nt/hgzapcr6","slide":13,"text":""}
+{"kind":"slide","id":"sl/6lsnupw7","slide":14,"title":"KI-BILANZ NACH PHASE","textShapes":9}
+{"kind":"textbox","id":"sh/xc7eds76","slide":14,"name":"Textfeld 1","text":"KI-BILANZ NACH PHASE","textPreview":"KI-BILANZ NACH PHASE","textChars":20,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/wbydknq1","slide":14,"name":"Textfeld 2","text":"KI beschleunigte den Bau – nicht die Evidenz.","textPreview":"KI beschleunigte den Bau – nicht die Evidenz.","textChars":45,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/jepwf2pc","slide":14,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/idgvmx8r","slide":14,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/5grehs7i","slide":14,"name":"Textfeld 5","text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/kfidonqx","slide":14,"name":"Textfeld 6","text":"Stark geholfen","textPreview":"Stark geholfen","textChars":14,"textLines":1,"bbox":[114.67,245.33,440,35.54]}
+{"kind":"textbox","id":"sh/zi5c3y98","slide":14,"name":"Textfeld 7","text":"• Codeentwürfe und Refactorings\n• Fehlersuche anhand meiner Logs\n• UI-, Folien- und Textvarianten\n• Checklisten, Exporte und Tests\n• Gegenargumente und Kontrollen","textPreview":"• Codeentwürfe und Refactorings | • Fehlersuche anhand meiner Logs | • UI-, Folien- und Textvarianten | • Checklisten, Exporte und Tests ...","textChars":162,"textLines":5,"bbox":[114.67,314.67,440,145.41]}
+{"kind":"shape","id":"sh/hsvy50re","slide":14,"name":"Gerade Verbindung mit Pfeil 8","bbox":[658.67,245.33,0,317.33]}
+{"kind":"textbox","id":"sh/c3e1gjyd","slide":14,"name":"Textfeld 9","text":"Nicht delegierbar","textPreview":"Nicht delegierbar","textChars":17,"textLines":1,"bbox":[746.67,245.33,413.33,35.54]}
+{"kind":"textbox","id":"sh/x4ni9ofy","slide":14,"name":"Textfeld 10","text":"Ich legte Fragestellung und Anforderungen fest, wählte Varianten und testete die App. KI hat weder den Hauptlauf noch die unabhängige Zweitbewertung durchgeführt.","textPreview":"Ich legte Fragestellung und Anforderungen fest, wählte Varianten und testete die App. KI hat weder den Hauptlauf noch die unabhängige Zwe...","textChars":162,"textLines":1,"bbox":[746.67,314.67,413.33,153.48]}
+{"kind":"textbox","id":"sh/a1wze9g7","slide":14,"name":"Textfeld 11","text":"Meine Bilanz: hohe Produktionshilfe · mittlere methodische Ideengebung · keine eigenständige empirische Evidenz","textPreview":"Meine Bilanz: hohe Produktionshilfe · mittlere methodische Ideengebung · keine eigenständige empirische Evidenz","textChars":111,"textLines":1,"bbox":[208,597.33,866.67,49.6]}
+{"kind":"notes","id":"nt/6lsnupw7","slide":14,"text":""}
+{"kind":"slide","id":"sl/vaxsvy10","slide":15,"title":"ARTEFAKT","textShapes":12}
+{"kind":"textbox","id":"sh/547mhg3m","slide":15,"name":"Textfeld 1","text":"ARTEFAKT","textPreview":"ARTEFAKT","textChars":8,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/k3y5ov21","slide":15,"name":"Textfeld 2","text":"Mein Messinstrument zeigt den Weg zur Antwort.","textPreview":"Mein Messinstrument zeigt den Weg zur Antwort.","textChars":46,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/76p4jqls","slide":15,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/65gnqlk7","slide":15,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/t87ml0ji","slide":15,"name":"Textfeld 5","text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/s7y5sv2x","slide":15,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/na5476l8","slide":15,"name":"Textfeld 7","text":"Der Weg zur Antwort bleibt sichtbar.","textPreview":"Der Weg zur Antwort bleibt sichtbar.","textChars":36,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/m9c3e1kn","slide":15,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/wrm9kvep","slide":15,"name":"Textfeld 9","text":"FRAGE","textPreview":"FRAGE","textChars":5,"textLines":1,"bbox":[112,269.33,344,22.62]}
+{"kind":"textbox","id":"sh/hsvat0fa","slide":15,"name":"Textfeld 10","text":"RETRIEVAL","textPreview":"RETRIEVAL","textChars":9,"textLines":1,"bbox":[493.33,269.33,304,22.62]}
+{"kind":"textbox","id":"sh/upkrilwj","slide":15,"name":"Textfeld 11","text":"ANTWORT","textPreview":"ANTWORT","textChars":7,"textLines":1,"bbox":[864,269.33,304,22.62]}
+{"kind":"shape","id":"sh/uh4v2pkj","slide":15,"name":"Gerade Verbindung mit Pfeil 12","bbox":[333.33,370.67,149.33,0]}
+{"kind":"shape","id":"sh/vixcvu14","slide":15,"name":"Gerade Verbindung mit Pfeil 13","bbox":[778.67,370.67,74.67,0]}
+{"kind":"textbox","id":"sh/5wvax0f6","slide":15,"name":"Textfeld 14","text":"Welche Verbindung führt von Hegel zu Kierkegaard?","textPreview":"Welche Verbindung führt von Hegel zu Kierkegaard?","textChars":49,"textLines":1,"bbox":[106.67,333.33,237.33,87.24]}
+{"kind":"textbox","id":"sh/it4rm5wv","slide":15,"name":"Textfeld 15","text":"Kontext, Knoten und Kanten bleiben offenlegbar.","textPreview":"Kontext, Knoten und Kanten bleiben offenlegbar.","textChars":47,"textLines":1,"bbox":[488,333.33,274.67,58.16]}
+{"kind":"textbox","id":"sh/judsvqxg","slide":15,"name":"Textfeld 16","text":"Antwort, Laufzeit und Evidenz sind exportierbar.","textPreview":"Antwort, Laufzeit und Evidenz sind exportierbar.","textChars":48,"textLines":1,"bbox":[866.67,333.33,266.67,58.16]}
+{"kind":"textbox","id":"sh/0z29cbyh","slide":15,"name":"Textfeld 17","text":"Die App ist nicht nur eine Demo. Sie ist das Messinstrument für einen transparenten Vergleich.","textPreview":"Die App ist nicht nur eine Demo. Sie ist das Messinstrument für einen transparenten Vergleich.","textChars":94,"textLines":1,"bbox":[242.67,526.67,786.67,64.62]}
+{"kind":"notes","id":"nt/vaxsvy10","slide":15,"text":""}
+{"kind":"slide","id":"sl/gny5sjyp","slide":16,"title":"EINORDNUNG","textShapes":7}
+{"kind":"textbox","id":"sh/8z2h8bq1","slide":16,"name":"Textfeld 1","text":"EINORDNUNG","textPreview":"EINORDNUNG","textChars":10,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/9kby1g7m","slide":16,"name":"Textfeld 2","text":"Graph-RAG ist nicht einfach „besser“.","textPreview":"Graph-RAG ist nicht einfach „besser“.","textChars":37,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/ytkf2h8j","slide":16,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/zutgvm94","slide":16,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/kv2h4rqp","slide":16,"name":"Textfeld 5","text":"16","textPreview":"16","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/lwbyxwra","slide":16,"name":"Textfeld 6","text":"Sondern wann explizite Struktur ihren Preis wert ist.","textPreview":"Sondern wann explizite Struktur ihren Preis wert ist.","textChars":53,"textLines":1,"bbox":[194.67,273.33,893.33,96.94]}
+{"kind":"shape","id":"sh/ip4zel83","slide":16,"name":"Rechteck 7","bbox":[376,410.67,528,2.67]}
+{"kind":"textbox","id":"sh/3qdg7qpo","slide":16,"name":"Textfeld 8","text":"Ich dokumentiere auch Null- und Negativbefunde – sowie meinen iterativen KI-Einsatz mit Claude und ChatGPT – vollständig im Transparenz-Bericht.","textPreview":"Ich dokumentiere auch Null- und Negativbefunde – sowie meinen iterativen KI-Einsatz mit Claude und ChatGPT – vollständig im Transparenz-B...","textChars":144,"textLines":1,"bbox":[260,461.33,760,53.32]}
+{"kind":"textbox","id":"sh/fm1gzq5o","slide":16,"name":"Textfeld 9","text":"Nächster Schritt: Messläufe · Bewertung · nachvollziehbare Ergebnisse","textPreview":"Nächster Schritt: Messläufe · Bewertung · nachvollziehbare Ergebnisse","textChars":69,"textLines":1,"bbox":[345.33,584,589.33,24.23]}
+{"kind":"notes","id":"nt/gny5sjyp","slide":16,"text":""}
+{"kind":"slide","id":"sl/14bup87q","slide":17,"title":"PILOT UND FREIGABE","textShapes":11}
+{"kind":"textbox","id":"sh/1c7e50ni","slide":17,"name":"Textfeld 1","text":"PILOT UND FREIGABE","textPreview":"PILOT UND FREIGABE","textChars":18,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/gbedwfmx","slide":17,"name":"Textfeld 2","text":"Erst prüfen, dann behaupten.","textPreview":"Erst prüfen, dann behaupten.","textChars":28,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/rm5czq50","slide":17,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/6lwvql4v","slide":17,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/t8ne10n6","slide":17,"name":"Textfeld 5","text":"17","textPreview":"17","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/snedsvml","slide":17,"name":"Textfeld 6","text":"1  Messstand einfrieren","textPreview":"1  Messstand einfrieren","textChars":23,"textLines":1,"bbox":[117.33,258.67,346.67,33.93]}
+{"kind":"textbox","id":"sh/jilcvq54","slide":17,"name":"Textfeld 7","text":"Commit, Gerät, Browser, Modelle, Seeds und Cache-Zustand dokumentieren.","textPreview":"Commit, Gerät, Browser, Modelle, Seeds und Cache-Zustand dokumentieren.","textChars":71,"textLines":1,"bbox":[117.33,317.33,333.33,82.4]}
+{"kind":"textbox","id":"sh/ihcvml4j","slide":17,"name":"Textfeld 8","text":"2  Korpus kontrollieren","textPreview":"2  Korpus kontrollieren","textChars":23,"textLines":1,"bbox":[509.33,258.67,320,33.93]}
+{"kind":"textbox","id":"sh/4by9or6l","slide":17,"name":"Textfeld 9","text":"Alle Goldpfade, Hop-Tiefen und unbeantwortbaren Fragen gegen den Korpus prüfen.","textPreview":"Alle Goldpfade, Hop-Tiefen und unbeantwortbaren Fragen gegen den Korpus prüfen.","textChars":79,"textLines":1,"bbox":[509.33,317.33,320,82.4]}
+{"kind":"textbox","id":"sh/pc7qhwn6","slide":17,"name":"Textfeld 10","text":"3  Pipeline prüfen","textPreview":"3  Pipeline prüfen","textChars":18,"textLines":1,"bbox":[890.67,258.67,280,33.93]}
+{"kind":"textbox","id":"sh/29grm1of","slide":17,"name":"Textfeld 11","text":"Zeitmessung, Export und Verblindung zuerst technisch validieren.","textPreview":"Zeitmessung, Export und Verblindung zuerst technisch validieren.","textChars":64,"textLines":1,"bbox":[890.67,317.33,280,82.4]}
+{"kind":"shape","id":"sh/zul836xg","slide":17,"name":"Gerade Verbindung mit Pfeil 12","bbox":[168,472,944,0]}
+{"kind":"textbox","id":"sh/gnepkr69","slide":17,"name":"Textfeld 13","text":"Demo-Ausgaben sind kein Ergebnis. Erst exportierte und doppelt bewertete WebLLM-Läufe dürfen Hypothesen bestätigen oder widerlegen.","textPreview":"Demo-Ausgaben sind kein Ergebnis. Erst exportierte und doppelt bewertete WebLLM-Läufe dürfen Hypothesen bestätigen oder widerlegen.","textChars":131,"textLines":1,"bbox":[218.67,536,842.67,61.39]}
+{"kind":"notes","id":"nt/14bup87q","slide":17,"text":""}
+{"kind":"slide","id":"sl/y5wne50z","slide":18,"title":"QUELLEN","textShapes":7}
+{"kind":"textbox","id":"sh/wrelszu9","slide":18,"name":"Textfeld 1","text":"QUELLEN","textPreview":"QUELLEN","textChars":7,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/hsn2l4bu","slide":18,"name":"Textfeld 2","text":"Theorie, Benchmarks und technische Grundlage","textPreview":"Theorie, Benchmarks und technische Grundlage","textChars":44,"textLines":1,"bbox":[74.67,96,1120,113.09]}
+{"kind":"shape","id":"sh/itw3upcf","slide":18,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/je5knut0","slide":18,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/4felwzu5","slide":18,"name":"Textfeld 5","text":"18","textPreview":"18","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"shape","id":"sh/5gnmp4bq","slide":18,"name":"Rechteck 6","bbox":[66.67,88,1133.33,112]}
+{"kind":"textbox","id":"sh/6hw3y9sb","slide":18,"name":"Textfeld 7","text":"Quellen und Grundlagen.","textPreview":"Quellen und Grundlagen.","textChars":23,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/rip4retw","slide":18,"name":"Rechteck 8","bbox":[74.67,186.67,101.33,4]}
+{"kind":"shape","id":"sh/fapkr6pw","slide":18,"name":"Rechteck 9","bbox":[66.67,200,1133.33,200]}
+{"kind":"textbox","id":"sh/upg3i18r","slide":18,"name":"Textfeld 10","text":"[1] Lewis et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. NeurIPS.\n\n[2] Edge et al. (2024). From Local to Global: A Graph RAG Approach to Query-Focused Summarization.\n\n[3] Gutiérrez et al. (2024). HippoRAG. NeurIPS.\n\n[4] Yang et al. (2018). HotpotQA. EMNLP.\n\n[5] MLC-Team (2024). WebLLM: High-Performance In-Browser LLM Inference.","textPreview":"[1] Lewis et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. NeurIPS. |  | [2] Edge et al. (2024). From Loc...","textChars":363,"textLines":9,"bbox":[112,248,1040,239.92]}
+{"kind":"textbox","id":"sh/1cr2tg72","slide":18,"name":"Textfeld 11","text":"Korpusgrundlage: ausgewählte deutschsprachige Wikipedia-Artikel; konkrete Artikelversionen und Attribution werden im Transparenz-Bericht dokumentiert.","textPreview":"Korpusgrundlage: ausgewählte deutschsprachige Wikipedia-Artikel; konkrete Artikelversionen und Attribution werden im Transparenz-Bericht ...","textChars":150,"textLines":1,"bbox":[112,576,1040,48.47]}
+{"kind":"notes","id":"nt/y5wne50z","slide":18,"text":""}
+{"kind":"slide","id":"sl/nid43ytk","slide":19,"title":"KI-DISCLAIMER","textShapes":9}
+{"kind":"textbox","id":"sh/9gb6xgbi","slide":19,"name":"Textfeld 1","text":"KI-DISCLAIMER","textPreview":"KI-DISCLAIMER","textChars":13,"textLines":1,"bbox":[74.67,50.67,733.33,18.58]}
+{"kind":"textbox","id":"sh/8v2pobax","slide":19,"name":"Textfeld 2","text":"Wo ich KI verwendet habe","textPreview":"Wo ich KI verwendet habe","textChars":24,"textLines":1,"bbox":[74.67,96,1120,56.55]}
+{"kind":"shape","id":"sh/vitozqt8","slide":19,"name":"Rechteck 3","bbox":[74.67,186.67,101.33,4]}
+{"kind":"textbox","id":"sh/ahk7qls3","slide":19,"name":"Textfeld 4","text":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textPreview":"Graph-RAG auf dem Smartphone · Proseminar SoSe 2026","textChars":51,"textLines":1,"bbox":[74.67,688,800,15.35]}
+{"kind":"textbox","id":"sh/xkbq10be","slide":19,"name":"Textfeld 5","text":"19","textPreview":"19","textChars":2,"textLines":1,"bbox":[1160,688,45.33,15.35]}
+{"kind":"textbox","id":"sh/wj2psvat","slide":19,"name":"Textfeld 6","text":"Claude und ChatGPT im Chat","textPreview":"Claude und ChatGPT im Chat","textChars":26,"textLines":1,"bbox":[114.67,245.33,440,35.54]}
+{"kind":"textbox","id":"sh/jmd83atk","slide":19,"name":"Textfeld 7","text":"• Konzeption und Hypothesen\n• Große Teile von Code und UI\n• Fehleranalyse und Iterationen\n• Ausarbeitung und Transparenzbericht\n• Folien und Live-Quiz","textPreview":"• Konzeption und Hypothesen | • Große Teile von Code und UI | • Fehleranalyse und Iterationen | • Ausarbeitung und Transparenzbericht | •...","textChars":150,"textLines":5,"bbox":[114.67,314.67,440,145.41]}
+{"kind":"shape","id":"sh/x07i1cji","slide":19,"name":"Gerade Verbindung mit Pfeil 8","bbox":[658.67,245.33,0,317.33]}
+{"kind":"textbox","id":"sh/cri1gnql","slide":19,"name":"Textfeld 9","text":"Grenzen + Verantwortung","textPreview":"Grenzen + Verantwortung","textChars":23,"textLines":1,"bbox":[746.67,245.33,413.33,35.54]}
+{"kind":"textbox","id":"sh/dsri9sr6","slide":19,"name":"Textfeld 10","text":"Ich gab Ziele vor, wählte Varianten und prüfte Ergebnisse. KI-Ausgaben können plausibel falsch sein: Fakten, Quellen, Messlogik, Code und Schlussfolgerungen verantworte ich.","textPreview":"Ich gab Ziele vor, wählte Varianten und prüfte Ergebnisse. KI-Ausgaben können plausibel falsch sein: Fakten, Quellen, Messlogik, Code und...","textChars":173,"textLines":1,"bbox":[746.67,314.67,413.33,153.48]}
+{"kind":"textbox","id":"sh/qpgjex8f","slide":19,"name":"Textfeld 11","text":"Genutzt wurden ausschließlich Claude- und ChatGPT-Chatfunktionen; echte Ergebnisse und Bewertungen werden nicht simuliert.","textPreview":"Genutzt wurden ausschließlich Claude- und ChatGPT-Chatfunktionen; echte Ergebnisse und Bewertungen werden nicht simuliert.","textChars":122,"textLines":1,"bbox":[208,597.33,866.67,49.6]}
+{"kind":"notes","id":"nt/nid43ytk","slide":19,"text":""}
