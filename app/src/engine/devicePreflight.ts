@@ -19,7 +19,7 @@ export async function runWebGpuPreflight(): Promise<DevicePreflightResult> {
   if (!gpu) return {
     state: 'unsupported',
     label: 'WebGPU fehlt',
-    detail: 'Dieser Browser bietet keine WebGPU-Schnittstelle. Nutze Demo-Engine oder Seminar-Online-Modell.',
+    detail: 'Dieser Browser bietet keine WebGPU-Schnittstelle. Nutze das lokale WebAssembly/CPU-Modell.',
   }
   let device: any
   try {
@@ -59,7 +59,7 @@ export async function runWebGpuPreflight(): Promise<DevicePreflightResult> {
     return {
       state: 'failed',
       label: 'Compute-Test fehlgeschlagen',
-      detail: `${detail} Nutze auf diesem Gerät die Demo-Engine oder den QR-Seminarmodus.`,
+      detail: `${detail} Nutze auf diesem Gerät das lokale WebAssembly/CPU-Modell; es greift nicht auf Vulkan zu.`,
     }
   } finally {
     try { device?.destroy?.() } catch { /* optional cleanup */ }

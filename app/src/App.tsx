@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KnowledgeGraph, RetrievalMode, TrialResult } from './data/types'
 import { BASE_GRAPH } from './data/graph'
 import { ExperimentRunner } from './engine/experiment'
-import { ExtractiveEngine, WebLLMEngine, type LLMEngine } from './engine/llm'
+import { ExtractiveEngine, WasmLLMEngine, WebLLMEngine, type LLMEngine } from './engine/llm'
 import { setEmbeddingNetworkEnabled } from './engine/embeddings'
 import { SeminarOnlineEngine, seminarOnlineConfigured, seminarRoomCode } from './engine/seminarOnline'
 import {
@@ -196,16 +196,21 @@ export default function App() {
   // Ein bereits vollständig bereitgestelltes Modell wird beim festen
   // Vortrags-Launcher automatisch aus dem Browser-Cache wiederhergestellt.
   useEffect(() => {
-    if (restoreStartedRef.current || !webgpu || seminarOnline) return
+    if (restoreStartedRef.current || seminarOnline) return
     restoreStartedRef.current = true
     const modelId = localStorage.getItem(PREFERRED_MODEL_KEY)
     if (!modelId) return
 
     void (async () => {
       try {
-        if (!(await WebLLMEngine.isCached(modelId))) return
+        const cpuModel = modelId.startsWith('wllama:')
+        if (cpuModel) {
+          if (!WasmLLMEngine.supported() || !(await WasmLLMEngine.isCached(modelId))) return
+        } else {
+          if (!webgpu || !(await WebLLMEngine.isCached(modelId))) return
+        }
         setEngineRestore({ state: 'loading', text: 'Lokales Sprachmodell wird aus dem Cache geladen …' })
-        const restored = new WebLLMEngine(modelId)
+        const restored = cpuModel ? new WasmLLMEngine(modelId) : new WebLLMEngine(modelId)
         await restored.load((text, pct) =>
           setEngineRestore({
             state: 'loading',
@@ -235,6 +240,7 @@ export default function App() {
     baseRunner,
     engine,
     setEngine: (next) => {
+      if (engine.id !== next.id) void engine.dispose?.()
       setEngineState(next)
       if (next.id !== 'extractive' && next.id !== 'seminar-online') {
         localStorage.setItem(PREFERRED_MODEL_KEY, next.id)
