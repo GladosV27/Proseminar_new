@@ -23,6 +23,11 @@ interface LiveVoiceDialogProps {
   voices: GermanVoiceInfo[]
   selectedVoiceURI: string
   voiceRate: number
+  voiceProvider: 'browser' | 'piper-de'
+  neuralVoiceReady: boolean
+  neuralVoiceProgress: number | null
+  neuralVoiceDownloadMB: number
+  online: boolean
   engineLabel: string
   remoteAnswer: boolean
   onClose: () => void
@@ -31,6 +36,8 @@ interface LiveVoiceDialogProps {
   onToggleMuted: () => void
   onVoiceChange: (voiceURI: string) => void
   onVoiceRateChange: (rate: number) => void
+  onVoiceProviderChange: (provider: 'browser' | 'piper-de') => void
+  onInstallNeuralVoice: () => void
 }
 
 function MicrophoneIcon({ muted = false }: { muted?: boolean }) {
@@ -131,6 +138,11 @@ export default function LiveVoiceDialog({
   voices,
   selectedVoiceURI,
   voiceRate,
+  voiceProvider,
+  neuralVoiceReady,
+  neuralVoiceProgress,
+  neuralVoiceDownloadMB,
+  online,
   engineLabel,
   remoteAnswer,
   onClose,
@@ -139,6 +151,8 @@ export default function LiveVoiceDialog({
   onToggleMuted,
   onVoiceChange,
   onVoiceRateChange,
+  onVoiceProviderChange,
+  onInstallNeuralVoice,
 }: LiveVoiceDialogProps) {
   const dialogRef = useRef<HTMLElement>(null)
   const onCloseRef = useRef(onClose)
@@ -312,19 +326,17 @@ export default function LiveVoiceDialog({
           </button>
         </footer>
 
-        {speechOutputAvailable && (
-          <details className="live-voice-settings">
+        <details className="live-voice-settings">
             <summary>Stimme &amp; Sprechtempo</summary>
             <div className="live-voice-settings-grid">
               <label>
-                <span>Deutsche Stimme</span>
-                <select value={selectedVoiceURI} onChange={(event) => onVoiceChange(event.target.value)}>
-                  <option value="">Automatisch · beste verfügbare Stimme</option>
-                  {voices.map((voice) => (
-                    <option value={voice.voiceURI} key={voice.voiceURI}>
-                      {voice.name} · {voice.lang}{voice.localService ? ' · auf dem Gerät' : ' · Browserdienst'}
-                    </option>
-                  ))}
+                <span>Sprachausgabe</span>
+                <select
+                  value={voiceProvider}
+                  onChange={(event) => onVoiceProviderChange(event.target.value as 'browser' | 'piper-de')}
+                >
+                  <option value="browser">Browser-/Systemstimme</option>
+                  {neuralVoiceReady && <option value="piper-de">Thorsten Neural · vollständig lokal</option>}
                 </select>
               </label>
               <label>
@@ -339,9 +351,41 @@ export default function LiveVoiceDialog({
                 />
               </label>
             </div>
-            <p>Die Auswahl gilt ab der nächsten Antwort. Welche Stimmen natürlich klingen, hängt vom Browser und Betriebssystem ab.</p>
-          </details>
-        )}
+            {voiceProvider === 'browser' && (
+              <label className="live-voice-browser-voice">
+                <span>Deutsche Browserstimme</span>
+                <select value={selectedVoiceURI} onChange={(event) => onVoiceChange(event.target.value)}>
+                  <option value="">Automatisch · beste verfügbare Stimme</option>
+                  {voices.map((voice) => (
+                    <option value={voice.voiceURI} key={voice.voiceURI}>
+                      {voice.name} · {voice.lang}{voice.localService ? ' · auf dem Gerät' : ' · Browserdienst'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {!neuralVoiceReady && (
+              <div className="live-voice-neural-install">
+                <div>
+                  <strong>Natürlichere Offline-Stimme</strong>
+                  <span>Piper „Thorsten“ · ca. {neuralVoiceDownloadMB} MB · einmalig laden</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn sm"
+                  onClick={onInstallNeuralVoice}
+                  disabled={!online || neuralVoiceProgress !== null}
+                >
+                  {neuralVoiceProgress !== null ? `${neuralVoiceProgress} %` : online ? 'Stimme laden' : 'Online nötig'}
+                </button>
+              </div>
+            )}
+            <p>
+              {voiceProvider === 'piper-de'
+                ? 'Die Ausgabe wird lokal mit Piper erzeugt. Die Spracheingabe kann weiterhin einen Browserdienst verwenden.'
+                : 'Welche Browserstimmen natürlich klingen, hängt vom Betriebssystem ab.'}
+            </p>
+        </details>
 
         <details className="live-voice-privacy">
           <summary>Was geschieht mit meiner Stimme?</summary>
@@ -349,7 +393,7 @@ export default function LiveVoiceDialog({
             Diese App selbst speichert keine Audiodatei. Die Web-Spracherkennung wird jedoch vom Browser bereitgestellt
             und kann Ton zur Erkennung an dessen Anbieter übertragen; über eine dortige Speicherung kann Noesis keine
             Aussage treffen. Das erkannte Transkript wird wie eine getippte Frage verarbeitet. Die Vorlesestimme stammt
-            ebenfalls aus dem Browser beziehungsweise Betriebssystem.
+            aus dem Browser beziehungsweise Betriebssystem oder – nach bewusster Installation – lokal aus Piper.
           </p>
         </details>
       </section>

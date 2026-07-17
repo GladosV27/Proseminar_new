@@ -1830,6 +1830,34 @@ a.conversation-source-chip:hover {
   line-height: 1.4;
   text-align: center;
 }
+.live-voice-browser-voice {
+  display: block;
+  margin-top: 10px;
+}
+.live-voice-neural-install {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 34%, transparent);
+}
+.live-voice-neural-install strong,
+.live-voice-neural-install span {
+  display: block;
+}
+.live-voice-neural-install strong {
+  color: var(--ink-2);
+  font-size: 10.5px;
+}
+.live-voice-neural-install span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
 .live-voice-privacy {
   width: min(560px, 100%);
   margin: 15px auto 0;

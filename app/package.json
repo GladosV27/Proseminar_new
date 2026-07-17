@@ -13,7 +13,9 @@
     "offline:start": "node ./scripts/offline-server.mjs --open"
   },
   "dependencies": {
+    "@diffusionstudio/piper-wasm": "^1.0.0",
     "@huggingface/transformers": "^3.8.1",
+    "@mintplex-labs/piper-tts-web": "^1.0.4",
     "@mlc-ai/web-llm": "^0.2.79",
     "@supabase/supabase-js": "^2.110.2",
     "@wllama/wllama": "^3.5.1",

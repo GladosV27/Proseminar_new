@@ -8,11 +8,18 @@ import { ExperimentRunner, type PreparedTrial } from '../engine/experiment'
 import {
   getVoiceCapabilities,
   listGermanVoices,
+  startSpeechPlayback,
   TurnBasedVoiceController,
   VoiceSynthesisError,
   type GermanVoiceInfo,
   type LiveVoiceSnapshot,
 } from '../engine/liveVoice'
+import {
+  installGermanNeuralVoice,
+  isGermanNeuralVoiceStored,
+  PIPER_GERMAN_DOWNLOAD_MB,
+  startGermanNeuralPlayback,
+} from '../engine/neuralVoice'
 import { comparableKnowledgeTitle, parseNoesisAction } from '../engine/knowledgeCommand'
 import {
   RESEARCH_COMMUNITY,
@@ -31,6 +38,7 @@ import { applyKnowledgeImport, mergedGraph } from '../engine/store'
 type MessageRole = 'user' | 'assistant'
 type MessageStatus = 'pending' | 'done' | 'stopped' | 'error'
 type ConversationPhase = 'idle' | 'research' | 'retrieval' | 'generation' | 'stopping'
+type VoiceProvider = 'browser' | 'piper-de'
 
 interface SourceRef {
   id: string
@@ -73,6 +81,7 @@ const SUGGESTIONS = [
 const AUTO_WIKIPEDIA_KEY = 'noesis.wikipedia.auto.v1'
 const VOICE_URI_KEY = 'noesis.voice.uri.v1'
 const VOICE_RATE_KEY = 'noesis.voice.rate.v1'
+const VOICE_PROVIDER_KEY = 'noesis.voice.provider.v1'
 const EXPLORER_FOCUS_KEY = 'noesis.explorer.focus.v1'
 const CHAT_PREFILL_KEY = 'noesis.chat.prefill.v1'
 
@@ -294,6 +303,11 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null)
   const [voiceMuted, setVoiceMuted] = useState(false)
   const [voiceOptions, setVoiceOptions] = useState<GermanVoiceInfo[]>([])
+  const [voiceProvider, setVoiceProvider] = useState<VoiceProvider>(() =>
+    localStorage.getItem(VOICE_PROVIDER_KEY) === 'piper-de' ? 'piper-de' : 'browser',
+  )
+  const [neuralVoiceReady, setNeuralVoiceReady] = useState(false)
+  const [neuralVoiceProgress, setNeuralVoiceProgress] = useState<number | null>(null)
   const [voiceURI, setVoiceURI] = useState(() => localStorage.getItem(VOICE_URI_KEY) ?? '')
   const [voiceRate, setVoiceRate] = useState(() => {
     const stored = Number(localStorage.getItem(VOICE_RATE_KEY))
@@ -306,6 +320,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   const askRef = useRef<(question: string, spoken?: boolean) => Promise<string | null>>(async () => null)
   const stopAnswerRef = useRef<() => void>(() => undefined)
   const voiceMutedRef = useRef(false)
+  const voiceProviderRef = useRef<VoiceProvider>(voiceProvider)
   const seminarOnline = ctx.engine.id === 'seminar-online'
   const voiceCapabilities = useMemo(() => getVoiceCapabilities(), [])
   const personalNodeCount = useMemo(
@@ -340,6 +355,21 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       pauseScale: 0.9,
     })
   }, [voiceRate, voiceURI])
+
+  useEffect(() => {
+    voiceProviderRef.current = voiceProvider
+    localStorage.setItem(VOICE_PROVIDER_KEY, voiceProvider)
+  }, [voiceProvider])
+
+  useEffect(() => {
+    let cancelled = false
+    void isGermanNeuralVoiceStored().then((ready) => {
+      if (cancelled) return
+      setNeuralVoiceReady(ready)
+      if (!ready && voiceProviderRef.current === 'piper-de') setVoiceProvider('browser')
+    })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     if (!voiceOpen || !voiceCapabilities.synthesis) return
@@ -714,6 +744,10 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         naturalProsody: true,
         pauseScale: 0.9,
       },
+      startPlayback: (text, options) =>
+        voiceProviderRef.current === 'piper-de'
+          ? startGermanNeuralPlayback(text, options.rate)
+          : startSpeechPlayback(text, options),
       onSnapshot: syncVoiceSnapshot,
       onCancelTurn: () => stopAnswerRef.current(),
       onTurnError: (error) => {
@@ -727,10 +761,30 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         setVoiceLastAnswer('')
         const answer = await askRef.current(transcript, true)
         if (answer) setVoiceLastAnswer(answer)
-        return voiceMutedRef.current || !voiceCapabilities.synthesis ? null : answer
+        const outputAvailable = voiceProviderRef.current === 'piper-de' || voiceCapabilities.synthesis
+        return voiceMutedRef.current || !outputAvailable ? null : answer
       },
     })
     return voiceControllerRef.current
+  }
+
+  async function installNeuralVoice(): Promise<void> {
+    if (!ctx.online) {
+      setVoiceNotice('Zum einmaligen Laden der Neural-Stimme muss Online aktiviert sein.')
+      return
+    }
+    setNeuralVoiceProgress(0)
+    setVoiceNotice(null)
+    try {
+      await installGermanNeuralVoice(setNeuralVoiceProgress)
+      setNeuralVoiceReady(true)
+      setVoiceProvider('piper-de')
+      setVoiceNotice('Thorsten Neural ist installiert und kann danach offline sprechen.')
+    } catch (error) {
+      setVoiceNotice(`Die Neural-Stimme konnte nicht installiert werden: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setNeuralVoiceProgress(null)
+    }
   }
 
   function openVoice(): void {
@@ -749,7 +803,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       setVoiceStage('unsupported')
       return
     }
-    if (!voiceCapabilities.synthesis) {
+    if (!voiceCapabilities.synthesis && !neuralVoiceReady) {
       voiceMutedRef.current = true
       setVoiceMuted(true)
     }
@@ -1147,10 +1201,15 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         lastAnswer={voiceLastAnswer}
         error={voiceError ?? voiceNotice}
         muted={voiceMuted}
-        speechOutputAvailable={voiceCapabilities.synthesis}
+        speechOutputAvailable={voiceCapabilities.synthesis || neuralVoiceReady}
         voices={voiceOptions}
         selectedVoiceURI={voiceURI}
         voiceRate={voiceRate}
+        voiceProvider={voiceProvider}
+        neuralVoiceReady={neuralVoiceReady}
+        neuralVoiceProgress={neuralVoiceProgress}
+        neuralVoiceDownloadMB={PIPER_GERMAN_DOWNLOAD_MB}
+        online={ctx.online}
         engineLabel={ctx.engine.label}
         remoteAnswer={seminarOnline}
         onClose={closeVoice}
@@ -1159,6 +1218,8 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         onToggleMuted={toggleVoiceMuted}
         onVoiceChange={setVoiceURI}
         onVoiceRateChange={setVoiceRate}
+        onVoiceProviderChange={setVoiceProvider}
+        onInstallNeuralVoice={() => void installNeuralVoice()}
       />
     </section>
   )

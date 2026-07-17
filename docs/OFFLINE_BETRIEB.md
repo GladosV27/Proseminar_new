@@ -10,7 +10,7 @@ Die App ist **offline-first**, aber die Begriffe sind wichtig:
 - Die App-Laufzeiten fuer WebLLM, die Vulkan-unabhaengige WebAssembly/CPU-Engine und Transformers.js werden mit dem Produktions-Build lokal ausgeliefert. Sie werden nicht von einem Inferenzserver geladen.
 - Modellgewichte und das Embedding-Modell sind grosse Dateien. Sie muessen einmalig im **Online-Modus** geladen und im Browser-Cache gespeichert werden. Danach koennen sie im **Offline-Modus** ohne Server-Inferenz verwendet werden.
 - Manuelle Wikipedia-Suche, der ausdrücklich aktivierte Nachimport nach Text/PDF und die automatische Chat-Recherche bei Wissenslücken sind bewusst getrennte Online-Funktionen und werden im Offline-Modus blockiert. Bereits gespeicherte Wikipedia-Auszüge bleiben lokal nutzbar.
-- Der Textchat kann offline laufen; der optionale Live-Sprachdialog bleibt im Offline-Modus gesperrt. Die App kann nicht garantieren, dass die Web-Spracherkennung oder gewählte Vorlesestimme des Browsers ohne einen Anbieter-Onlinedienst funktioniert.
+- Der Textchat kann offline laufen; der optionale Live-Sprachdialog bleibt im Offline-Modus gesperrt, weil die Web-Spracherkennung des Browsers nicht garantiert lokal arbeitet. Für die Ausgabe kann einmalig die lokale Piper-Stimme »Thorsten« samt Laufzeit geladen werden (rund 100 MB). Sie erzeugt danach ohne Serverkontakt Audio, macht die vorgeschaltete Spracheingabe aber nicht automatisch offline.
 
 ## Der Schalter in der App
 
@@ -55,7 +55,7 @@ Auf dem Samsung S23+ kann WebGPU vom Browser angeboten werden, waehrend Dawn bei
 
 ### Zusatzgrenze des Sprachdialogs
 
-Der Schalter **Offline** kontrolliert Noesis-eigene Netzfunktionen wie Recherche und Downloads, aber nicht die interne Implementierung der Web-Speech-API durch den Browser. Deshalb startet Noesis in diesem Modus gar keine Spracherkennung. Die App selbst speichert keine Audiodatei. Nach bewusster Online-Freigabe kann das Mikrofonsignal je nach Browser und Betriebssystem dennoch zur Erkennung an den jeweiligen Anbieter gehen; auch die Verfuegbarkeit und Grundqualität einer Vorlesestimme ist geraeteabhaengig. Noesis kann vorhandene deutsche Stimmen priorisieren und der Nutzer kann Stimme sowie Tempo auswählen; Satzsegmentierung und Pausen verbessern den Rhythmus, ersetzen aber keine hochwertige Systemstimme. Fuer einen belastbaren Flugmodus-Nachweis wird deshalb ausschließlich der normale Textchat verwendet.
+Der Schalter **Offline** kontrolliert Noesis-eigene Netzfunktionen wie Recherche und Downloads, aber nicht die interne Implementierung der Web-Speech-API durch den Browser. Deshalb startet Noesis in diesem Modus gar keine Spracherkennung. Die App selbst speichert keine Audiodatei. Nach bewusster Online-Freigabe kann das Mikrofonsignal je nach Browser und Betriebssystem dennoch zur Erkennung an den jeweiligen Anbieter gehen. Für die Ausgabe stehen vorhandene Browserstimmen oder die bewusst geladene, lokal inferierende Piper-Stimme zur Verfügung. Für einen belastbaren Flugmodus-Nachweis wird weiterhin ausschließlich der normale Textchat verwendet, weil damit auch die Eingabeseite ohne Web-Speech-Dienst geprüft wird.
 
 ## Regel fuer das Experiment
 
