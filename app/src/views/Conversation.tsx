@@ -11,6 +11,7 @@ import {
   type GermanVoiceInfo,
   type LiveVoiceSnapshot,
 } from '../engine/liveVoice'
+import { comparableKnowledgeTitle, parseKnowledgeAddCommand } from '../engine/knowledgeCommand'
 import {
   RESEARCH_COMMUNITY,
   looksUncovered,
@@ -18,7 +19,12 @@ import {
   type ResearchProgress,
   type ResearchResult,
 } from '../engine/research'
-import { applyKnowledgeImport } from '../engine/store'
+import {
+  pullPersonalWikipedia,
+  searchPersonalWikipedia,
+  type WikipediaSearchHit,
+} from '../engine/personalWikipedia'
+import { applyKnowledgeImport, mergedGraph } from '../engine/store'
 
 type MessageRole = 'user' | 'assistant'
 type MessageStatus = 'pending' | 'done' | 'stopped' | 'error'
@@ -42,6 +48,10 @@ interface ConversationMessage {
   notices?: string[]
   /** Die Antwort enthält Kontext aus lokalem Text/PDF-Wissen. */
   containsPersonalKnowledge?: boolean
+  /** Auswahl bei mehrdeutigen natürlichsprachlichen Wissensbefehlen. */
+  knowledgeChoices?: WikipediaSearchHit[]
+  /** Nach einem Import direkt zum neuen Knoten im Wissensraum springen. */
+  graphFocus?: { nodeId: string; title: string }
 }
 
 interface ActiveRun {
@@ -60,6 +70,7 @@ const SUGGESTIONS = [
 const AUTO_WIKIPEDIA_KEY = 'noesis.wikipedia.auto.v1'
 const VOICE_URI_KEY = 'noesis.voice.uri.v1'
 const VOICE_RATE_KEY = 'noesis.voice.rate.v1'
+const EXPLORER_FOCUS_KEY = 'noesis.explorer.focus.v1'
 
 const CONVERSATION_SYSTEM_PROMPT = [
   'Du bist Noesis, ein freundlicher deutschsprachiger Wissensassistent für Philosophie- und Ideengeschichte.',
@@ -74,6 +85,14 @@ function newId(prefix: string): string {
     ? crypto.randomUUID()
     : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`
   return `${prefix}_${suffix}`
+}
+
+function focusedGraph(graph: KnowledgeGraph, focusNodeIds: string[]): KnowledgeGraph {
+  const ids = new Set(focusNodeIds)
+  return {
+    nodes: graph.nodes.filter((node) => ids.has(node.id)),
+    edges: graph.edges.filter((edge) => ids.has(edge.source) && ids.has(edge.target)),
+  }
 }
 
 function edgeKey(edge: GraphEdge): string {
@@ -407,6 +426,82 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     let answerForVoice: string | null = null
 
     try {
+      const knowledgeTopic = parseKnowledgeAddCommand(question)
+      if (knowledgeTopic) {
+        if (!ctx.online || navigator.onLine === false) {
+          answerForVoice = `Um „${knowledgeTopic}“ aus Wikipedia hinzuzufügen, musst du oben zuerst den Online-Modus einschalten.`
+          updateMessage(assistantMessage.id, {
+            text: answerForVoice,
+            status: 'error',
+            notices: ['Der vorhandene Wissensbaum und bereits geladene Inhalte bleiben auch offline nutzbar.'],
+          })
+          return answerForVoice
+        }
+
+        setPhase('research')
+        setResearchProgress({ step: `Suche „${knowledgeTopic}“ in Wikipedia …`, done: 0, total: 1 })
+        const hits = await searchPersonalWikipedia(knowledgeTopic, { limit: 5 })
+        if (run.cancelled) return null
+        const usableHits = hits.filter((hit) => !hit.disambiguation)
+        const exactHits = usableHits.filter(
+          (hit) => comparableKnowledgeTitle(hit.title) === comparableKnowledgeTitle(knowledgeTopic),
+        )
+        const chosen = exactHits.length === 1
+          ? exactHits[0]
+          : usableHits.length === 1
+            ? usableHits[0]
+            : null
+
+        if (!chosen) {
+          if (usableHits.length === 0) {
+            answerForVoice = `Ich habe für „${knowledgeTopic}“ keinen eindeutigen Wikipedia-Artikel gefunden.`
+            updateMessage(assistantMessage.id, { text: answerForVoice, status: 'error' })
+            return answerForVoice
+          }
+          answerForVoice = `Zu „${knowledgeTopic}“ gibt es mehrere mögliche Wikipedia-Artikel. Welchen soll ich in den Wissensbaum aufnehmen?`
+          updateMessage(assistantMessage.id, {
+            text: answerForVoice,
+            status: 'done',
+            knowledgeChoices: usableHits.slice(0, 4),
+          })
+          return answerForVoice
+        }
+
+        const pulled = await pullPersonalWikipedia([chosen.title], graph, {
+          onProgress: (progress) => {
+            if (!run.cancelled) setResearchProgress(progress)
+          },
+        })
+        if (run.cancelled) return null
+        const applied = applyKnowledgeImport(ctx.custom, pulled)
+        ctx.setCustom(applied.knowledge)
+        graph = mergedGraph(applied.knowledge)
+
+        const delta = applied.report.delta
+        const changedNodes = delta.addedNodeIds.length + delta.updatedNodeIds.length
+        const changedEdges = delta.addedEdgeKeys.length + delta.updatedEdgeKeys.length
+        const focusNodeId = pulled.pages.find((page) => page.title === chosen.title)?.id ?? pulled.focusNodeIds[0]
+        answerForVoice = changedNodes || changedEdges
+          ? `Erledigt. Ich habe „${chosen.title}“ und ${Math.max(0, changedNodes - 1)} verlinkte Nachbarknoten in deinen Wissensbaum aufgenommen. ${changedEdges} neue oder aktualisierte Verbindungen sind durch echte MediaWiki-Links belegt.`
+          : `„${chosen.title}“ ist bereits mit demselben Wikipedia-Stand in deinem Wissensbaum vorhanden.`
+        updateMessage(assistantMessage.id, {
+          text: answerForVoice,
+          status: 'done',
+          sources: pulled.pages.map((page) => ({
+            id: page.id,
+            title: page.title,
+            kind: 'Wikipedia' as const,
+            url: page.url,
+          })),
+          technicalGraph: focusedGraph(graph, pulled.focusNodeIds),
+          notices: [
+            `Importbericht: ${delta.addedNodeIds.length} neue, ${delta.updatedNodeIds.length} aktualisierte und ${delta.unchangedNodeIds.length} unveränderte Knoten.`,
+          ],
+          graphFocus: focusNodeId ? { nodeId: focusNodeId, title: chosen.title } : undefined,
+        })
+        return answerForVoice
+      }
+
       const canResearch =
         ctx.online &&
         (seminarOnline ? seminarWikipedia : autoWikipedia) &&
@@ -847,6 +942,36 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
                     <div className="hint conversation-notice" key={notice}>{notice}</div>
                   ))}
 
+                  {message.knowledgeChoices && message.knowledgeChoices.length > 0 && (
+                    <div className="conversation-knowledge-choices" aria-label="Wikipedia-Artikel auswählen">
+                      {message.knowledgeChoices.map((choice) => (
+                        <button
+                          className="conversation-knowledge-choice"
+                          type="button"
+                          key={choice.pageId}
+                          disabled={busy}
+                          onClick={() => void ask(`/wissen ${choice.title}`)}
+                        >
+                          <strong>{choice.title}</strong>
+                          <span>{choice.extract || 'Wikipedia-Artikel ohne Vorschautext'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {message.graphFocus && (
+                    <button
+                      className="btn sm conversation-graph-action"
+                      type="button"
+                      onClick={() => {
+                        sessionStorage.setItem(EXPLORER_FOCUS_KEY, message.graphFocus!.nodeId)
+                        ctx.go('explorer')
+                      }}
+                    >
+                      Im Wissensraum ansehen →
+                    </button>
+                  )}
+
                   {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
                     <details className="conversation-sources">
                       <summary>{message.sources.length} verwendete Quellen</summary>
@@ -953,10 +1078,10 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
           </div>
           <div className="hint conversation-composer-hint">
             {seminarOnline
-              ? 'Enter sendet · Ausgewählte Belegauszüge werden an das Seminar-Modell übertragen · Originaldateien bleiben lokal'
+              ? 'Enter sendet · „Füge … in deinen Wissensbaum hinzu“ startet einen belegten Wikipedia-Import'
               : `Enter sendet · Shift+Enter fügt eine neue Zeile ein · Wikipedia-Automatik ${
                   ctx.online && autoWikipedia ? 'aktiv' : 'aus'
-                }`}
+                } · Wissensbefehl: „Füge … in deinen Wissensbaum hinzu“`}
           </div>
         </form>
       </div>

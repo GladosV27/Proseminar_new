@@ -3,9 +3,17 @@ import type { AppCtx } from '../App'
 import ForceGraph, { communityColor } from '../components/ForceGraph'
 import { COMMUNITIES, NODE_YEARS, TIMELINE_RANGE } from '../data/graph'
 
+const EXPLORER_FOCUS_KEY = 'noesis.explorer.focus.v1'
+
 export default function Explorer({ ctx }: { ctx: AppCtx }) {
-  const [selected, setSelected] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState<string | null>(() => {
+    const requested = sessionStorage.getItem(EXPLORER_FOCUS_KEY)
+    sessionStorage.removeItem(EXPLORER_FOCUS_KEY)
+    return requested && ctx.graph.nodes.some((node) => node.id === requested) ? requested : null
+  })
+  const [query, setQuery] = useState(() =>
+    selected ? ctx.graph.nodes.find((node) => node.id === selected)?.title ?? '' : '',
+  )
   const [communityFilter, setCommunityFilter] = useState<string>('alle')
   const [timeline, setTimeline] = useState(false)
   const [year, setYear] = useState(1800)
