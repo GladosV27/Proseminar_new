@@ -21,6 +21,7 @@ import {
   startGermanNeuralPlayback,
 } from '../engine/neuralVoice'
 import { comparableKnowledgeTitle, parseNoesisAction } from '../engine/knowledgeCommand'
+import { completeChatAnswer } from '../engine/chatOutput'
 import {
   RESEARCH_COMMUNITY,
   looksUncovered,
@@ -66,6 +67,7 @@ interface ConversationMessage {
   graphDelta?: { addedNodeIds: string[]; addedEdgeKeys: string[] }
   chatRetrievalMode?: ChatRetrievalMode
   generationMs?: number
+  answerTrimmed?: boolean
 }
 
 interface ActiveRun {
@@ -91,7 +93,7 @@ const CHAT_PREFILL_KEY = 'noesis.chat.prefill.v1'
 
 const CONVERSATION_SYSTEM_PROMPT = [
   'Du bist Noesis, ein freundlicher deutschsprachiger Wissensassistent für Philosophie- und Ideengeschichte.',
-  'Führe ein natürliches, zusammenhängendes Gespräch und beantworte die aktuelle Frage gewöhnlich in zwei bis fünf klaren Sätzen.',
+  'Führe ein natürliches, zusammenhängendes Gespräch und beantworte die aktuelle Frage in zwei bis drei kurzen, vollständig abgeschlossenen Sätzen mit insgesamt höchstens 90 Wörtern.',
   'Stütze Tatsachenbehauptungen ausschließlich auf den bereitgestellten Kontext; der Gesprächsverlauf dient nur dazu, Bezüge wie „er“, „dieses Werk“ oder „dort“ zu verstehen.',
   'Erfinde weder Fakten noch Beziehungen. Wenn der Kontext keine sichere Antwort erlaubt, sage offen: „Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.“',
   'Erwähne Retrieval, Graph-RAG oder technische Zwischenschritte nur, wenn die Person ausdrücklich danach fragt.',
@@ -702,14 +704,16 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         (partial) => {
           if (!run.cancelled) updateMessage(assistantMessage.id, { text: partial })
         },
-        { maxTokens: compactLocal ? 112 : 150 },
+        { maxTokens: compactLocal ? 144 : 170 },
       )
       if (run.cancelled) return null
-      answerForVoice = result.text.trim() || 'Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.'
+      const completed = completeChatAnswer(result.text)
+      answerForVoice = completed.text || 'Dazu habe ich in meinem aktuellen Wissensstand keine gesicherte Information.'
       updateMessage(assistantMessage.id, {
         text: answerForVoice,
         status: 'done',
         generationMs: Math.round(performance.now() - generationStarted),
+        answerTrimmed: completed.trimmed,
       })
     } catch (error) {
       if (run.cancelled) return null
@@ -1113,6 +1117,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
                       <span>
                         {message.prepared.retrievedIds.length} Inhalte · {message.prepared.context.length.toLocaleString('de-DE')} Kontextzeichen · {Math.round(message.prepared.retrievalMs)} ms Retrieval
                         {message.generationMs !== undefined ? ` · ${(message.generationMs / 1000).toFixed(1).replace('.', ',')} s Modell` : ''}
+                        {message.answerTrimmed ? ' · sauber am Satzende begrenzt' : ''}
                       </span>
                     </div>
                   )}
