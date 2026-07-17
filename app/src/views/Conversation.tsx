@@ -23,6 +23,12 @@ import {
 import { comparableKnowledgeTitle, parseNoesisAction } from '../engine/knowledgeCommand'
 import { completeChatAnswer } from '../engine/chatOutput'
 import {
+  contextualizeRetrievalQuestion,
+  isFollowUpQuestion,
+  requestsKnowledgeFallback,
+  stripKnowledgeFallbackInstruction,
+} from '../engine/conversationContext'
+import {
   RESEARCH_COMMUNITY,
   looksUncovered,
   researchQuestion,
@@ -233,16 +239,6 @@ function lastUserQuestion(messages: ConversationMessage[]): string | null {
     if (messages[i].role === 'user') return messages[i].text
   }
   return null
-}
-
-/** Ergänzt nur echte Anschlussfragen um den letzten Gesprächsbezug. */
-function retrievalQuestion(question: string, messages: ConversationMessage[]): string {
-  const previous = lastUserQuestion(messages)
-  if (!previous) return question
-  const isFollowUp =
-    /^(und|aber|warum|wieso|wie genau|wann|wo|welche davon|wer davon|was bedeutet das|was geschah dann)\b/i.test(question) ||
-    /\b(er|sie|es|dessen|deren|dieses werk|dieser philosoph|dort|davon|dabei|damit)\b/i.test(question)
-  return isFollowUp ? `${previous}\nAnschlussfrage: ${question}` : question
 }
 
 function conversationHistory(
@@ -506,7 +502,10 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     let graph = seminarOnline && !sharePersonalKnowledge
       ? withoutPersonalKnowledge(ctx.graph)
       : ctx.graph
-    const query = retrievalQuestion(question, historyBeforeQuestion)
+    const answerQuestion = stripKnowledgeFallbackInstruction(question)
+    const followUp = isFollowUpQuestion(answerQuestion)
+    const query = contextualizeRetrievalQuestion(answerQuestion, lastUserQuestion(historyBeforeQuestion))
+    const explicitKnowledgeFallback = requestsKnowledgeFallback(question)
     const notices: string[] = []
 
     let answerForVoice: string | null = null
@@ -612,9 +611,13 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
 
       const canResearch =
         ctx.online &&
-        (seminarOnline ? seminarWikipedia : autoWikipedia) &&
+        (explicitKnowledgeFallback || (seminarOnline ? seminarWikipedia : autoWikipedia)) &&
         navigator.onLine !== false &&
-        (looksUncovered(query, graph) || looksUncovered(question, graph))
+        (explicitKnowledgeFallback || looksUncovered(query, graph) || looksUncovered(answerQuestion, graph))
+
+      if (explicitKnowledgeFallback && (!ctx.online || navigator.onLine === false)) {
+        notices.push('Die verlangte Wikipedia-Ergänzung konnte im Offline-Modus nicht ausgeführt werden; Noesis nutzt nur bereits lokal gespeichertes Wissen.')
+      }
 
       if (canResearch) {
         setPhase('research')
@@ -694,9 +697,9 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       const result = await ctx.engine.generate(
         CONVERSATION_SYSTEM_PROMPT,
         modelPrompt(
-          question,
+          answerQuestion,
           prepared,
-          historyBeforeQuestion,
+          followUp ? historyBeforeQuestion : [],
           !seminarOnline || sharePersonalKnowledge,
           spoken,
           compactLocal,
