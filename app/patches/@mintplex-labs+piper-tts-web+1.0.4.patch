@@ -1,0 +1,17 @@
+diff --git a/node_modules/@mintplex-labs/piper-tts-web/dist/piper-tts-web.js b/node_modules/@mintplex-labs/piper-tts-web/dist/piper-tts-web.js
+index 32767f4..c256025 100644
+--- a/node_modules/@mintplex-labs/piper-tts-web/dist/piper-tts-web.js
++++ b/node_modules/@mintplex-labs/piper-tts-web/dist/piper-tts-web.js
+@@ -266,8 +266,11 @@ const _TtsSession = class _TtsSession {
+     __privateSet(this, _logger, logger);
+     this.voiceId = voiceId;
+     __privateSet(this, _progressCallback, progress);
+-    this.waitReady = this.init();
++    // The runtime paths must be installed before init(). Otherwise Android
++    // starts ONNX with the package's remote CDN defaults and cannot restart
++    // the already downloaded voice while offline.
+     __privateSet(this, _wasmPaths, wasmPaths ?? DEFAULT_WASM_PATHS);
++    this.waitReady = this.init();
+     (_a = __privateGet(this, _logger)) == null ? void 0 : _a.call(this, `Loaded WASMPaths at: ${JSON.stringify(__privateGet(this, _wasmPaths))}`);
+     _TtsSession._instance = this;
+     return this;
