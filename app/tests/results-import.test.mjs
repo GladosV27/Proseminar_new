@@ -66,6 +66,23 @@ function csvFor(result) {
   return `${columns.join(';')}\r\n${columns.map((column) => csvCell(flat[column])).join(';')}\r\n`
 }
 
+function extendedCsvFor(result) {
+  const extended = [
+    ...columns.slice(0, -1),
+    'executionEnvironment', 'generationMetrics', 'modelProvenance', 'answer',
+  ]
+  const flat = {
+    ...result,
+    blindA: result.blind?.A ?? '',
+    blindB: result.blind?.B ?? '',
+    retrievedIds: result.retrievedIds.join('|'),
+    executionEnvironment: JSON.stringify(result.executionEnvironment ?? null),
+    generationMetrics: JSON.stringify(result.generationMetrics ?? null),
+    modelProvenance: JSON.stringify(result.modelProvenance ?? null),
+  }
+  return `${extended.join(';')}\r\n${extended.map((column) => csvCell(flat[column])).join(';')}\r\n`
+}
+
 test('JSON-Export und Abgabe-Paket werden als kanonische Trialdaten erkannt', () => {
   const result = trial()
   const json = parseResultsImport(JSON.stringify({ schemaVersion: 3, results: [result] }), 'ergebnisse.json')
@@ -98,6 +115,40 @@ test('Ausführungsumgebung des PCs bleibt beim JSON-Import am Trial erhalten', (
     'pc-ergebnisse.json',
   )
   assert.deepEqual(preview.results[0].executionEnvironment, executionEnvironment)
+})
+
+test('Ollama-Metriken und eingefrorene Modellprovenienz bleiben in JSON und CSV erhalten', () => {
+  const generationMetrics = {
+    ttftMs: 312.4,
+    promptTokens: 420,
+    completionTokens: 38,
+    tokensPerSecond: 41.6,
+    modelLoadMs: 2,
+    promptEvalMs: 510,
+    modelTotalMs: 1076,
+  }
+  const modelProvenance = {
+    provider: 'ollama',
+    model: 'qwen3:8b',
+    digest: '500a1f067a9f',
+    runtime: 'Ollama 0.32.1',
+    endpoint: 'http://127.0.0.1:11434',
+    parameterSize: '8.2B',
+    quantization: 'Q4_K_M',
+    modelSizeBytes: 5_200_000_000,
+    residentVramBytes: 5_200_000_000,
+    parameters: {
+      temperature: 0, seed: 42, numCtx: 4096, numPredict: 160, think: false, keepAlive: '30m',
+    },
+  }
+  const result = trial({ engine: 'ollama:qwen3:8b', generationMetrics, modelProvenance })
+  const json = parseResultsImport(JSON.stringify({ schemaVersion: 4, results: [result] }), 'v4.json')
+  assert.deepEqual(json.results[0].generationMetrics, generationMetrics)
+  assert.deepEqual(json.results[0].modelProvenance, modelProvenance)
+
+  const csv = parseResultsImport(extendedCsvFor(result), 'v4.csv')
+  assert.deepEqual(csv.results[0].generationMetrics, generationMetrics)
+  assert.deepEqual(csv.results[0].modelProvenance, modelProvenance)
 })
 
 test('CSV-Import erhält Semikolons, Anführungszeichen und Zeilenumbrüche in Antworten', () => {

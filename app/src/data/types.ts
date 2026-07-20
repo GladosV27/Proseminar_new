@@ -186,6 +186,41 @@ export interface TrialExecutionEnvironment {
   webgpu: boolean
 }
 
+/** Technische Momentaufnahme des tatsächlich verwendeten Sprachmodells.
+ * Besonders bei Ollama verhindert sie, dass ein beweglicher Modell-Tag oder
+ * ein späterer Ergebnisimport die Reproduzierbarkeit verschleiert. */
+export interface TrialModelProvenance {
+  provider: string
+  model: string
+  digest?: string
+  runtime?: string
+  endpoint?: string
+  parameterSize?: string
+  quantization?: string
+  modelSizeBytes?: number
+  residentVramBytes?: number
+  parameters: {
+    temperature: number
+    seed: number
+    numCtx: number
+    numPredict: number
+    think: boolean
+    keepAlive: string
+  }
+}
+
+/** Modellseitige Laufzeitwerte; Ollama meldet die Nanosekunden- und
+ * Tokenzähler selbst, TTFT wird im Browser am ersten Antwort-Delta gemessen. */
+export interface TrialGenerationMetrics {
+  ttftMs?: number
+  promptTokens?: number
+  completionTokens?: number
+  tokensPerSecond?: number
+  modelLoadMs?: number
+  promptEvalMs?: number
+  modelTotalMs?: number
+}
+
 export interface TrialResult {
   /** stabile ID für Verblindung/Bewertung */
   id: string
@@ -219,6 +254,8 @@ export interface TrialResult {
   retrievalMs: number | null
   /** reine Modellgenerierungszeit */
   generationMs: number
+  /** Feinmessung der Modellphase (optional bei älteren/nicht messenden Engines). */
+  generationMetrics?: TrialGenerationMetrics
   autoScore: Score
   manualScore?: Score
   /** verblindete Bewertungen der Bewertenden A und B */
@@ -232,5 +269,7 @@ export interface TrialResult {
   evidencePrecision: number | null
   /** Originale Ausführungsumgebung; bleibt beim Ergebnisimport unverändert. */
   executionEnvironment?: TrialExecutionEnvironment
+  /** Modell, Digest, Runtime und deterministische Inferenzparameter dieses Trials. */
+  modelProvenance?: TrialModelProvenance
   timestamp: number
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { AppCtx } from '../App'
 import type { Condition, Score, TrialResult } from '../data/types'
 import { vibrate } from '../components/effects'
+import OllamaLabPanel from '../components/OllamaLabPanel'
 import { CATEGORY_LABELS, QUESTIONS } from '../data/questions'
 import {
   ALL_CONDITIONS,
@@ -11,6 +12,16 @@ import {
   normalizeExperimentSeed,
   ORDER_STRATEGY,
 } from '../engine/experiment'
+import {
+  clearCheckpoint,
+  experimentConfigFingerprint,
+  loadCheckpoint,
+  newCheckpoint,
+  pendingTrials,
+  saveCheckpoint,
+  type ExperimentCheckpoint,
+} from '../engine/experimentResume'
+import { OllamaEngine } from '../engine/ollama'
 import { captureExecutionEnvironment } from '../engine/store'
 
 const SCORES: Score[] = ['korrekt', 'teilweise', 'falsch', 'enthaltung']
@@ -18,29 +29,59 @@ const SCORES: Score[] = ['korrekt', 'teilweise', 'falsch', 'enthaltung']
 export default function Experiment({ ctx }: { ctx: AppCtx }) {
   const running = ctx.experimentStatus.state === 'running'
   const nativePilotEngine = ctx.engine.id.startsWith('native:')
+  const ollamaReady = ctx.engine instanceof OllamaEngine && Boolean(ctx.engine.getProvenance())
   const progress = ctx.experimentStatus
   const [conditions, setConditions] = useState<Condition[]>([...CORE_CONDITIONS])
   const [repetitions, setRepetitions] = useState(3)
   const [seed, setSeed] = useState(20260616)
   const [lastRunId, setLastRunId] = useState<string | null>(null)
+  const [checkpoint, setCheckpoint] = useState<ExperimentCheckpoint | null>(() => loadCheckpoint())
+  const [runError, setRunError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('alle')
 
   const resultFor = (qid: string, c: Condition) =>
     [...ctx.results].reverse().find((r) => r.questionId === qid && r.condition === c && r.engine === ctx.engine.id && r.retrieval === ctx.retrieval)
 
   async function runAll() {
-    if (running || nativePilotEngine) return
+    if (running || !ollamaReady || !(ctx.engine instanceof OllamaEngine)) return
+    setRunError(null)
+    try {
+      // Unmittelbar vor der ersten Messung nochmals prüfen und vorwärmen. Bei
+      // einem Fehler wird der Lauf nicht begonnen und niemals still ersetzt.
+      await ctx.engine.load()
+    } catch (err) {
+      setRunError(err instanceof Error ? err.message : String(err))
+      return
+    }
     const normalizedSeed = normalizeExperimentSeed(seed)
     const schedule = buildTrialSchedule(QUESTIONS, conditions, repetitions, normalizedSeed)
-    const runId = `run_${Date.now().toString(36)}_s${normalizedSeed}_${Math.random().toString(36).slice(2, 6)}`
+    const fingerprint = experimentConfigFingerprint({
+      engineId: ctx.engine.id,
+      modelProvenance: ctx.engine.getProvenance(),
+      retrieval: ctx.retrieval,
+      conditions,
+      repetitions,
+      seed: normalizedSeed,
+    })
+    const activeCheckpoint = checkpoint?.configFingerprint === fingerprint
+      ? checkpoint
+      : newCheckpoint(fingerprint, schedule.length)
+    if (activeCheckpoint !== checkpoint) {
+      saveCheckpoint(activeCheckpoint)
+      setCheckpoint(activeCheckpoint)
+    }
+    const runId = activeCheckpoint.runId
     const total = schedule.length
     const executionEnvironment = captureExecutionEnvironment()
-    let done = 0
+    const resume = pendingTrials(schedule, ctx.results, activeCheckpoint, ctx.engine.id, ctx.retrieval)
+    let done = resume.completed
+    let failed = false
     // Jeder Messlauf wird angehängt. runId + repetitionId halten Wiederholungen auseinander.
     const next: TrialResult[] = [...ctx.results]
     setLastRunId(runId)
     ctx.beginExperiment(runId, total)
-    for (const trial of schedule) {
+    if (done > 0) ctx.updateExperiment(done, `${done} vorhandene Trials übersprungen`)
+    for (const trial of resume.pending) {
       if (ctx.experimentCancelled()) break
       const label = `W${trial.repetition} · ${trial.question.id} · ${CONDITION_INFO[trial.condition].short}`
       ctx.updateExperiment(done, label)
@@ -63,12 +104,22 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
         ctx.setResults([...next])
       } catch (err) {
         console.error(err)
+        failed = true
+        setRunError(
+          `Messlauf bei ${label} angehalten: ${err instanceof Error ? err.message : String(err)} `
+          + 'Die gespeicherten Trials bleiben erhalten; „Durchlauf fortsetzen“ überspringt sie beim nächsten Start.',
+        )
+        break
       }
       done++
       ctx.updateExperiment(done, label)
     }
-    const cancelled = ctx.experimentCancelled()
+    const cancelled = ctx.experimentCancelled() || failed
     ctx.finishExperiment(cancelled ? 'cancelled' : 'completed')
+    if (!cancelled) {
+      clearCheckpoint()
+      setCheckpoint(null)
+    }
     // haptisches Feedback auf Mobilgeräten: Messlauf fertig
     if (!cancelled) vibrate([120, 60, 120])
   }
@@ -83,6 +134,7 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
     <div>
       <div className="eyebrow">Messung</div>
       <h1>Experiment</h1>
+      <OllamaLabPanel engine={ctx.engine} setEngine={ctx.setEngine} />
       <p className="lead">
         {QUESTIONS.length} Fragen × gewählte Bedingungen × {repetitions} Wiederholungen mit der aktuellen Engine (<strong>{ctx.engine.label}</strong>,
         Retrieval: <strong>{ctx.retrieval === 'dense' ? 'Dichte Embeddings' : 'TF-IDF'}</strong>). Das Auto-Scoring
@@ -101,6 +153,18 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
           </p>
         </div>
       )}
+
+      {!ollamaReady && !nativePilotEngine && (
+        <div className="card" style={{ borderColor: 'var(--accent)', marginBottom: 14 }}>
+          <strong>Hauptmessung wartet auf den lokalen Ollama-Messstand</strong>
+          <p className="hint" style={{ margin: '6px 0 0' }}>
+            Das Lab startet erst, wenn Modell, Digest und Inferenzparameter oben geprüft und vorgewärmt wurden.
+            WebLLM, Demo-Engine und Online-API werden nicht automatisch als Ersatz verwendet.
+          </p>
+        </div>
+      )}
+
+      {runError && <div className="card" role="alert" style={{ marginBottom: 14, borderColor: 'var(--bad)' }}>{runError}</div>}
 
       <div className="card" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -147,12 +211,25 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
           />
         </label>
         {!running ? (
-          <button className="btn primary" onClick={runAll} disabled={nativePilotEngine || conditions.length === 0 || !Number.isFinite(seed)}>
-            ▶ Durchlauf starten
+          <button className="btn primary" onClick={runAll} disabled={nativePilotEngine || conditions.length === 0 || !ollamaReady || !Number.isFinite(seed)}>
+            ▶ {checkpoint ? 'Durchlauf fortsetzen' : 'Durchlauf starten'}
           </button>
         ) : (
           <button className="btn" onClick={ctx.cancelExperiment}>
             ◼ Abbrechen
+          </button>
+        )}
+        {!running && checkpoint && (
+          <button
+            className="btn sm"
+            onClick={() => {
+              clearCheckpoint()
+              setCheckpoint(null)
+              setRunError(null)
+            }}
+            title="Vorhandene Teilergebnisse bleiben als eigener, unvollständiger Run erhalten."
+          >
+            Neuen Lauf anlegen
           </button>
         )}
         {(running || progress.done > 0) && (
@@ -246,6 +323,16 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
                         <span className="chip" title={`End-to-End; davon Generierung ${r.generationMs} ms`}>
                           E2E {r.latencyMs} ms
                         </span>
+                        {r.generationMetrics?.ttftMs !== undefined && (
+                          <span className="chip" title="Zeit bis zum ersten sichtbaren Antwort-Token">
+                            TTFT {Math.round(r.generationMetrics.ttftMs)} ms
+                          </span>
+                        )}
+                        {r.generationMetrics?.tokensPerSecond !== undefined && (
+                          <span className="chip" title="Von Ollama gemeldete Dekodiergeschwindigkeit">
+                            {r.generationMetrics.tokensPerSecond.toFixed(1)} tok/s
+                          </span>
+                        )}
                         <span className="chip" title={`Messlauf ${r.runId}, Wiederholung ${r.repetition}`}>
                           W{r.repetition}
                         </span>

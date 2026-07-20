@@ -398,7 +398,7 @@ export function exportResultsJson(results: TrialResult[]): string {
     {
       exportedAt: new Date().toISOString(),
       tool: 'graph-rag-lab/1.2',
-      schemaVersion: 3,
+      schemaVersion: 4,
       reproducibility: {
         systemPrompt: SYSTEM_PROMPT,
         conditions: ALL_CONDITIONS,
@@ -419,6 +419,7 @@ export function exportResultsJson(results: TrialResult[]): string {
         prepareMs: 'Vorbereitung einschließlich Retrieval und Promptaufbau',
         retrievalMs: 'Retrieval bzw. Subgraph-Extraktion innerhalb der Vorbereitung',
         generationMs: 'reine Modellgenerierung',
+        generationMetrics: 'TTFT, Tokenzähler und Modell-Runtimewerte, sofern die Engine sie liefert',
         legacyNote: 'latencyScope=generation-only kennzeichnet migrierte Altdaten ohne End-to-End-Messung',
       },
       ordering: {
@@ -442,7 +443,7 @@ export function exportSubmissionBundle(results: TrialResult[]): string {
 
 export function exportResultsCsv(results: TrialResult[]): string {
   const head =
-    'id;runId;repetitionId;repetition;order;seed;questionOrder;conditionOrder;orderStrategy;questionId;condition;retrieval;engine;autoScore;manualScore;blindA;blindB;latencyMs;latencyScope;prepareMs;retrievalMs;generationMs;contextChars;evidenceRecall;evidencePrecision;retrievedIds;timestamp;executionEnvironment;answer'
+    'id;runId;repetitionId;repetition;order;seed;questionOrder;conditionOrder;orderStrategy;questionId;condition;retrieval;engine;autoScore;manualScore;blindA;blindB;latencyMs;latencyScope;prepareMs;retrievalMs;generationMs;contextChars;evidenceRecall;evidencePrecision;retrievedIds;timestamp;executionEnvironment;generationMetrics;modelProvenance;answer'
   const rows = results.map((r) =>
     [
       r.id,
@@ -473,6 +474,8 @@ export function exportResultsCsv(results: TrialResult[]): string {
       r.retrievedIds.join('|'),
       r.timestamp,
       `"${JSON.stringify(r.executionEnvironment ?? null).replace(/"/g, '""')}"`,
+      `"${JSON.stringify(r.generationMetrics ?? null).replace(/"/g, '""')}"`,
+      `"${JSON.stringify(r.modelProvenance ?? null).replace(/"/g, '""')}"`,
       '"' + r.answer.replace(/"/g, '""').replace(/\n/g, ' ') + '"',
     ].join(';'),
   )

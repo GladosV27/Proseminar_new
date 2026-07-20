@@ -41,6 +41,7 @@ import {
   type WikipediaSearchHit,
 } from '../engine/personalWikipedia'
 import { applyKnowledgeImport, mergedGraph } from '../engine/store'
+import { NativeLlmEngine } from '../engine/nativeLlm'
 
 type MessageRole = 'user' | 'assistant'
 type MessageStatus = 'pending' | 'done' | 'stopped' | 'error'
@@ -359,6 +360,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   const voiceMutedRef = useRef(false)
   const voiceProviderRef = useRef<VoiceProvider>(voiceProvider)
   const seminarOnline = ctx.engine.id === 'seminar-online'
+  const nativeApp = NativeLlmEngine.supported()
   const voiceCapabilities = useMemo(() => getVoiceCapabilities(), [])
   const personalNodeCount = useMemo(
     () => ctx.custom.nodes.filter((node) => node.community === 'custom').length,
@@ -948,19 +950,55 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         <div className="conversation-status-row" aria-label="Status des Wissensassistenten">
           <span className="chip">{ctx.graph.nodes.length} Wissensknoten</span>
           <span className="chip">{ctx.engine.label}</span>
-          <label className="conversation-retrieval-picker" title="Nur für den Noesis-Chat; das Experiment bleibt unverändert">
-            <span>Antwortweg</span>
-            <select
-              value={chatRetrievalMode}
-              disabled={busy}
-              onChange={(event) => setChatRetrievalMode(event.target.value as ChatRetrievalMode)}
-              aria-label="Retrieval-Verfahren für den Noesis-Chat"
-            >
-              {(Object.keys(CHAT_RETRIEVAL_LABELS) as ChatRetrievalMode[]).map((mode) => (
-                <option value={mode} key={mode}>{CHAT_RETRIEVAL_LABELS[mode]}</option>
-              ))}
-            </select>
-          </label>
+          {nativeApp ? (
+            <div className="mobile-retrieval-choice" aria-label="Antwortweg für den Noesis-Chat">
+              <button
+                type="button"
+                className={`chip ${chatRetrievalMode === 'auto' ? 'active' : ''}`}
+                disabled={busy}
+                onClick={() => setChatRetrievalMode('auto')}
+              >
+                Automatisch
+              </button>
+              <details>
+                <summary>Erweitert{chatRetrievalMode !== 'auto' ? ` · ${CHAT_RETRIEVAL_LABELS[chatRetrievalMode]}` : ''}</summary>
+                <div>
+                  {(['vector', 'graph', 'hybrid'] as ChatRetrievalMode[]).map((mode) => (
+                    <button
+                      type="button"
+                      className={chatRetrievalMode === mode ? 'active' : ''}
+                      disabled={busy}
+                      onClick={() => setChatRetrievalMode(mode)}
+                      key={mode}
+                    >
+                      <strong>{CHAT_RETRIEVAL_LABELS[mode]}</strong>
+                      <small>
+                        {mode === 'vector'
+                          ? 'semantisch ähnliche Inhalte'
+                          : mode === 'graph'
+                            ? 'Knoten und belegte Beziehungen'
+                            : 'beide Wege gemeinsam'}
+                      </small>
+                    </button>
+                  ))}
+                </div>
+              </details>
+            </div>
+          ) : (
+            <label className="conversation-retrieval-picker" title="Nur für den Noesis-Chat; das Experiment bleibt unverändert">
+              <span>Antwortweg</span>
+              <select
+                value={chatRetrievalMode}
+                disabled={busy}
+                onChange={(event) => setChatRetrievalMode(event.target.value as ChatRetrievalMode)}
+                aria-label="Retrieval-Verfahren für den Noesis-Chat"
+              >
+                {(Object.keys(CHAT_RETRIEVAL_LABELS) as ChatRetrievalMode[]).map((mode) => (
+                  <option value={mode} key={mode}>{CHAT_RETRIEVAL_LABELS[mode]}</option>
+                ))}
+              </select>
+            </label>
+          )}
           <button
             type="button"
             className={`chip conversation-online-toggle ${ctx.online ? 'online' : ''}`}

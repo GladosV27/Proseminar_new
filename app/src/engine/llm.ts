@@ -1,6 +1,7 @@
 import { splitSentences, terms } from './text'
 import type { MLCEngine } from '@mlc-ai/web-llm'
 import type { Wllama } from '@wllama/wllama'
+import type { TrialGenerationMetrics, TrialModelProvenance } from '../data/types'
 
 /**
  * LLM-Abstraktion mit zwei austauschbaren Engines:
@@ -20,6 +21,10 @@ import type { Wllama } from '@wllama/wllama'
 export interface GenerateResult {
   text: string
   engine: string
+  /** Optionale Runtime-Messwerte. Lokale Server wie Ollama liefern Tokenzähler und Dauerwerte direkt. */
+  metrics?: TrialGenerationMetrics
+  /** Eingefrorener Modell-/Runtime-Stand genau dieses Aufrufs. */
+  provenance?: TrialModelProvenance
 }
 
 export interface GenerateOptions {
@@ -44,6 +49,8 @@ export interface LLMEngine {
   interrupt?(): Promise<void> | void
   /** Gibt große Modellressourcen beim Engine-Wechsel wieder frei. */
   dispose?(): Promise<void> | void
+  /** Liefert die vor dem Lauf festgeschriebene Konfiguration, sofern die Runtime sie kennt. */
+  getProvenance?(): TrialModelProvenance | null
 }
 
 // ────────────────────────── Demo-Engine (extraktiv, deterministisch) ──────────────────────────

@@ -1,4 +1,12 @@
-import type { Condition, RetrievalMode, Score, TrialExecutionEnvironment, TrialResult } from '../data/types'
+import type {
+  Condition,
+  RetrievalMode,
+  Score,
+  TrialExecutionEnvironment,
+  TrialGenerationMetrics,
+  TrialModelProvenance,
+  TrialResult,
+} from '../data/types'
 
 export const RESULTS_IMPORT_MAX_BYTES = 25 * 1024 * 1024
 export const RESULTS_IMPORT_MAX_ROWS = 50_000
@@ -133,6 +141,56 @@ function executionEnvironment(value: unknown, row: number): TrialExecutionEnviro
   }
 }
 
+function optionalText(value: unknown, field: string, row: number, max = 2_000): string | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  return stringField(value, field, row, max)
+}
+
+function generationMetrics(value: unknown, row: number): TrialGenerationMetrics | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  if (!isRecord(value)) throw new ResultsImportError(`Zeile ${row}: „generationMetrics“ ist ungültig.`)
+  const metric = (name: keyof TrialGenerationMetrics, max: number) =>
+    nullableNumber(own(value, name), `generationMetrics.${name}`, row, 0, max) ?? undefined
+  return {
+    ...(metric('ttftMs', 604_800_000) !== undefined ? { ttftMs: metric('ttftMs', 604_800_000) } : {}),
+    ...(metric('promptTokens', 10_000_000) !== undefined ? { promptTokens: metric('promptTokens', 10_000_000) } : {}),
+    ...(metric('completionTokens', 10_000_000) !== undefined ? { completionTokens: metric('completionTokens', 10_000_000) } : {}),
+    ...(metric('tokensPerSecond', 1_000_000) !== undefined ? { tokensPerSecond: metric('tokensPerSecond', 1_000_000) } : {}),
+    ...(metric('modelLoadMs', 604_800_000) !== undefined ? { modelLoadMs: metric('modelLoadMs', 604_800_000) } : {}),
+    ...(metric('promptEvalMs', 604_800_000) !== undefined ? { promptEvalMs: metric('promptEvalMs', 604_800_000) } : {}),
+    ...(metric('modelTotalMs', 604_800_000) !== undefined ? { modelTotalMs: metric('modelTotalMs', 604_800_000) } : {}),
+  }
+}
+
+function modelProvenance(value: unknown, row: number): TrialModelProvenance | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  if (!isRecord(value)) throw new ResultsImportError(`Zeile ${row}: „modelProvenance“ ist ungültig.`)
+  const rawParameters = own(value, 'parameters')
+  if (!isRecord(rawParameters)) throw new ResultsImportError(`Zeile ${row}: „modelProvenance.parameters“ ist ungültig.`)
+  const think = own(rawParameters, 'think')
+  if (typeof think !== 'boolean') throw new ResultsImportError(`Zeile ${row}: „modelProvenance.parameters.think“ ist ungültig.`)
+  const optionalNumber = (name: string) => nullableNumber(own(value, name), `modelProvenance.${name}`, row, 0, 1_000_000_000_000_000) ?? undefined
+  return {
+    provider: stringField(own(value, 'provider'), 'modelProvenance.provider', row, 100),
+    model: stringField(own(value, 'model'), 'modelProvenance.model', row, 300),
+    ...(optionalText(own(value, 'digest'), 'modelProvenance.digest', row, 500) ? { digest: own(value, 'digest') as string } : {}),
+    ...(optionalText(own(value, 'runtime'), 'modelProvenance.runtime', row, 500) ? { runtime: own(value, 'runtime') as string } : {}),
+    ...(optionalText(own(value, 'endpoint'), 'modelProvenance.endpoint', row) ? { endpoint: own(value, 'endpoint') as string } : {}),
+    ...(optionalText(own(value, 'parameterSize'), 'modelProvenance.parameterSize', row, 100) ? { parameterSize: own(value, 'parameterSize') as string } : {}),
+    ...(optionalText(own(value, 'quantization'), 'modelProvenance.quantization', row, 100) ? { quantization: own(value, 'quantization') as string } : {}),
+    ...(optionalNumber('modelSizeBytes') !== undefined ? { modelSizeBytes: optionalNumber('modelSizeBytes') } : {}),
+    ...(optionalNumber('residentVramBytes') !== undefined ? { residentVramBytes: optionalNumber('residentVramBytes') } : {}),
+    parameters: {
+      temperature: finiteNumber(own(rawParameters, 'temperature'), 'modelProvenance.parameters.temperature', row, 0, 10),
+      seed: integer(own(rawParameters, 'seed'), 'modelProvenance.parameters.seed', row, 0, 4_294_967_295),
+      numCtx: integer(own(rawParameters, 'numCtx'), 'modelProvenance.parameters.numCtx', row, 128, 10_000_000),
+      numPredict: integer(own(rawParameters, 'numPredict'), 'modelProvenance.parameters.numPredict', row, 1, 1_000_000),
+      think,
+      keepAlive: stringField(own(rawParameters, 'keepAlive'), 'modelProvenance.parameters.keepAlive', row, 100),
+    },
+  }
+}
+
 function validateTrial(value: unknown, row: number): TrialResult {
   if (!isRecord(value)) throw new ResultsImportError(`Zeile ${row}: Der Trial ist kein Objekt.`)
 
@@ -162,6 +220,8 @@ function validateTrial(value: unknown, row: number): TrialResult {
     if (A || B) blind = { ...(A ? { A } : {}), ...(B ? { B } : {}) }
   }
   const environment = executionEnvironment(own(value, 'executionEnvironment'), row)
+  const metrics = generationMetrics(own(value, 'generationMetrics'), row)
+  const provenance = modelProvenance(own(value, 'modelProvenance'), row)
 
   return {
     id: stringField(own(value, 'id'), 'id', row, 200),
@@ -183,6 +243,7 @@ function validateTrial(value: unknown, row: number): TrialResult {
     prepareMs: nullableNumber(own(value, 'prepareMs'), 'prepareMs', row, 0, 604_800_000),
     retrievalMs: nullableNumber(own(value, 'retrievalMs'), 'retrievalMs', row, 0, 604_800_000),
     generationMs: finiteNumber(own(value, 'generationMs'), 'generationMs', row, 0, 604_800_000),
+    ...(metrics ? { generationMetrics: metrics } : {}),
     autoScore: score(own(value, 'autoScore'), 'autoScore', row)!,
     manualScore: score(own(value, 'manualScore'), 'manualScore', row, true),
     ...(blind ? { blind } : {}),
@@ -191,6 +252,7 @@ function validateTrial(value: unknown, row: number): TrialResult {
     evidenceRecall: nullableNumber(own(value, 'evidenceRecall'), 'evidenceRecall', row, 0, 1),
     evidencePrecision: nullableNumber(own(value, 'evidencePrecision'), 'evidencePrecision', row, 0, 1),
     ...(environment ? { executionEnvironment: environment } : {}),
+    ...(provenance ? { modelProvenance: provenance } : {}),
     timestamp: integer(own(value, 'timestamp'), 'timestamp', row, 0, 9_007_199_254_740_991),
   }
 }
@@ -267,12 +329,27 @@ function parseCsv(text: string): unknown[] {
     const blindA = valueAt(row, 'blindA')
     const blindB = valueAt(row, 'blindB')
     const environmentJson = optionalValueAt(row, 'executionEnvironment')
+    const metricsJson = optionalValueAt(row, 'generationMetrics')
+    const provenanceJson = optionalValueAt(row, 'modelProvenance')
     let environment: unknown
+    let metrics: unknown
+    let provenance: unknown
     if (environmentJson) {
       try {
         environment = JSON.parse(environmentJson)
       } catch {
         throw new ResultsImportError(`Zeile ${line}: „executionEnvironment“ ist kein gültiges JSON.`)
+      }
+    }
+    for (const [field, json, assign] of [
+      ['generationMetrics', metricsJson, (value: unknown) => { metrics = value }],
+      ['modelProvenance', provenanceJson, (value: unknown) => { provenance = value }],
+    ] as const) {
+      if (!json) continue
+      try {
+        assign(JSON.parse(json))
+      } catch {
+        throw new ResultsImportError(`Zeile ${line}: „${field}“ ist kein gültiges JSON.`)
       }
     }
     return {
@@ -297,12 +374,14 @@ function parseCsv(text: string): unknown[] {
       prepareMs: csvNumber(valueAt(row, 'prepareMs'), 'prepareMs', line, true),
       retrievalMs: csvNumber(valueAt(row, 'retrievalMs'), 'retrievalMs', line, true),
       generationMs: csvNumber(valueAt(row, 'generationMs'), 'generationMs', line),
+      generationMetrics: metrics,
       contextChars: csvNumber(valueAt(row, 'contextChars'), 'contextChars', line),
       evidenceRecall: csvNumber(valueAt(row, 'evidenceRecall'), 'evidenceRecall', line, true),
       evidencePrecision: csvNumber(valueAt(row, 'evidencePrecision'), 'evidencePrecision', line, true),
       retrievedIds: valueAt(row, 'retrievedIds') ? valueAt(row, 'retrievedIds').split('|') : [],
       timestamp: csvNumber(valueAt(row, 'timestamp'), 'timestamp', line),
       executionEnvironment: environment,
+      modelProvenance: provenance,
       answer: valueAt(row, 'answer'),
     }
   })
@@ -381,7 +460,7 @@ export function parseResultsImport(text: string, fileName = '', knownQuestionIds
     }
   }
 
-  if (schemaVersion !== null && schemaVersion > 3) {
+  if (schemaVersion !== null && schemaVersion > 4) {
     throw new ResultsImportError(`Schema-Version ${schemaVersion} ist neuer als diese App unterstützt.`)
   }
   if (!rawResults.length) throw new ResultsImportError('Die Datei enthält keine Ergebnisse.')

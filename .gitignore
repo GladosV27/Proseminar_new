@@ -2,6 +2,7 @@
 node_modules/
 dist/
 *.tsbuildinfo
+*.pptx.inspect.ndjson
 
 # Local configuration and secrets
 .env

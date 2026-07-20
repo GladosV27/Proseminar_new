@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
+import { useMemo, useRef, useState, type ChangeEvent, type DragEvent, type KeyboardEvent } from 'react'
 import type { AppCtx } from '../App'
 import ForceGraph from '../components/ForceGraph'
 import type { GraphEdge, GraphNode, KnowledgeImportReport } from '../data/types'
@@ -15,6 +15,14 @@ import {
   type WikipediaSearchHit,
 } from '../engine/personalWikipedia'
 import { applyKnowledgeImport, mergedGraph, type CustomKnowledge } from '../engine/store'
+import {
+  createKnowledgeBackup,
+  MAX_KNOWLEDGE_BACKUP_BYTES,
+  parseKnowledgeBackup,
+} from '../engine/knowledgeBackup'
+import { NativeLlmEngine } from '../engine/nativeLlm'
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
+import { Share } from '@capacitor/share'
 
 type ImportMode = 'text' | 'pdf' | 'wikipedia'
 const PRIVATE_SOURCE_KINDS = new Set(['manual-text', 'pdf', 'local-llm'])
@@ -130,9 +138,13 @@ export default function PersonalKnowledge({ ctx }: { ctx: AppCtx }) {
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
+  const [backupNotice, setBackupNotice] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const backupInputRef = useRef<HTMLInputElement>(null)
   const graphCardRef = useRef<HTMLDivElement>(null)
   const seminarOnline = ctx.engine.id === 'seminar-online'
+  const nativeApp = NativeLlmEngine.supported()
+  const storageLabel = nativeApp ? 'privaten App-Speicher' : 'Browserprofil'
 
   const personalNodes = useMemo(
     () => ctx.custom.nodes.filter((node) => node.community === 'custom'),
@@ -535,6 +547,62 @@ export default function PersonalKnowledge({ ctx }: { ctx: AppCtx }) {
     if (selected && ids.has(selected)) setSelected(null)
   }
 
+  async function downloadKnowledgeBackup(): Promise<void> {
+    setError(null)
+    setBackupNotice(null)
+    try {
+      const data = createKnowledgeBackup(ctx.custom)
+      const fileName = `noesis-wissen-${new Date().toISOString().slice(0, 10)}.json`
+      if (nativeApp) {
+        const saved = await Filesystem.writeFile({
+          path: fileName,
+          data,
+          directory: Directory.Cache,
+          encoding: Encoding.UTF8,
+        })
+        await Share.share({
+          title: 'Noesis-Wissensbackup',
+          text: 'Lokales Backup meines Noesis-Wissensraums',
+          files: [saved.uri],
+          dialogTitle: 'Wissensbackup speichern oder teilen',
+        })
+      } else {
+        const blob = new Blob([data], { type: 'application/json;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        const anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = fileName
+        anchor.click()
+        URL.revokeObjectURL(url)
+      }
+      setBackupNotice('Backup erstellt. Bewahre die JSON-Datei wie ein persönliches Dokument auf.')
+    } catch (reason) {
+      setError(`Das Backup konnte nicht gespeichert werden: ${friendlyError(reason)}`)
+    }
+  }
+
+  async function restoreKnowledgeBackup(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setError(null)
+    setBackupNotice(null)
+    try {
+      if (file.size > MAX_KNOWLEDGE_BACKUP_BYTES) throw new Error('Das Wissens-Backup ist größer als 20 MB.')
+      const backup = parseKnowledgeBackup(await file.text())
+      const count = backup.knowledge.nodes.length
+      if ((ctx.custom.nodes.length || ctx.custom.edges.length) && !window.confirm(
+        `Das Backup enthält ${count} eigene Wissensknoten. Den aktuellen lokalen Wissensstand vollständig ersetzen?`,
+      )) return
+      ctx.setCustom(backup.knowledge)
+      setResult(null)
+      setSelected(null)
+      setBackupNotice(`${count} Wissensknoten wurden lokal wiederhergestellt.`)
+    } catch (reason) {
+      setError(friendlyError(reason))
+    }
+  }
+
   function relationText(edge: GraphEdge): string {
     const source = ctx.graph.nodes.find((node) => node.id === edge.source)?.title ?? edge.source
     const target = ctx.graph.nodes.find((node) => node.id === edge.target)?.title ?? edge.target
@@ -568,14 +636,14 @@ export default function PersonalKnowledge({ ctx }: { ctx: AppCtx }) {
             <strong>Wikipedia-Wissen wird erst nach deiner Auswahl abgerufen.</strong>
             <span>
               MediaWiki erhält nur deine Suchphrase und die gewählten Artikeltitel. Auszüge, URLs, Seiten- und
-              Revisions-IDs werden anschließend in diesem Browserprofil gespeichert; dein privater Graph wird nicht übertragen.
+              Revisions-IDs werden anschließend in deinem {storageLabel} gespeichert; dein privater Graph wird nicht übertragen.
             </span>
           </>
         ) : (
           <>
             <strong>Deine Datei verlässt den Browser nicht.</strong>
             <span>
-              Der extrahierte Text wird – begrenzt auf 140.000 Zeichen – unverschlüsselt in diesem Browserprofil
+              Der extrahierte Text wird – begrenzt auf 140.000 Zeichen – unverschlüsselt in deinem {storageLabel}
               gespeichert; die PDF-Originaldatei selbst wird weder hochgeladen noch dauerhaft abgelegt.
               {seminarOnline
                 ? ' Erst wenn du im Chat „Eigenes Wissen freigeben“ aktivierst, können pro Frage bis zu 5.000 Zeichen lokal ausgewählter Belegstellen an das Seminar-Modell gesendet werden.'
@@ -938,13 +1006,40 @@ export default function PersonalKnowledge({ ctx }: { ctx: AppCtx }) {
         </div>
       )}
 
+      <section className="card personal-backup-card">
+        <div>
+          <div className="eyebrow">Manuelles Backup · kein Cloud-Konto</div>
+          <h2>Deinen Wissensraum mitnehmen</h2>
+          <p className="hint">
+            Sichere Knoten, Kanten, Quellenbelege und Importberichte als eine lokale JSON-Datei. Beim Wiederherstellen
+            wird die Datei geprüft und ersetzt erst nach deiner Bestätigung den aktuellen Wissensstand.
+          </p>
+        </div>
+        <div className="personal-backup-actions">
+          <button className="btn primary" type="button" onClick={() => void downloadKnowledgeBackup()}>
+            Backup erstellen
+          </button>
+          <button className="btn" type="button" onClick={() => backupInputRef.current?.click()}>
+            Backup wiederherstellen
+          </button>
+          <input
+            ref={backupInputRef}
+            type="file"
+            accept="application/json,.json"
+            hidden
+            onChange={(event) => void restoreKnowledgeBackup(event)}
+          />
+        </div>
+        {backupNotice && <div className="callout personal-backup-notice" role="status">{backupNotice}</div>}
+      </section>
+
       <section className="personal-library">
         <div className="personal-library-heading">
           <div>
             <h2>Auf diesem Gerät gespeichert</h2>
             <p className="hint">
               {personalNodes.length} eigene Wissensknoten · {wikipediaNodes.length} Wikipedia-Knoten · ca.{' '}
-              {humanFileSize(personalStorageBytes)} privater Inhalt · nur in diesem Browserprofil
+              {humanFileSize(personalStorageBytes)} privater Inhalt · nur in deinem {storageLabel}
             </p>
           </div>
           {personalNodes.length > 0 && (

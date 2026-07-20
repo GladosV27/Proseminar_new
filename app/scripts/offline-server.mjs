@@ -12,6 +12,7 @@ const serviceWorkerPath = path.join(distDirectory, 'sw.js')
 const HOST = 'localhost'
 const PORT = 4173
 const APP_URL = `http://${HOST}:${PORT}/`
+const OPEN_URL = process.argv.includes('--lab') ? `${APP_URL}?lab=1` : APP_URL
 
 const MIME_TYPES = new Map([
   ['.css', 'text/css; charset=utf-8'],
@@ -89,13 +90,13 @@ function openBrowser() {
 
   if (process.platform === 'win32') {
     command = 'cmd.exe'
-    args = ['/c', 'start', '', APP_URL]
+    args = ['/c', 'start', '', OPEN_URL]
   } else if (process.platform === 'darwin') {
     command = 'open'
-    args = [APP_URL]
+    args = [OPEN_URL]
   } else {
     command = 'xdg-open'
-    args = [APP_URL]
+    args = [OPEN_URL]
   }
 
   try {

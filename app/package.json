@@ -17,6 +17,8 @@
   "dependencies": {
     "@capacitor/android": "^8.4.2",
     "@capacitor/core": "^8.4.2",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/share": "^8.0.0",
     "@diffusionstudio/piper-wasm": "^1.0.0",
     "@huggingface/transformers": "^3.8.1",
     "@mintplex-labs/piper-tts-web": "^1.0.4",

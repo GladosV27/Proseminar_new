@@ -24,6 +24,7 @@ import Experiment from './views/Experiment'
 import Rate from './views/Rate'
 import Results from './views/Results'
 import Models from './views/Models'
+import MobileSettings from './views/MobileSettings'
 import Knowledge from './views/Knowledge'
 import PersonalKnowledge from './views/PersonalKnowledge'
 import Quiz from './views/Quiz'
@@ -76,6 +77,18 @@ const PRODUCT_NAV: { id: ViewId; label: string; ico: string }[] = [
   { id: 'offline', label: 'Vortragscheck', ico: '✓' },
 ]
 
+/**
+ * Die APK ist das fertige Offline-Produkt, nicht das wissenschaftliche Labor.
+ * Vier eindeutige Ziele verhindern, dass Versuchswerkzeuge und Ergebnisansichten
+ * auf dem kleinen Bildschirm mit dem eigentlichen Wissensdialog konkurrieren.
+ */
+const NATIVE_NAV: { id: ViewId; label: string; ico: string }[] = [
+  { id: 'chat', label: 'Chat', ico: '✦' },
+  { id: 'knowledge', label: 'Wissen', ico: '＋' },
+  { id: 'explorer', label: 'Graph', ico: '⌘' },
+  { id: 'models', label: 'Einstellungen', ico: '⚙' },
+]
+
 const STUDY_NAV: { id: ViewId; label: string; ico: string }[] = [
   { id: 'chat', label: 'Produkt-Chat', ico: '✦' },
   { id: 'overview', label: 'Übersicht', ico: '◈' },
@@ -124,17 +137,23 @@ export interface AppCtx {
 
 export default function App() {
   const initialParams = new URLSearchParams(window.location.search)
+  const localLab = initialParams.has('lab')
   const liveQuiz = initialParams.has('live')
   const collaborativeRoom = initialParams.has('graphroom')
   const [seminarRoom] = useState(() => seminarRoomCode())
   const seminarOnline = seminarOnlineConfigured(seminarRoom)
-  const [view, setView] = useState<ViewId>(() => (liveQuiz ? 'livequiz' : collaborativeRoom ? 'collab' : 'chat'))
+  const nativeApp = useRef(NativeLlmEngine.supported()).current
+  const [view, setView] = useState<ViewId>(() => (
+    localLab ? 'experiment' : liveQuiz ? 'livequiz' : collaborativeRoom ? 'collab' : 'chat'
+  ))
   // Der Fokusmodus folgt der aktuellen Ansicht, nicht dem nur beim Start
   // gelesenen Query-Parameter. Sonst bliebe ein QR-Gast nach dem Verlassen
   // bis zum nächsten Reload ohne Seitennavigation gefangen.
   const sharedSession = view === 'livequiz' || (collaborativeRoom && view === 'collab')
   const [appMode, setAppMode] = useState<AppMode>(() =>
-    liveQuiz || collaborativeRoom || sessionStorage.getItem(APP_MODE_KEY) === 'study' ? 'study' : 'product',
+    !nativeApp && (localLab || liveQuiz || collaborativeRoom || sessionStorage.getItem(APP_MODE_KEY) === 'study')
+      ? 'study'
+      : 'product',
   )
   const [theme, setTheme] = useState<'light' | 'dark'>(() =>
     window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
@@ -201,10 +220,13 @@ export default function App() {
   // Ein bereits vollständig bereitgestelltes Modell wird beim festen
   // Vortrags-Launcher automatisch aus dem Browser-Cache wiederhergestellt.
   useEffect(() => {
-    if (restoreStartedRef.current || seminarOnline) return
+    if (restoreStartedRef.current || seminarOnline || localLab) return
     restoreStartedRef.current = true
     const modelId = localStorage.getItem(PREFERRED_MODEL_KEY)
     if (!modelId) return
+    // Ollama ist ein localhost-gebundener Laborpfad und wird vom Lab-Panel
+    // geprüft/vorgewärmt. Es ist weder WebLLM noch ein Browser-Cache-Modell.
+    if (modelId.startsWith('ollama:')) return
 
     void (async () => {
       try {
@@ -238,14 +260,15 @@ export default function App() {
         })
       }
     })()
-  }, [seminarOnline, webgpu])
+  }, [localLab, seminarOnline, webgpu])
 
   function switchMode(next: AppMode) {
+    if (nativeApp) return
     setAppMode(next)
     if (next === 'product' && !PRODUCT_NAV.some((item) => item.id === view)) setView('chat')
   }
 
-  const nav = appMode === 'product' ? PRODUCT_NAV : STUDY_NAV
+  const nav = nativeApp ? NATIVE_NAV : appMode === 'product' ? PRODUCT_NAV : STUDY_NAV
   const ctx: AppCtx = {
     graph,
     runner,
@@ -254,7 +277,7 @@ export default function App() {
     setEngine: (next) => {
       if (engine.id !== next.id) void engine.dispose?.()
       setEngineState(next)
-      if (next.id !== 'extractive' && next.id !== 'seminar-online') {
+      if (next.id !== 'extractive' && next.id !== 'seminar-online' && !next.id.startsWith('ollama:')) {
         localStorage.setItem(PREFERRED_MODEL_KEY, next.id)
       }
     },
@@ -309,7 +332,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app${sharedSession ? ' shared-session-app' : ''}`}>
+    <div className={`app${sharedSession ? ' shared-session-app' : ''}${nativeApp ? ' native-mobile-app' : ''}`}>
       {!sharedSession && <nav className="sidebar">
         <div className="brand"><em>Noesis</em></div>
         <div className="brand-sub">
@@ -366,18 +389,20 @@ export default function App() {
               {seminarOnline ? '● Seminar online' : online ? '● Online' : '○ Offline'}
             </button>
           </div>
-          <button
-            className="mode-switch"
-            onClick={() => switchMode(appMode === 'product' ? 'study' : 'product')}
-            title={
-              appMode === 'product'
-                ? 'Experiment, Bewertung und technische Werkzeuge öffnen'
-                : 'Zur reduzierten Vortrags-App wechseln'
-            }
-          >
-            <span>{appMode === 'product' ? 'Studienmodus öffnen' : 'Zur Vortrags-App'}</span>
-            <small>{appMode === 'product' ? 'Methodik & Werkzeuge' : 'Nur das fertige Produkt'}</small>
-          </button>
+          {!nativeApp && (
+            <button
+              className="mode-switch"
+              onClick={() => switchMode(appMode === 'product' ? 'study' : 'product')}
+              title={
+                appMode === 'product'
+                  ? 'Experiment, Bewertung und technische Werkzeuge öffnen'
+                  : 'Zur reduzierten Vortrags-App wechseln'
+              }
+            >
+              <span>{appMode === 'product' ? 'Studienmodus öffnen' : 'Zur Vortrags-App'}</span>
+              <small>{appMode === 'product' ? 'Methodik & Werkzeuge' : 'Nur das fertige Produkt'}</small>
+            </button>
+          )}
           <div className="seminar-meta">
             Proseminar SoSe 2026<br />
             TU Dortmund · S. Y. Adigüzel
@@ -407,7 +432,7 @@ export default function App() {
         {view === 'results' && <Results ctx={ctx} />}
         {view === 'quiz' && <Quiz ctx={ctx} />}
         {view === 'livequiz' && <LiveQuiz onExit={exitLiveQuiz} />}
-        {view === 'models' && <Models ctx={ctx} />}
+        {view === 'models' && (nativeApp ? <MobileSettings ctx={ctx} /> : <Models ctx={ctx} />)}
         {view === 'knowledge' && (appMode === 'product' ? <PersonalKnowledge ctx={ctx} /> : <Knowledge ctx={ctx} />)}
       </main>
       {showQr && <QrOverlay onClose={() => setShowQr(false)} />}
