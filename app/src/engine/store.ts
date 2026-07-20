@@ -4,6 +4,7 @@ import type {
   KnowledgeGraph,
   KnowledgeImportReport,
   KnowledgeProvenance,
+  TrialExecutionEnvironment,
   TrialResult,
 } from '../data/types'
 import { BASE_GRAPH } from '../data/graph'
@@ -23,6 +24,20 @@ const RESULTS_KEY = 'graphrag.results.v1'
 const CUSTOM_KEY = 'graphrag.customKnowledge.v1'
 const RESULTS_UPDATED_KEY = `${RESULTS_KEY}.updatedAt`
 const CUSTOM_UPDATED_KEY = `${CUSTOM_KEY}.updatedAt`
+
+export function captureExecutionEnvironment(): TrialExecutionEnvironment {
+  const nav = navigator as Navigator & { deviceMemory?: number; gpu?: unknown }
+  return {
+    capturedAt: Date.now(),
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    language: navigator.language,
+    origin: window.location.origin,
+    hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+    deviceMemoryGiB: nav.deviceMemory ?? null,
+    webgpu: Boolean(nav.gpu),
+  }
+}
 
 function normalizeResults(raw: Partial<TrialResult>[]): TrialResult[] {
   return raw.map((r, i) => {
@@ -389,7 +404,7 @@ export function exportResultsJson(results: TrialResult[]): string {
         conditions: ALL_CONDITIONS,
         corpus: { nodes: BASE_GRAPH.nodes.length, edges: BASE_GRAPH.edges.length, frozen: true },
         questions: { n: QUESTIONS.length, ids: QUESTIONS.map((q) => q.id) },
-        environment: {
+        exportEnvironment: {
           userAgent: navigator.userAgent,
           platform: navigator.platform,
           language: navigator.language,
@@ -397,6 +412,7 @@ export function exportResultsJson(results: TrialResult[]): string {
           deviceMemoryGiB: nav.deviceMemory ?? null,
           webgpu: Boolean(nav.gpu),
         },
+        environmentNote: 'exportEnvironment beschreibt nur das Exportgerät; die tatsächliche Messumgebung steht pro Trial in executionEnvironment.',
       },
       timing: {
         latencyMs: 'End-to-End: Vorbereitung einschließlich Retrieval plus Generierung',
@@ -426,7 +442,7 @@ export function exportSubmissionBundle(results: TrialResult[]): string {
 
 export function exportResultsCsv(results: TrialResult[]): string {
   const head =
-    'id;runId;repetitionId;repetition;order;seed;questionOrder;conditionOrder;orderStrategy;questionId;condition;retrieval;engine;autoScore;manualScore;blindA;blindB;latencyMs;latencyScope;prepareMs;retrievalMs;generationMs;contextChars;evidenceRecall;evidencePrecision;retrievedIds;timestamp;answer'
+    'id;runId;repetitionId;repetition;order;seed;questionOrder;conditionOrder;orderStrategy;questionId;condition;retrieval;engine;autoScore;manualScore;blindA;blindB;latencyMs;latencyScope;prepareMs;retrievalMs;generationMs;contextChars;evidenceRecall;evidencePrecision;retrievedIds;timestamp;executionEnvironment;answer'
   const rows = results.map((r) =>
     [
       r.id,
@@ -456,6 +472,7 @@ export function exportResultsCsv(results: TrialResult[]): string {
       r.evidencePrecision ?? '',
       r.retrievedIds.join('|'),
       r.timestamp,
+      `"${JSON.stringify(r.executionEnvironment ?? null).replace(/"/g, '""')}"`,
       '"' + r.answer.replace(/"/g, '""').replace(/\n/g, ' ') + '"',
     ].join(';'),
   )

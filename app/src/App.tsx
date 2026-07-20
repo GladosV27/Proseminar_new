@@ -3,6 +3,7 @@ import type { KnowledgeGraph, RetrievalMode, TrialResult } from './data/types'
 import { BASE_GRAPH } from './data/graph'
 import { ExperimentRunner } from './engine/experiment'
 import { ExtractiveEngine, WasmLLMEngine, WebLLMEngine, type LLMEngine } from './engine/llm'
+import { NativeLlmEngine } from './engine/nativeLlm'
 import { setEmbeddingNetworkEnabled } from './engine/embeddings'
 import { SeminarOnlineEngine, seminarOnlineConfigured, seminarRoomCode } from './engine/seminarOnline'
 import {
@@ -207,14 +208,21 @@ export default function App() {
 
     void (async () => {
       try {
+        const nativeModel = modelId.startsWith('native:')
         const cpuModel = modelId.startsWith('wllama:')
-        if (cpuModel) {
+        if (nativeModel) {
+          if (!NativeLlmEngine.supported() || !(await NativeLlmEngine.isDownloaded(modelId))) return
+        } else if (cpuModel) {
           if (!WasmLLMEngine.supported() || !(await WasmLLMEngine.isCached(modelId))) return
         } else {
           if (!webgpu || !(await WebLLMEngine.isCached(modelId))) return
         }
         setEngineRestore({ state: 'loading', text: 'Lokales Sprachmodell wird aus dem Cache geladen …' })
-        const restored = cpuModel ? new WasmLLMEngine(modelId) : new WebLLMEngine(modelId)
+        const restored = nativeModel
+          ? new NativeLlmEngine(modelId.slice('native:'.length))
+          : cpuModel
+            ? new WasmLLMEngine(modelId)
+            : new WebLLMEngine(modelId)
         await restored.load((text, pct) =>
           setEngineRestore({
             state: 'loading',
@@ -254,8 +262,10 @@ export default function App() {
     setRetrieval,
     results,
     setResults: (next) => {
-      setResultsState(next)
+      // Erst dauerhaft speichern. So zeigt auch ein großer Dateiimport bei
+      // localStorage-/Quota-Fehlern niemals einen nur scheinbar gesicherten Stand.
       saveResults(next)
+      setResultsState(next)
     },
     custom,
     setCustom: (next) => {

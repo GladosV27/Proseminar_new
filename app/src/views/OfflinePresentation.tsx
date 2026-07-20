@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AppCtx } from '../App'
 import { WASM_LLM_MODELS, WasmLLMEngine, WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
+import { NATIVE_LLM_MODELS, NativeLlmEngine } from '../engine/nativeLlm'
 
 interface ShellStatus {
   buildId: string
@@ -96,11 +97,13 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
       import.meta.env.PROD ? getShellStatus().catch(() => null) : Promise.resolve(null),
       getStorageStatus(),
       Promise.all(
-        [...WEBLLM_MODELS, ...WASM_LLM_MODELS].map(async (model) => ({
+        [...WEBLLM_MODELS, ...WASM_LLM_MODELS, ...NATIVE_LLM_MODELS].map(async (model) => ({
           id: model.id,
-          cached: await (model.id.startsWith('wllama:')
-            ? WasmLLMEngine.isCached(model.id)
-            : WebLLMEngine.isCached(model.id)).catch(() => false),
+          cached: await (NATIVE_LLM_MODELS.some((native) => native.id === model.id)
+            ? NativeLlmEngine.isDownloaded(model.id)
+            : model.id.startsWith('wllama:')
+              ? WasmLLMEngine.isCached(model.id)
+              : WebLLMEngine.isCached(model.id)).catch(() => false),
         })),
       ),
     ])
@@ -114,10 +117,14 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
     void refresh()
   }, [refresh])
 
-  const activeModel = [...WEBLLM_MODELS, ...WASM_LLM_MODELS].find((model) => model.id === ctx.engine.id)
-  const activeCpuModel = WASM_LLM_MODELS.some((model) => model.id === ctx.engine.id)
-  const fixedOrigin = window.location.origin === 'http://localhost:4173'
-  const shellReady = Boolean(shell && shell.total > 0 && shell.missing.length === 0 && shell.cached >= shell.total)
+  const activeModel = [...WEBLLM_MODELS, ...WASM_LLM_MODELS, ...NATIVE_LLM_MODELS].find((model) =>
+    model.id === ctx.engine.id || `native:${model.id}` === ctx.engine.id,
+  )
+  const nativePlatform = NativeLlmEngine.supported()
+  const activeCpuModel = nativePlatform && ctx.engine.id.startsWith('native:')
+    || WASM_LLM_MODELS.some((model) => model.id === ctx.engine.id)
+  const fixedOrigin = nativePlatform || window.location.origin === 'http://localhost:4173'
+  const shellReady = nativePlatform || Boolean(shell && shell.total > 0 && shell.missing.length === 0 && shell.cached >= shell.total)
   const modelReady = Boolean(activeModel)
   const browserOffline = navigator.onLine === false
   const freeBytes = storage.quota !== null && storage.usage !== null ? storage.quota - storage.usage : null
@@ -126,7 +133,9 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
     () => [
       {
         label: 'App vollständig lokal',
-        detail: import.meta.env.PROD
+        detail: nativePlatform
+          ? 'Web-App und native Laufzeit sind fest in der installierten APK gebündelt'
+          : import.meta.env.PROD
           ? shellReady
             ? `${shell!.cached}/${shell!.total} Dateien · Build ${shell!.buildId}`
             : shell
@@ -176,7 +185,9 @@ export default function OfflinePresentation({ ctx }: { ctx: AppCtx }) {
       {
         label: 'Fester Vortrags-Origin',
         detail: fixedOrigin
-          ? 'localhost:4173 – Modell- und App-Cache gehören zu genau diesem Origin'
+          ? nativePlatform
+            ? 'Installierte APK – App und Modell liegen im privaten, festen App-Speicher'
+            : 'localhost:4173 – Modell- und App-Cache gehören zu genau diesem Origin'
           : `${window.location.origin} – Vorbereitung und Vortrag müssen dieselbe Adresse nutzen`,
         state: (fixedOrigin ? 'ready' : 'warning') as CheckState,
       },

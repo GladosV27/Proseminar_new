@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
+import { shareableAppUrl } from '../engine/appUrl'
 
 /**
  * QR-Overlay: zeigt die aktuelle App-URL als QR-Code – fürs Seminar:
@@ -9,7 +10,7 @@ import QRCode from 'qrcode'
  */
 export default function QrOverlay({ onClose }: { onClose: () => void }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null)
-  const url = window.location.href.split('#')[0]
+  const url = shareableAppUrl().toString().split('#')[0]
   const isLocal = /localhost|127\.0\.0\.1/.test(url)
   const isSeminar = new URL(url).searchParams.has('seminar')
 

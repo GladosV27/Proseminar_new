@@ -1,4 +1,5 @@
 import { createClient, type RealtimeChannel } from '@supabase/supabase-js'
+import { shareableAppUrl } from './appUrl'
 
 /**
  * Kleiner Echtzeit-Transport für den Seminar-Quizmodus.
@@ -282,7 +283,7 @@ function isSyncRequestPayload(value: unknown): value is Record<string, never> {
 export function liveRoomUrl(code: string): string {
   const roomCode = normalizeLiveRoomCode(code)
   if (!isLiveRoomCode(roomCode)) throw new Error('Der Live-Raumcode muss aus genau sechs Buchstaben oder Ziffern bestehen.')
-  const url = new URL(window.location.href)
+  const url = shareableAppUrl()
   url.search = ''
   url.hash = ''
   url.searchParams.set('live', roomCode)

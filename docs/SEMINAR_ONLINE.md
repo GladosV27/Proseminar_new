@@ -5,6 +5,7 @@ Der QR-Modus ist bewusst vom wissenschaftlichen Offline-Experiment getrennt:
 - Texte und PDFs werden auf jedem Handy lokal gelesen und im Browserprofil gespeichert.
 - Graph-Retrieval und die Auswahl der Belegknoten laufen auf dem jeweiligen Handy.
 - Erst beim Absenden gehen Frage, kurzer Gesprächsverlauf und höchstens 5.000 Zeichen ausgewählter Graphkontext an die Edge Function.
+- Die Edge Function gibt ausschließlich validierte Text-Deltas als Server-Sent Events zurück. Provider-Metadaten und verborgenes Reasoning werden nicht an den Browser weitergereicht; ein fehlender `[DONE]`-Abschluss gilt als Fehler.
 - Eigene Text-/PDF-Belege sind dabei standardmäßig ausgeschlossen. Jede Person muss „Eigenes Wissen für Online-Antworten freigeben“ bewusst aktivieren.
 - Die separate Wikipedia-Suche ist im Seminarraum ebenfalls standardmäßig ausgeschaltet.
 - Die vollständige PDF, der vollständige persönliche Graph und der Modellschlüssel werden nicht übertragen.
@@ -43,8 +44,8 @@ Unter **Supabase Dashboard -> Edge Functions -> Secrets** anlegen:
 - `GROQ_API_KEY`: geheimer API-Schlüssel; niemals in Git oder `.env.example` eintragen
 - `SEMINAR_ROOM_CODE`: temporärer Raumcode, zum Beispiel `PHILO2026`
 - `SEMINAR_ACTIVE_UNTIL`: ISO-Zeitpunkt, nach dem der Raum automatisch schließt, zum Beispiel `2026-07-31T18:00:00+02:00`
-- optional `GROQ_MODEL`: Standard ist `openai/gpt-oss-120b` mit niedrigem, verborgenem Reasoning-Aufwand
-- optional `SEMINAR_ALLOWED_ORIGINS`: kommaseparierte Origins; standardmäßig GitHub Pages und die beiden lokalen Entwicklungsadressen
+- optional `GROQ_MODEL`: Standard ist das Groq-Produktionsmodell `openai/gpt-oss-120b` mit niedrigem, verborgenem Reasoning-Aufwand
+- optional `SEMINAR_ALLOWED_ORIGINS`: kommaseparierte Origins; standardmäßig GitHub Pages, die Capacitor-APK (`https://localhost`) und die beiden lokalen Entwicklungsadressen
 
 `SEMINAR_ACTIVE_UNTIL` ist verpflichtend: Fehlt der Wert oder ist er ungültig, lehnt die Funktion alle Räume ab. Setze im Groq-Projekt zusätzlich ein hartes Ausgaben-/Nutzungslimit. Der zentrale Supabase-Zähler begrenzt atomar auf 4 Anfragen je temporärer Browser-Sitzung und 28 pro Raum und Minute.
 
@@ -85,7 +86,7 @@ Noesis wählt für diesen Link automatisch die Seminar-Online-Engine. Ohne `?sem
 8. Den Live-Sprachdialog auf Android Chrome prüfen: Berechtigung, ein kompletter Sprachzug, Unterbrechen, Pausieren und Beenden. Kontrollieren, dass beim Ansichtswechsel kein Mikrofon weiterläuft.
 9. Nach Ablauf von `SEMINAR_ACTIVE_UNTIL` muss die Funktion Anfragen ablehnen.
 
-Für etwa 20 Geräte bleiben Prompts kurz: maximal 1.200 Zeichen Frage, 1.800 Zeichen Verlauf, 5.000 Zeichen Graphkontext und 220 Ausgabetokens. Bei HTTP 429 fordert die App zu einem kurzen erneuten Versuch auf. Große optionale WebLLM-/ONNX-Dateien gehören nicht mehr zum automatischen QR-App-Precache; sie werden erst bei bewusster lokaler Modell-/Embedding-Nutzung geladen.
+Für etwa 20 Geräte bleiben Prompts kurz: maximal 1.200 Zeichen Frage, 1.800 Zeichen Verlauf und 5.000 Zeichen Graphkontext. Textantworten sind serverseitig auf 170, gesprochene Antworten auf 110 Ausgabetokens begrenzt. Die Antwort wird gestreamt und in der mobilen Oberfläche höchstens ungefähr 25-mal pro Sekunde aktualisiert. Bei HTTP 429 fordert die App zu einem kurzen erneuten Versuch auf. Große optionale WebLLM-/ONNX-Dateien gehören nicht mehr zum automatischen QR-App-Precache; sie werden erst bei bewusster lokaler Modell-/Embedding-Nutzung geladen.
 
 ## Transparenztext in der Präsentation
 

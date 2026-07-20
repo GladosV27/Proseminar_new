@@ -1,4 +1,5 @@
 import type { GenerateResult, LLMEngine } from './llm'
+import { consumeSeminarSse } from './seminarStream'
 
 const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, '')
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
@@ -39,11 +40,13 @@ interface SeminarPromptParts {
   question: string
   context: string
   history: string
+  responseMode: 'text' | 'voice'
 }
 
 const QUESTION_LIMIT = 1_200
 const CONTEXT_LIMIT = 5_000
 const HISTORY_LIMIT = 1_800
+const VOICE_PROMPT_MARKER = 'AUSGABEMODUS: Die Antwort wird laut gesprochen.'
 
 /**
  * Das generische LLM-Interface liefert einen formatierten Prompt. Für den
@@ -59,7 +62,10 @@ function splitPrompt(user: string): SeminarPromptParts {
   const contextAt = beforeQuestion.indexOf(contextMarker)
   const historyRaw = contextAt >= 0 ? beforeQuestion.slice(0, contextAt) : ''
   const context = (contextAt >= 0 ? beforeQuestion.slice(contextAt + contextMarker.length) : '').trim()
-  const history = historyRaw
+  const outputModeAt = historyRaw.lastIndexOf(VOICE_PROMPT_MARKER)
+  const responseMode = outputModeAt >= 0 ? 'voice' : 'text'
+  const historyWithoutOutputMode = outputModeAt >= 0 ? historyRaw.slice(0, outputModeAt) : historyRaw
+  const history = historyWithoutOutputMode
     .replace(/^BISHERIGER GESPRÄCHSVERLAUF \(nur für sprachliche Bezüge\):\s*/u, '')
     .trim()
   return {
@@ -67,7 +73,12 @@ function splitPrompt(user: string): SeminarPromptParts {
     context: context.slice(0, CONTEXT_LIMIT),
     // Für Anschlussfragen sind die jüngsten Beiträge wichtiger als der Anfang.
     history: history.slice(-HISTORY_LIMIT),
+    responseMode,
   }
+}
+
+async function readJsonPayload(response: Response): Promise<SeminarResponse> {
+  return (await response.json().catch(() => ({}))) as SeminarResponse
 }
 
 /**
@@ -110,21 +121,42 @@ export class SeminarOnlineEngine implements LLMEngine {
           question: prompt.question,
           context: prompt.context,
           history: prompt.history,
+          responseMode: prompt.responseMode,
+          streamVersion: 1,
         }),
         signal: controller.signal,
       })
 
-      const payload = (await response.json().catch(() => ({}))) as SeminarResponse
       if (!response.ok) {
+        const payload = await readJsonPayload(response)
         if (response.status === 429) throw new Error('Gerade fragen zu viele Personen gleichzeitig. Bitte kurz warten und erneut senden.')
         if (response.status === 401 || response.status === 403) throw new Error('Dieser Seminarraum ist nicht aktiv oder der QR-Code ist abgelaufen.')
         throw new Error(payload.error || `Seminar-Server: HTTP ${response.status}`)
       }
 
-      const text = payload.text?.trim() ?? ''
+      const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+      let text = ''
+      let model = response.headers.get('x-noesis-model')?.trim() ?? ''
+      if (contentType.includes('text/event-stream')) {
+        if (!response.body) throw new Error('Der Seminar-Server lieferte keinen Antwortstream.')
+        const streamed = await consumeSeminarSse(response.body, onToken, {
+          signal: controller.signal,
+          throttleMs: 40,
+        })
+        text = streamed.text.trim()
+      } else if (contentType.includes('application/json')) {
+        // Rückwärtskompatibilität für den kurzen Rollout-Zeitraum, in dem der
+        // neue Client bereits online ist, die Edge Function aber noch JSON sendet.
+        const payload = await readJsonPayload(response)
+        text = payload.text?.trim() ?? ''
+        model = payload.model?.trim() || model
+        if (text) onToken?.(text)
+      } else {
+        throw new Error('Der Seminar-Server lieferte ein unbekanntes Antwortformat.')
+      }
+
       if (!text) throw new Error('Das Online-Modell hat keine Antwort geliefert.')
-      onToken?.(text)
-      return { text, engine: payload.model ? `${this.id}:${payload.model}` : this.id }
+      return { text, engine: model ? `${this.id}:${model}` : this.id }
     } catch (error) {
       if (controller.signal.aborted) throw new Error('Die Antwort wurde gestoppt.')
       throw error

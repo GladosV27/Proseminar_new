@@ -172,6 +172,20 @@ export type RetrievalMode = 'tfidf' | 'dense'
 
 export type LatencyScope = 'end-to-end' | 'generation-only'
 
+/** Beim Start eines Messlaufs erfasste Ausführungsumgebung. Sie reist mit
+ * jedem Trial mit, damit ein PC→Laptop-Import nicht fälschlich den Laptop als
+ * Rechengerät dokumentiert. */
+export interface TrialExecutionEnvironment {
+  capturedAt: number
+  userAgent: string
+  platform: string
+  language: string
+  origin: string
+  hardwareConcurrency: number | null
+  deviceMemoryGiB: number | null
+  webgpu: boolean
+}
+
 export interface TrialResult {
   /** stabile ID für Verblindung/Bewertung */
   id: string
@@ -216,5 +230,7 @@ export interface TrialResult {
   evidenceRecall: number | null
   /** Anteil des übergebenen Kontexts, der zum Gold-Pfad gehört (null: kein Retrieval) */
   evidencePrecision: number | null
+  /** Originale Ausführungsumgebung; bleibt beim Ergebnisimport unverändert. */
+  executionEnvironment?: TrialExecutionEnvironment
   timestamp: number
 }

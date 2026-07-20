@@ -1,11 +1,21 @@
-import { useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, useMemo, useRef, useState } from 'react'
 import type { AppCtx } from '../App'
 import { exportChartPng } from '../components/exportPng'
 import { CATEGORY_LABELS, QUESTIONS } from '../data/questions'
 import { BASE_GRAPH } from '../data/graph'
 import { aggregate, ALL_CONDITIONS, CONDITION_INFO, cohensKappa, effectiveScore, pairedComparison } from '../engine/experiment'
 import { exportResultsCsv, exportResultsJson, exportSubmissionBundle } from '../engine/store'
+import {
+  RESULTS_IMPORT_MAX_BYTES,
+  parseResultsImport,
+  planResultsImport,
+  ResultsImportError,
+  type ResultsImportMode,
+  type ResultsImportPreview,
+} from '../engine/resultsImport'
 import { GroupedBars, HBar } from '../components/Charts'
+
+const KNOWN_QUESTION_IDS = new Set(QUESTIONS.map((question) => question.id))
 
 function download(name: string, content: string, type: string) {
   const a = document.createElement('a')
@@ -35,6 +45,11 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
   const [run, setRun] = useState<string>('latest')
   const [showTable, setShowTable] = useState(false)
   const chartRef = useRef<HTMLDivElement>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const [importPreview, setImportPreview] = useState<ResultsImportPreview | null>(null)
+  const [importFileName, setImportFileName] = useState('')
+  const [importMode, setImportMode] = useState<ResultsImportMode>('merge')
+  const [importMessage, setImportMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
 
   const results = useMemo(
     () =>
@@ -69,6 +84,10 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
     pairedComparison(comparisonResults, 'graph', 'graph_no_edges'),
   ].filter((row) => row.pairs > 0), [comparisonResults])
   const kappa = useMemo(() => cohensKappa(ctx.results), [ctx.results])
+  const importPlan = useMemo(
+    () => importPreview ? planResultsImport(ctx.results, importPreview.results, importMode) : null,
+    [ctx.results, importMode, importPreview],
+  )
 
   const categories = Object.keys(CATEGORY_LABELS)
   const accByCat = useMemo(
@@ -99,6 +118,51 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
     }
   }
 
+  async function readImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setImportMessage(null)
+    setImportPreview(null)
+    setImportFileName(file.name)
+    try {
+      if (file.size > RESULTS_IMPORT_MAX_BYTES) throw new ResultsImportError('Die Datei ist größer als 25 MB.')
+      const preview = parseResultsImport(await file.text(), file.name, KNOWN_QUESTION_IDS)
+      setImportPreview(preview)
+    } catch (error) {
+      const text = error instanceof Error ? error.message : String(error)
+      setImportMessage({ kind: 'error', text: `Import abgelehnt: ${text}` })
+    }
+  }
+
+  function applyImport() {
+    if (!importPreview || !importPlan) return
+    if (ctx.experimentStatus.state === 'running') {
+      setImportMessage({ kind: 'error', text: 'Während eines laufenden Experiments können keine Messdaten importiert werden.' })
+      return
+    }
+    const action = importMode === 'merge'
+      ? `${importPlan.added} neue Trials hinzufügen und ${importPlan.duplicatesSkipped} Dubletten überspringen?`
+      : importMode === 'replace-runs'
+        ? `${importPlan.existingRemoved} vorhandene Trials aus denselben Messläufen ersetzen?`
+        : `Wirklich alle ${ctx.results.length} lokalen Trials durch ${importPlan.added} importierte Trials ersetzen?`
+    if (!window.confirm(action)) return
+    try {
+      ctx.setResults(importPlan.results)
+      setEngine('alle')
+      setRetrieval('alle')
+      setRun('latest')
+      setImportPreview(null)
+      setImportMessage({
+        kind: 'ok',
+        text: `Import abgeschlossen: ${importPlan.added} hinzugefügt, ${importPlan.existingRemoved} ersetzt, ${importPlan.duplicatesSkipped} Dubletten übersprungen${importPlan.conflictsSkipped ? `, ${importPlan.conflictsSkipped} ID-Konflikte sicher verworfen` : ''}.`,
+      })
+    } catch (error) {
+      const text = error instanceof Error ? error.message : String(error)
+      setImportMessage({ kind: 'error', text: `Import konnte nicht gespeichert werden: ${text}` })
+    }
+  }
+
   return (
     <div>
       <div className="eyebrow">Auswertung</div>
@@ -108,6 +172,71 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
         2-Hop- und 3-Hop-Fragen ausspielen. Die Evidenz-Diagnostik darunter zeigt, <em>warum</em> eine Bedingung gewinnt
         oder verliert – Retrieval-Versagen und Generierungs-Versagen werden getrennt sichtbar.
       </p>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 430px' }}>
+            <h3 style={{ marginTop: 0 }}>Messdaten auf dieses Gerät übertragen</h3>
+            <p className="hint" style={{ marginBottom: 0 }}>
+              Importiert den JSON-Export, die Semikolon-CSV oder das Abgabe-Paket. Jeder Trial wird vor dem Speichern
+              typgeprüft; unbekannte Bedingungen, ungültige Scores und beschädigte Zahlen werden vollständig abgelehnt.
+            </p>
+          </div>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".json,.csv,application/json,text/csv"
+            onChange={(event) => void readImportFile(event)}
+            style={{ display: 'none' }}
+          />
+          <button className="btn" disabled={ctx.experimentStatus.state === 'running'} onClick={() => importInputRef.current?.click()}>
+            ↑ Ergebnisdatei importieren
+          </button>
+        </div>
+
+        {ctx.experimentStatus.state === 'running' && (
+          <p className="hint" style={{ color: 'var(--bad)', marginBottom: 0 }}>
+            Import ist bis zum Ende des laufenden Experiments gesperrt, damit dessen Resultatliste nicht überschrieben wird.
+          </p>
+        )}
+
+        {importMessage && (
+          <div className="callout" style={{ marginTop: 12, borderColor: importMessage.kind === 'error' ? 'var(--bad)' : 'var(--good)' }}>
+            {importMessage.text}
+          </div>
+        )}
+
+        {importPreview && importPlan && (
+          <div style={{ marginTop: 16 }}>
+            <div className="grid cols-3" style={{ marginBottom: 12 }}>
+              <div><span className="hint">Datei</span><br /><strong>{importFileName}</strong></div>
+              <div><span className="hint">Geprüfter Inhalt</span><br /><strong>{importPreview.results.length} Trials · {importPreview.runIds.length} Messlauf/-läufe</strong></div>
+              <div><span className="hint">Format</span><br /><strong>{importPreview.format === 'submission-bundle' ? 'Abgabe-Paket' : importPreview.format.toUpperCase()}</strong></div>
+            </div>
+            <p className="hint" style={{ margin: '0 0 12px' }}>
+              Engines: {importPreview.engines.join(' · ')} · Messläufe: {importPreview.runIds.join(' · ')}
+            </p>
+            {importPreview.warnings.map((warning) => (
+              <div className="callout" key={warning} style={{ marginBottom: 8 }}><strong>Hinweis:</strong> {warning}</div>
+            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <select value={importMode} onChange={(event) => setImportMode(event.target.value as ResultsImportMode)} style={{ maxWidth: 360 }}>
+                <option value="merge">Zusammenführen – lokale Werte behalten</option>
+                <option value="replace-runs">Gleiche Messläufe vollständig ersetzen</option>
+                <option value="replace-all">Alle lokalen Messdaten ersetzen</option>
+              </select>
+              <button className="btn" onClick={applyImport} disabled={ctx.experimentStatus.state === 'running'}>
+                Import anwenden
+              </button>
+              <button className="btn sm" onClick={() => setImportPreview(null)}>Abbrechen</button>
+              <span className="hint">
+                Danach: {importPlan.results.length} lokal · +{importPlan.added} · −{importPlan.existingRemoved} · {importPlan.duplicatesSkipped} Dubletten
+                {importPlan.conflictsSkipped ? ` · ${importPlan.conflictsSkipped} Konflikte` : ''}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {empty ? (
         <div className="card">

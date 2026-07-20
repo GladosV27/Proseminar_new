@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Noesis</string>
+    <string name="title_activity_main">Noesis</string>
+    <string name="package_name">de.tudortmund.noesis</string>
+    <string name="custom_url_scheme">de.tudortmund.noesis</string>
+</resources>

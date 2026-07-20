@@ -1,8 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { AppCtx } from '../App'
 import { BASE_GRAPH } from '../data/graph'
 import { denseReady, getDenseIndex, loadDenseModel } from '../engine/embeddings'
 import { ExtractiveEngine, WASM_LLM_MODELS, WasmLLMEngine, WEBLLM_MODELS, WebLLMEngine } from '../engine/llm'
+import {
+  NATIVE_LLM_MODELS,
+  NativeLlmEngine,
+  type NativeLlmCapabilities,
+  type NativeModelStatus,
+} from '../engine/nativeLlm'
 import { runWebGpuPreflight, type DevicePreflightResult } from '../engine/devicePreflight'
 
 export default function Models({ ctx }: { ctx: AppCtx }) {
@@ -15,6 +21,25 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
   const [embedReady, setEmbedReady] = useState(() => denseReady())
   const [deviceCheck, setDeviceCheck] = useState<DevicePreflightResult | null>(null)
   const [deviceChecking, setDeviceChecking] = useState(false)
+  const [nativeCapabilities, setNativeCapabilities] = useState<NativeLlmCapabilities | null>(null)
+  const [nativeStatuses, setNativeStatuses] = useState<Record<string, NativeModelStatus>>({})
+  const nativeAvailable = NativeLlmEngine.supported()
+
+  useEffect(() => {
+    if (!nativeAvailable) return
+    let cancelled = false
+    void Promise.all([
+      NativeLlmEngine.capabilities(),
+      Promise.all(NATIVE_LLM_MODELS.map((model) => NativeLlmEngine.status(model.id))),
+    ]).then(([capabilities, statuses]) => {
+      if (cancelled) return
+      setNativeCapabilities(capabilities)
+      setNativeStatuses(Object.fromEntries(statuses.map((status) => [status.modelId, status])))
+    }).catch((err) => {
+      if (!cancelled) setError(`Native Geräteprüfung fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`)
+    })
+    return () => { cancelled = true }
+  }, [nativeAvailable])
 
   async function checkDevice(): Promise<DevicePreflightResult> {
     setDeviceChecking(true)
@@ -122,6 +147,45 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
     }
   }
 
+  async function loadNativeModel(modelId: string) {
+    if (loading) return
+    setError(null)
+    setLoading(modelId)
+    setProgress({ text: 'Prüfe privaten Modellspeicher …', pct: 0 })
+    try {
+      let downloaded = await NativeLlmEngine.isDownloaded(modelId)
+      if (!downloaded && !ctx.online) {
+        throw new Error('Offline-Modus: Dieses Modell wurde noch nicht vollständig in die APK geladen. Schalte nur für den einmaligen Download auf Online.')
+      }
+      if (!downloaded) {
+        await NativeLlmEngine.download(modelId, (text, pct) => setProgress({ text, pct }))
+        downloaded = true
+      }
+      if (!downloaded) throw new Error('Der Modelldownload wurde nicht vollständig verifiziert.')
+      setProgress({ text: 'Initialisiere LiteRT-LM auf der CPU …', pct: 0.98 })
+      const engine = new NativeLlmEngine(modelId)
+      await engine.load((text, pct) => setProgress({ text, pct }))
+      ctx.setEngine(engine)
+      const status = await NativeLlmEngine.status(modelId)
+      setNativeStatuses((current) => ({ ...current, [modelId]: status }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+      const statuses = await Promise.all(NATIVE_LLM_MODELS.map((model) => NativeLlmEngine.status(model.id)))
+        .catch(() => [] as NativeModelStatus[])
+      if (statuses.length) {
+        setNativeStatuses(Object.fromEntries(statuses.map((status) => [status.modelId, status])))
+        const currentNativeId = ctx.engine.id.startsWith('native:') ? ctx.engine.id.slice('native:'.length) : null
+        if (currentNativeId && statuses.find((status) => status.modelId === currentNativeId)?.state !== 'loaded') {
+          // LiteRT kann bei einem OOM-Wechsel die alte Engine bereits freigegeben
+          // haben. Kein unsichtbar defektes Modell als aktiv anzeigen.
+          ctx.setEngine(new ExtractiveEngine())
+        }
+      }
+    } finally {
+      setLoading(null)
+    }
+  }
+
   return (
     <div>
       <div className="eyebrow">On-Device-Inferenz</div>
@@ -139,6 +203,86 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
           ? 'Modell- und Embedding-Downloads sind erlaubt. Schalte nach der Bereitstellung wieder auf Offline.'
           : 'Vollständig zwischengespeicherte Modelle und Embeddings können geladen werden. Fehlt etwas im Cache, bleibt der Download gesperrt.'}
       </div>
+
+      {nativeAvailable && (
+        <>
+          <h2>Native Android-Modelle · ohne Browser-GPU</h2>
+          <div className="callout" style={{ marginBottom: 14, borderColor: 'var(--accent)' }}>
+            <strong>Echte APK-Laufzeit:</strong> LiteRT-LM rechnet standardmäßig mit vier CPU-Threads im privaten
+            App-Speicher. Dadurch ist der frühere WebGPU-/Vulkan-Fehler kein möglicher Abbruchpunkt mehr. Technische
+            Mindestversion ist Android&nbsp;7 (API&nbsp;24) auf einem 64-Bit-ARM-Gerät; die reale Geschwindigkeit hängt von
+            RAM und CPU des Handys ab.
+            {nativeCapabilities?.totalRamMB
+              ? ` Erkannt: ca. ${Math.round(nativeCapabilities.totalRamMB / 1024)} GB RAM.`
+              : ''}
+          </div>
+          {nativeCapabilities && !nativeCapabilities.supported && (
+            <div className="callout" style={{ marginBottom: 14, borderColor: 'var(--bad)' }}>
+              Dieses Gerät erfüllt die native Mindestanforderung nicht: {nativeCapabilities.reason ?? '64-Bit-Android erforderlich.'}
+            </div>
+          )}
+          <div className="grid cols-2" style={{ marginBottom: 22 }}>
+            {NATIVE_LLM_MODELS.map((model) => {
+              const status = nativeStatuses[model.id]
+              const active = ctx.engine.id === `native:${model.id}` && status?.state === 'loaded'
+              const isLoading = loading === model.id
+              const insufficientRam = Boolean(
+                nativeCapabilities?.totalRamMB
+                && nativeCapabilities.totalRamMB < model.minimumRamMB,
+              )
+              return (
+                <div
+                  className="card cpu-model-card"
+                  key={model.id}
+                  style={{ borderColor: model.tier === 'quality' ? 'var(--accent)' : undefined }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                    <h3 style={{ margin: 0 }}>{model.name}</h3>
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                      <span className="chip">{model.tier === 'quality' ? 'Beste Qualität' : 'Breite Kompatibilität'}</span>
+                      <span className="chip">{model.params}</span>
+                    </div>
+                  </div>
+                  <p className="hint" style={{ fontSize: 13 }}>
+                    {model.note} · Download ca. {model.downloadMB.toLocaleString('de-DE')} MB · empfohlen ab {Math.round(model.minimumRamMB / 1_000)} GB RAM.
+                  </p>
+                  <div className="callout cpu-model-truth">
+                    {status?.state === 'loaded'
+                      ? '✓ Modell ist geladen und vollständig offline einsatzbereit.'
+                      : status?.state === 'ready'
+                        ? '✓ Gewichte liegen geprüft im privaten App-Speicher.'
+                        : 'Der erste Download braucht Internet. Danach bleiben Prompt, Graph, Dokumente und Antwort vollständig auf dem Handy.'}
+                  </div>
+                  {insufficientRam && (
+                    <p className="hint model-compat-warning">
+                      Das erkannte RAM liegt unter der Empfehlung. Nutze für dieses Gerät das Mobile-Lite-Modell.
+                    </p>
+                  )}
+                  <button
+                    className="btn primary"
+                    disabled={nativeCapabilities?.supported === false || !!loading || active || insufficientRam}
+                    onClick={() => void loadNativeModel(model.id)}
+                  >
+                    {active
+                      ? '✓ Nativ aktiv'
+                      : isLoading
+                        ? 'Wird vorbereitet …'
+                        : status?.state === 'ready'
+                          ? 'Offline laden & aktivieren'
+                          : 'Sicher laden & installieren'}
+                  </button>
+                  {isLoading && (
+                    <div style={{ marginTop: 10 }}>
+                      <div className="progress"><div style={{ width: `${progress.pct * 100}%` }} /></div>
+                      <div className="hint" style={{ marginTop: 4, fontSize: 11.5 }}>{progress.text}</div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
 
       {!ctx.webgpu && (
         <div className="callout" style={{ marginBottom: 16 }}>
@@ -179,7 +323,7 @@ export default function Models({ ctx }: { ctx: AppCtx }) {
         </div>
       )}
 
-      <h2>Empfohlen auf dem Handy</h2>
+      <h2>{nativeAvailable ? 'Browser-CPU-Fallback' : 'Empfohlen auf dem Handy'}</h2>
       <div className="grid cols-2" style={{ marginBottom: 22 }}>
         {WASM_LLM_MODELS.map((m) => {
           const active = ctx.engine.id === m.id

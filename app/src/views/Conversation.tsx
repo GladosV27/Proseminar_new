@@ -651,7 +651,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
       setPhase('retrieval')
       const runner = new ExperimentRunner(graph)
       const chatCondition = resolveChatCondition(chatRetrievalMode, query, runner)
-      const compactLocal = ctx.engine.id.startsWith('wllama:')
+      const compactLocal = ctx.engine.id.startsWith('wllama:') || ctx.engine.id.startsWith('native:')
       const prepareOptions = {
         retrieval: ctx.retrieval,
         k: compactLocal ? 3 : 4,
@@ -707,7 +707,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
         (partial) => {
           if (!run.cancelled) updateMessage(assistantMessage.id, { text: partial })
         },
-        { maxTokens: compactLocal ? 144 : 170 },
+        { maxTokens: compactLocal ? 144 : 170, sampling: 'natural' },
       )
       if (run.cancelled) return null
       const completed = completeChatAnswer(result.text)
@@ -859,11 +859,14 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
     setVoiceLastQuestion('')
     setVoiceLastAnswer('')
     setVoiceError(null)
-    setVoiceNotice(null)
-    if (!ctx.online) {
-      setVoiceStage('offline')
+    if (!ctx.online && voiceCapabilities.recognitionProvider !== 'native-android') {
+      setVoiceNotice('Offline-Modus: Browser-Spracherkennung bleibt gesperrt, weil sie unbemerkt einen Online-Dienst verwenden kann. Nutze Texteingabe oder die Android-APK.')
+      setVoiceStage('unsupported')
       return
     }
+    setVoiceNotice(ctx.online
+      ? null
+      : 'Offline-Modus: Die APK bevorzugt ein installiertes Android-Sprachpaket. Falls dein Systemdienst Internet verlangt, bleibt Texteingabe als Fallback verfügbar.')
     if (!voiceCapabilities.recognition) {
       setVoiceStage('unsupported')
       return
@@ -906,7 +909,7 @@ export default function Conversation({ ctx, active }: { ctx: AppCtx; active: boo
   }
 
   function toggleVoiceMuted(): void {
-    if (!voiceCapabilities.synthesis) return
+    if (!voiceCapabilities.synthesis && !neuralVoiceReady) return
     const next = !voiceMutedRef.current
     voiceMutedRef.current = next
     setVoiceMuted(next)

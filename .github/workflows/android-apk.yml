@@ -1,0 +1,140 @@
+name: Android APK bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+      - "codex/**"
+    tags:
+      - "android-v*"
+    paths:
+      - "app/**"
+      - ".github/workflows/android-apk.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/android-apk.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android-apk:
+    name: Web-App und signierte native APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Java 21 einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Android SDK einrichten
+        uses: android-actions/setup-android@v3
+
+      - name: Android API 36 installieren
+        run: sdkmanager "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0"
+
+      - name: JavaScript-Abhaengigkeiten installieren
+        working-directory: app
+        run: npm ci
+
+      - name: Tests ausfuehren
+        working-directory: app
+        run: npm test
+
+      - name: Web-App bauen
+        working-directory: app
+        run: npm run build
+        env:
+          # Wie beim Pages-Build nur die öffentliche Supabase-Clientkonfiguration.
+          # Der Groq-Schlüssel bleibt ausschließlich in der Edge Function.
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+
+      - name: Capacitor-Projekt synchronisieren
+        working-directory: app
+        run: npx cap sync android
+
+      - name: Gradle Wrapper ausfuehrbar machen
+        run: chmod +x app/android/gradlew
+
+      - name: Stabilen Signierschlüssel vorbereiten
+        id: signing
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.NOESIS_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.NOESIS_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.NOESIS_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.NOESIS_KEY_PASSWORD }}
+        run: |
+          if [[ -n "$KEYSTORE_BASE64" && -n "$KEYSTORE_PASSWORD" && -n "$KEY_ALIAS" && -n "$KEY_PASSWORD" ]]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$GITHUB_WORKSPACE/app/android/noesis-release.jks"
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$KEYSTORE_BASE64" || -n "$KEYSTORE_PASSWORD" || -n "$KEY_ALIAS" || -n "$KEY_PASSWORD" ]]; then
+            echo "::error::Die Android-Signierung ist nur teilweise konfiguriert. Alle vier NOESIS_* Secrets werden benötigt."
+            exit 1
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Stabil signierte Release-APK bauen
+        if: steps.signing.outputs.available == 'true'
+        working-directory: app/android
+        env:
+          NOESIS_KEYSTORE_PATH: ${{ github.workspace }}/app/android/noesis-release.jks
+          NOESIS_KEYSTORE_PASSWORD: ${{ secrets.NOESIS_KEYSTORE_PASSWORD }}
+          NOESIS_KEY_ALIAS: ${{ secrets.NOESIS_KEY_ALIAS }}
+          NOESIS_KEY_PASSWORD: ${{ secrets.NOESIS_KEY_PASSWORD }}
+        run: ./gradlew :app:assembleRelease :app:lintRelease --stacktrace --no-daemon
+
+      - name: Debug-Fallback ohne Repository-Secrets bauen
+        if: steps.signing.outputs.available != 'true'
+        working-directory: app/android
+        run: ./gradlew :app:assembleDebug :app:lintDebug --stacktrace --no-daemon
+
+      - name: APK normalisieren und Signatur prüfen
+        shell: bash
+        run: |
+          if [[ "${{ steps.signing.outputs.available }}" == "true" ]]; then
+            cp app/android/app/build/outputs/apk/release/app-release.apk noesis-android.apk
+          else
+            cp app/android/app/build/outputs/apk/debug/app-debug.apk noesis-android.apk
+          fi
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs noesis-android.apk
+
+      - name: Installierbare APK als Artifact bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: noesis-android-${{ github.sha }}
+          path: noesis-android.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Dauerhaften GitHub-Release-Download veröffentlichen
+        if: startsWith(github.ref, 'refs/tags/android-v') && steps.signing.outputs.available == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --prerelease --title "Noesis Android $GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" noesis-android.apk#Noesis-Android.apk --clobber

@@ -12,6 +12,10 @@ source = source.replace(
   ].join('\n'),
 )
 source = source.replace(
+  /^import \{ shareableAppUrl \} from '\.\/appUrl'\r?$/m,
+  "const shareableAppUrl = () => new URL('https://gladosv27.github.io/Proseminar_new/')",
+)
+source = source.replace(
   /^const SUPABASE_URL = .*\r?\nconst SUPABASE_PUBLISHABLE_KEY = .*$/m,
   [
     "const SUPABASE_URL: string | undefined = 'https://test.supabase.co'",

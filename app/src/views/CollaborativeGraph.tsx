@@ -12,11 +12,12 @@ import {
 } from '../engine/liveQuiz'
 import { pullPersonalWikipedia, searchPersonalWikipedia } from '../engine/personalWikipedia'
 import { applyKnowledgeImport } from '../engine/store'
+import { shareableAppUrl } from '../engine/appUrl'
 
 type Role = 'landing' | 'host' | 'participant'
 
 function roomUrl(code: string): string {
-  const url = new URL(window.location.href)
+  const url = shareableAppUrl()
   url.search = ''
   url.hash = ''
   url.searchParams.set('graphroom', code)

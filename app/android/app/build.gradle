@@ -1,0 +1,92 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+def noesisKeystorePath = System.getenv('NOESIS_KEYSTORE_PATH')
+def noesisKeystorePassword = System.getenv('NOESIS_KEYSTORE_PASSWORD')
+def noesisKeyAlias = System.getenv('NOESIS_KEY_ALIAS')
+def noesisKeyPassword = System.getenv('NOESIS_KEY_PASSWORD')
+def noesisReleaseSigningReady = [
+    noesisKeystorePath,
+    noesisKeystorePassword,
+    noesisKeyAlias,
+    noesisKeyPassword,
+].every { value -> value != null && !value.trim().isEmpty() }
+
+android {
+    namespace = "de.tudortmund.noesis"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "de.tudortmund.noesis"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 100
+        versionName "1.0.0-preview.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            // LiteRT-LM 0.14 ships Android libraries for arm64-v8a and x86_64.
+            // The installable phone APK deliberately contains only the real-phone ABI.
+            abiFilters 'arm64-v8a'
+        }
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (noesisReleaseSigningReady) {
+            release {
+                storeFile file(noesisKeystorePath)
+                storePassword noesisKeystorePassword
+                keyAlias noesisKeyAlias
+                keyPassword noesisKeyPassword
+                enableV1Signing true
+                enableV2Signing true
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (noesisReleaseSigningReady) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation "com.google.ai.edge.litertlm:litertlm-android:0.14.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -11,11 +11,13 @@ import {
   normalizeExperimentSeed,
   ORDER_STRATEGY,
 } from '../engine/experiment'
+import { captureExecutionEnvironment } from '../engine/store'
 
 const SCORES: Score[] = ['korrekt', 'teilweise', 'falsch', 'enthaltung']
 
 export default function Experiment({ ctx }: { ctx: AppCtx }) {
   const running = ctx.experimentStatus.state === 'running'
+  const nativePilotEngine = ctx.engine.id.startsWith('native:')
   const progress = ctx.experimentStatus
   const [conditions, setConditions] = useState<Condition[]>([...CORE_CONDITIONS])
   const [repetitions, setRepetitions] = useState(3)
@@ -27,11 +29,12 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
     [...ctx.results].reverse().find((r) => r.questionId === qid && r.condition === c && r.engine === ctx.engine.id && r.retrieval === ctx.retrieval)
 
   async function runAll() {
-    if (running) return
+    if (running || nativePilotEngine) return
     const normalizedSeed = normalizeExperimentSeed(seed)
     const schedule = buildTrialSchedule(QUESTIONS, conditions, repetitions, normalizedSeed)
     const runId = `run_${Date.now().toString(36)}_s${normalizedSeed}_${Math.random().toString(36).slice(2, 6)}`
     const total = schedule.length
+    const executionEnvironment = captureExecutionEnvironment()
     let done = 0
     // Jeder Messlauf wird angehängt. runId + repetitionId halten Wiederholungen auseinander.
     const next: TrialResult[] = [...ctx.results]
@@ -56,7 +59,7 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
             orderStrategy: ORDER_STRATEGY,
           },
         })
-        next.push(result)
+        next.push({ ...result, executionEnvironment })
         ctx.setResults([...next])
       } catch (err) {
         console.error(err)
@@ -87,6 +90,17 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
         <strong>ausschließlich den eingefrorenen Experiment-Korpus</strong>; eigenes und recherchiertes Wissen bleibt
         außen vor.
       </p>
+
+      {nativePilotEngine && (
+        <div className="card" style={{ borderColor: 'var(--accent)', marginBottom: 14 }}>
+          <strong>Mobile Engine = Produktdemo/Pilot, nicht Hauptmessung</strong>
+          <p className="hint" style={{ margin: '6px 0 0' }}>
+            Das kurze Kontextfenster und die mobile Tokenbegrenzung würden Retrieval-Methode und Modell gleichzeitig
+            verändern. Wähle für einen wissenschaftlich vergleichbaren Hauptlauf dieselbe Desktop-/WebLLM-Engine für
+            alle Bedingungen. Die APK bleibt für den vollständig lokalen Noesis-Chat und explorative Einzeltests da.
+          </p>
+        </div>
+      )}
 
       <div className="card" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -133,7 +147,7 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
           />
         </label>
         {!running ? (
-          <button className="btn primary" onClick={runAll} disabled={conditions.length === 0 || !Number.isFinite(seed)}>
+          <button className="btn primary" onClick={runAll} disabled={nativePilotEngine || conditions.length === 0 || !Number.isFinite(seed)}>
             ▶ Durchlauf starten
           </button>
         ) : (

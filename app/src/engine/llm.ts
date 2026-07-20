@@ -25,6 +25,8 @@ export interface GenerateResult {
 export interface GenerateOptions {
   /** Per-call cap; experiment runs omit it and retain their frozen defaults. */
   maxTokens?: number
+  /** Natürlicheres Sampling nur im Produktchat; Messläufe bleiben deterministisch. */
+  sampling?: 'deterministic' | 'natural'
 }
 
 export interface LLMEngine {
@@ -309,13 +311,20 @@ export class WasmLLMEngine implements LLMEngine {
       { allowOffline: true, parallelDownloads: 1, logger: LoggerWithoutDebug, suppressNativeLog: true },
     )
 
+    // Mehrere WASM-Threads sind nur mit Cross-Origin-Isolation sicher
+    // verfügbar. Der lokale Vortragsserver setzt COOP/COEP; GitHub Pages
+    // kann diese Header nicht setzen und bleibt deshalb bei einem Thread.
+    const cpuThreads = globalThis.crossOriginIsolated
+      ? Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))
+      : 1
+
     await runtime.loadModelFromUrl(model.url, {
       // Erzwingt den Vulkan-unabhängigen Pfad. Auf GitHub Pages ist bewusst
       // ein Thread gesetzt, weil dort keine COOP/COEP-Header konfigurierbar sind.
       n_gpu_layers: 0,
-      n_threads: 1,
+      n_threads: cpuThreads,
       n_ctx: WASM_LLM_CONTEXT_TOKENS,
-      n_batch: 128,
+      n_batch: cpuThreads > 1 ? 256 : 128,
       useCache: true,
       progressCallback: ({ loaded, total }) => {
         const pct = total > 0 ? Math.min(1, loaded / total) : 0

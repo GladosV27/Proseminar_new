@@ -8,6 +8,8 @@
  * enabling the microphone.
  */
 
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
+
 export const VOICE_PRIVACY_NOTICE_DE =
   'Spracherkennung und Vorlesen werden vom Browser bzw. Betriebssystem bereitgestellt. Je nach Gerät können dabei Online-Dienste des Anbieters genutzt werden; die App kann eine rein lokale Verarbeitung deshalb nicht garantieren.'
 
@@ -43,6 +45,7 @@ export class VoiceRecognitionError extends Error {
 
 export interface VoiceCapabilities {
   recognition: boolean
+  recognitionProvider: 'native-android' | 'web-speech' | 'none'
   synthesis: boolean
   /** This can never be inferred reliably from browser feature detection. */
   guaranteedOffline: false
@@ -93,6 +96,46 @@ interface RecognitionLike {
 
 type RecognitionConstructor = new () => RecognitionLike
 
+interface NativeSpeechTranscriptEvent {
+  text: string
+  final: boolean
+  confidence?: number
+}
+
+interface NativeSpeechErrorEvent {
+  error?: string
+  nativeCode?: number
+}
+
+interface NativeSpeechStateEvent {
+  state: RecognitionSessionState
+}
+
+interface NativeSpeechPlugin {
+  isAvailable(): Promise<{ available: boolean }>
+  startListening(options: { lang: string; interimResults: boolean }): Promise<{ started: boolean }>
+  stopListening(): Promise<void>
+  abortListening(): Promise<void>
+  addListener(
+    eventName: 'nativeSpeechTranscript',
+    listener: (event: NativeSpeechTranscriptEvent) => void,
+  ): Promise<PluginListenerHandle>
+  addListener(
+    eventName: 'nativeSpeechError',
+    listener: (event: NativeSpeechErrorEvent) => void,
+  ): Promise<PluginListenerHandle>
+  addListener(
+    eventName: 'nativeSpeechState',
+    listener: (event: NativeSpeechStateEvent) => void,
+  ): Promise<PluginListenerHandle>
+}
+
+const NativeSpeech = registerPlugin<NativeSpeechPlugin>('NoesisSpeech')
+
+function nativeSpeechPlatform(): boolean {
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
+}
+
 function recognitionConstructor(): RecognitionConstructor | null {
   if (typeof window === 'undefined') return null
   const candidate = window as unknown as {
@@ -103,7 +146,7 @@ function recognitionConstructor(): RecognitionConstructor | null {
 }
 
 export function voiceRecognitionAvailable(): boolean {
-  return recognitionConstructor() !== null
+  return nativeSpeechPlatform() || recognitionConstructor() !== null
 }
 
 export function speechSynthesisAvailable(): boolean {
@@ -116,8 +159,11 @@ export function speechSynthesisAvailable(): boolean {
 
 export function getVoiceCapabilities(): VoiceCapabilities {
   const voices = speechSynthesisAvailable() ? window.speechSynthesis.getVoices() : []
+  const nativeRecognition = nativeSpeechPlatform()
+  const webRecognition = recognitionConstructor() !== null
   return {
-    recognition: voiceRecognitionAvailable(),
+    recognition: nativeRecognition || webRecognition,
+    recognitionProvider: nativeRecognition ? 'native-android' : webRecognition ? 'web-speech' : 'none',
     synthesis: speechSynthesisAvailable(),
     guaranteedOffline: false,
     localGermanVoiceAvailable: voices.some(
@@ -236,6 +282,7 @@ function classifyRecognitionError(event: RecognitionErrorEventLike): VoiceRecogn
  * errors or `abort()`.
  */
 export function startRecognitionSession(options: RecognitionSessionOptions = {}): RecognitionSession {
+  if (nativeSpeechPlatform()) return startNativeRecognitionSession(options)
   const Constructor = recognitionConstructor()
   if (!Constructor) {
     const error = new VoiceRecognitionError(
@@ -375,6 +422,125 @@ export function startRecognitionSession(options: RecognitionSessionOptions = {})
           'aborted',
         )
       }
+    },
+    getState: () => state,
+  }
+}
+
+function startNativeRecognitionSession(options: RecognitionSessionOptions): RecognitionSession {
+  let state: RecognitionSessionState = 'starting'
+  let settled = false
+  let latest = ''
+  let abortRequested = false
+  let stopRequested = false
+  let nativeStarted = false
+  let resolveResult: (text: string) => void = () => undefined
+  let rejectResult: (error: VoiceRecognitionError) => void = () => undefined
+  const handles: PluginListenerHandle[] = []
+
+  const updateState = (next: RecognitionSessionState) => {
+    state = next
+    options.onStateChange?.(next)
+  }
+  const cleanup = async () => {
+    const pending = handles.splice(0).map((handle) => handle.remove())
+    await Promise.allSettled(pending)
+  }
+  const resolveOnce = (text: string) => {
+    if (settled) return
+    settled = true
+    updateState('ended')
+    void cleanup()
+    resolveResult(text.trim())
+  }
+  const rejectOnce = (error: VoiceRecognitionError, terminal: RecognitionSessionState = 'error') => {
+    if (settled) return
+    settled = true
+    updateState(terminal)
+    void cleanup()
+    rejectResult(error)
+  }
+  const result = new Promise<string>((resolve, reject) => {
+    resolveResult = resolve
+    rejectResult = reject
+  })
+
+  void (async () => {
+    try {
+      const transcriptHandle = await NativeSpeech.addListener('nativeSpeechTranscript', (event) => {
+        latest = event.text.trim()
+        const transcript: VoiceTranscript = event.final
+          ? { final: latest, interim: '', combined: latest, confidence: event.confidence }
+          : { final: '', interim: latest, combined: latest, confidence: event.confidence }
+        options.onTranscript?.(transcript)
+        if (event.final) resolveOnce(latest)
+      })
+      if (settled || abortRequested) { await transcriptHandle.remove(); return }
+      handles.push(transcriptHandle)
+
+      const errorHandle = await NativeSpeech.addListener('nativeSpeechError', (event) => {
+        const error = classifyRecognitionError({ error: event.error })
+        rejectOnce(error, error.code === 'aborted' ? 'aborted' : 'error')
+      })
+      if (settled || abortRequested) { await errorHandle.remove(); await cleanup(); return }
+      handles.push(errorHandle)
+
+      const stateHandle = await NativeSpeech.addListener('nativeSpeechState', (event) => {
+        if (settled) return
+        if (event.state === 'ended') resolveOnce(latest)
+        else if (event.state === 'aborted' && abortRequested) {
+          rejectOnce(new VoiceRecognitionError('aborted', 'Die Spracherkennung wurde beendet.', { recoverable: true }), 'aborted')
+        } else updateState(event.state)
+      })
+      if (settled || abortRequested) { await stateHandle.remove(); await cleanup(); return }
+      handles.push(stateHandle)
+
+      const available = await NativeSpeech.isAvailable()
+      if (settled || abortRequested) { await cleanup(); return }
+      if (!available.available) throw new Error('Auf diesem Android-Gerät ist kein Spracherkennungsdienst verfügbar.')
+      await NativeSpeech.startListening({
+        lang: options.lang ?? 'de-DE',
+        interimResults: options.interimResults ?? true,
+      })
+      nativeStarted = true
+      if (settled || abortRequested) {
+        await NativeSpeech.abortListening().catch(() => undefined)
+        await cleanup()
+      } else if (stopRequested) {
+        await NativeSpeech.stopListening()
+      }
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause)
+      const denied = /Mikrofon|permission|PERMISSION_DENIED/i.test(message)
+      rejectOnce(
+        new VoiceRecognitionError(
+          denied ? 'permission-denied' : 'service-blocked',
+          denied ? 'Der Mikrofonzugriff wurde nicht erlaubt.' : message,
+          { cause },
+        ),
+      )
+    }
+  })()
+
+  return {
+    result,
+    stop: () => {
+      if (settled || state === 'stopping') return
+      stopRequested = true
+      updateState('stopping')
+      if (!nativeStarted) return
+      void NativeSpeech.stopListening().catch((cause) => {
+        rejectOnce(new VoiceRecognitionError('unknown', 'Die Spracherkennung konnte nicht sauber beendet werden.', {
+          recoverable: true,
+          cause,
+        }))
+      })
+    },
+    abort: () => {
+      if (settled) return
+      abortRequested = true
+      void NativeSpeech.abortListening().catch(() => undefined)
+      rejectOnce(new VoiceRecognitionError('aborted', 'Die Spracherkennung wurde beendet.', { recoverable: true }), 'aborted')
     },
     getState: () => state,
   }
