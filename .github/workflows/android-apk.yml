@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - "main"
-      - "codex/**"
+      - "android-apk-mobile-performance"
     tags:
       - "android-v*"
     paths:
