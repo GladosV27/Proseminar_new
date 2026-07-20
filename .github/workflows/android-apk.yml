@@ -115,17 +115,17 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ steps.signing.outputs.available }}" == "true" ]]; then
-            cp app/android/app/build/outputs/apk/release/app-release.apk noesis-android.apk
+            cp app/android/app/build/outputs/apk/release/app-release.apk Noesis-Android.apk
           else
-            cp app/android/app/build/outputs/apk/debug/app-debug.apk noesis-android.apk
+            cp app/android/app/build/outputs/apk/debug/app-debug.apk Noesis-Android.apk
           fi
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs noesis-android.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs Noesis-Android.apk
 
       - name: Installierbare APK als Artifact bereitstellen
         uses: actions/upload-artifact@v4
         with:
           name: noesis-android-${{ github.sha }}
-          path: noesis-android.apk
+          path: Noesis-Android.apk
           if-no-files-found: error
           retention-days: 90
 
@@ -137,4 +137,4 @@ jobs:
         run: |
           gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
             gh release create "$GITHUB_REF_NAME" --prerelease --title "Noesis Android $GITHUB_REF_NAME" --generate-notes
-          gh release upload "$GITHUB_REF_NAME" noesis-android.apk#Noesis-Android.apk --clobber
+          gh release upload "$GITHUB_REF_NAME" Noesis-Android.apk --clobber
