@@ -88,6 +88,8 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .brand {
   font-family: var(--serif);

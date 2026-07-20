@@ -476,7 +476,12 @@ export function aggregate(results: TrialResult[], byCondition: Condition[]): Agg
 export interface PairedComparison {
   a: Condition
   b: Condition
+  /** Unabhängigere Fragecluster mit eindeutiger Mehrheitsentscheidung. */
   pairs: number
+  /** Vollständige Trial-Paare; nur deskriptiv und für Laufzeitmetriken. */
+  trialPairs: number
+  /** Fragecluster ohne eindeutige Mehrheit in mindestens einer Bedingung. */
+  excludedTies: number
   accuracyA: number
   accuracyB: number
   delta: number
@@ -485,16 +490,85 @@ export interface PairedComparison {
   mcnemarExactP: number | null
 }
 
-/** Gepaarter Vergleich derselben Frage, Wiederholung, Engine und desselben Laufs. */
+export interface QuestionClusterSummary {
+  /** Alle vorhandenen Fragecluster einschließlich Gleichständen. */
+  clusters: number
+  /** Cluster mit eindeutiger Mehrheitsentscheidung; Nenner der Accuracy. */
+  n: number
+  correct: number
+  accuracy: number
+  ties: number
+  /** Einzeltrials im Cluster; nur deskriptiv. */
+  trials: number
+}
+
+function questionClusterKey(r: TrialResult): string {
+  return `${r.runId}|${r.questionId}|${r.engine}|${r.retrieval}`
+}
+
+function majorityCorrect(rows: readonly TrialResult[]): boolean | null {
+  const correct = rows.filter((row) => effectiveScore(row) === 'korrekt').length
+  const incorrect = rows.length - correct
+  if (correct === incorrect) return null
+  return correct > incorrect
+}
+
+/**
+ * Accuracy auf Ebene einzigartiger Fragen. Wiederholungen werden innerhalb
+ * eines Run/Engine/Retrieval-Clusters per Mehrheit zusammengefasst. Bei einem
+ * Gleichstand wird das Cluster transparent aus der binären Inferenz entfernt.
+ */
+export function questionClusterSummary(results: TrialResult[]): QuestionClusterSummary {
+  const clusters = new Map<string, TrialResult[]>()
+  for (const result of results) {
+    const key = questionClusterKey(result)
+    const rows = clusters.get(key) ?? []
+    rows.push(result)
+    clusters.set(key, rows)
+  }
+  const outcomes = [...clusters.values()].map(majorityCorrect)
+  const decided = outcomes.filter((value): value is boolean => value !== null)
+  const correct = decided.filter(Boolean).length
+  return {
+    clusters: outcomes.length,
+    n: decided.length,
+    correct,
+    accuracy: decided.length ? correct / decided.length : 0,
+    ties: outcomes.length - decided.length,
+    trials: results.length,
+  }
+}
+
+/**
+ * Primärer gepaarter Genauigkeitsvergleich auf Ebene einzigartiger Fragen.
+ * Trial-Paare derselben Wiederholung werden nur noch deskriptiv gezählt.
+ */
 export function pairedComparison(results: TrialResult[], a: Condition, b: Condition): PairedComparison {
-  const key = (r: TrialResult) => `${r.runId}|${r.repetition}|${r.questionId}|${r.engine}|${r.retrieval}`
-  const bs = new Map(results.filter((r) => r.condition === b).map((r) => [key(r), r]))
-  const pairs = results.filter((r) => r.condition === a).map((ra) => [ra, bs.get(key(ra))] as const).filter((pair): pair is readonly [TrialResult, TrialResult] => Boolean(pair[1]))
-  const correct = (r: TrialResult) => effectiveScore(r) === 'korrekt'
-  const aCorrect = pairs.filter(([ra]) => correct(ra)).length
-  const bCorrect = pairs.filter(([, rb]) => correct(rb)).length
-  const aOnlyCorrect = pairs.filter(([ra, rb]) => correct(ra) && !correct(rb)).length
-  const bOnlyCorrect = pairs.filter(([ra, rb]) => !correct(ra) && correct(rb)).length
+  const trialKey = (r: TrialResult) => `${questionClusterKey(r)}|${r.repetition}`
+  const trialBs = new Set(results.filter((r) => r.condition === b).map(trialKey))
+  const trialPairs = results.filter((r) => r.condition === a && trialBs.has(trialKey(r))).length
+
+  const clustered = (condition: Condition) => {
+    const map = new Map<string, TrialResult[]>()
+    for (const result of results.filter((row) => row.condition === condition)) {
+      const key = questionClusterKey(result)
+      const rows = map.get(key) ?? []
+      rows.push(result)
+      map.set(key, rows)
+    }
+    return new Map([...map].map(([key, rows]) => [key, majorityCorrect(rows)] as const))
+  }
+  const as = clustered(a)
+  const bs = clustered(b)
+  const sharedKeys = [...as.keys()].filter((key) => bs.has(key))
+  const excludedTies = sharedKeys.filter((key) => as.get(key) === null || bs.get(key) === null).length
+  const pairs = sharedKeys
+    .map((key) => [as.get(key), bs.get(key)] as const)
+    .filter((pair): pair is readonly [boolean, boolean] => pair[0] !== null && pair[1] !== null)
+  const aCorrect = pairs.filter(([aOutcome]) => aOutcome).length
+  const bCorrect = pairs.filter(([, bOutcome]) => bOutcome).length
+  const aOnlyCorrect = pairs.filter(([aOutcome, bOutcome]) => aOutcome && !bOutcome).length
+  const bOnlyCorrect = pairs.filter(([aOutcome, bOutcome]) => !aOutcome && bOutcome).length
   const discordant = aOnlyCorrect + bOnlyCorrect
   let p: number | null = null
   if (discordant > 0) {
@@ -508,7 +582,7 @@ export function pairedComparison(results: TrialResult[], a: Condition, b: Condit
     p = Math.min(1, 2 * tail)
   }
   return {
-    a, b, pairs: pairs.length,
+    a, b, pairs: pairs.length, trialPairs, excludedTies,
     accuracyA: pairs.length ? aCorrect / pairs.length : 0,
     accuracyB: pairs.length ? bCorrect / pairs.length : 0,
     delta: pairs.length ? (aCorrect - bCorrect) / pairs.length : 0,

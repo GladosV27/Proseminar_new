@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type SetStateAction } from 'react'
 import type { KnowledgeGraph, RetrievalMode, TrialResult } from './data/types'
 import { BASE_GRAPH } from './data/graph'
 import { ExperimentRunner } from './engine/experiment'
@@ -117,7 +117,7 @@ export interface AppCtx {
   retrieval: RetrievalMode
   setRetrieval: (m: RetrievalMode) => void
   results: TrialResult[]
-  setResults: (r: TrialResult[]) => void
+  setResults: (next: SetStateAction<TrialResult[]>) => void
   custom: CustomKnowledge
   setCustom: (c: CustomKnowledge) => void
   webgpu: boolean
@@ -144,7 +144,7 @@ export default function App() {
   const seminarOnline = seminarOnlineConfigured(seminarRoom)
   const nativeApp = useRef(NativeLlmEngine.supported()).current
   const [view, setView] = useState<ViewId>(() => (
-    localLab ? 'experiment' : liveQuiz ? 'livequiz' : collaborativeRoom ? 'collab' : 'chat'
+    nativeApp ? 'chat' : localLab ? 'experiment' : liveQuiz ? 'livequiz' : collaborativeRoom ? 'collab' : 'chat'
   ))
   // Der Fokusmodus folgt der aktuellen Ansicht, nicht dem nur beim Start
   // gelesenen Query-Parameter. Sonst bliebe ein QR-Gast nach dem Verlassen
@@ -160,6 +160,10 @@ export default function App() {
   )
   const [custom, setCustomState] = useState<CustomKnowledge>(() => loadCustomKnowledge())
   const [results, setResultsState] = useState<TrialResult[]>(() => loadResults())
+  // Lange Messläufe und manuelle Bewertungen können sich zeitlich
+  // überlappen. Die Ref erlaubt atomare funktionale Updates, ohne dass eine
+  // alte Render-Closure einen inzwischen bewerteten Trial wieder überschreibt.
+  const resultsRef = useRef(results)
   const [engine, setEngineState] = useState<LLMEngine>(() =>
     seminarOnline && seminarRoom ? new SeminarOnlineEngine(seminarRoom) : new ExtractiveEngine(),
   )
@@ -194,7 +198,10 @@ export default function App() {
     void loadDurableState().then((state) => {
       if (cancelled) return
       if (state.custom) setCustomState(state.custom)
-      if (state.results) setResultsState(state.results)
+      if (state.results) {
+        resultsRef.current = state.results
+        setResultsState(state.results)
+      }
     })
     return () => { cancelled = true }
   }, [])
@@ -287,8 +294,10 @@ export default function App() {
     setResults: (next) => {
       // Erst dauerhaft speichern. So zeigt auch ein großer Dateiimport bei
       // localStorage-/Quota-Fehlern niemals einen nur scheinbar gesicherten Stand.
-      saveResults(next)
-      setResultsState(next)
+      const resolved = typeof next === 'function' ? next(resultsRef.current) : next
+      saveResults(resolved)
+      resultsRef.current = resolved
+      setResultsState(resolved)
     },
     custom,
     setCustom: (next) => {

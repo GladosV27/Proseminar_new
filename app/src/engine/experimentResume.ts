@@ -1,14 +1,22 @@
 import type { Condition, RetrievalMode, TrialModelProvenance, TrialResult } from '../data/types'
 import type { ScheduledTrial } from './experiment'
 
-const CHECKPOINT_KEY = 'graphrag.experiment-checkpoint.v1'
+const CHECKPOINT_KEY = 'graphrag.experiment-checkpoint.v2'
+
+export interface ExperimentCheckpointSettings {
+  retrieval: RetrievalMode
+  conditions: Condition[]
+  repetitions: number
+  seed: number
+}
 
 export interface ExperimentCheckpoint {
-  version: 1
+  version: 2
   runId: string
   configFingerprint: string
   createdAt: number
   total: number
+  settings: ExperimentCheckpointSettings
 }
 
 export interface ExperimentFingerprintInput {
@@ -69,21 +77,42 @@ export function pendingTrials(
   return { pending, completed: schedule.length - pending.length }
 }
 
-export function newCheckpoint(configFingerprint: string, total: number, now = Date.now()): ExperimentCheckpoint {
+export function newCheckpoint(
+  configFingerprint: string,
+  total: number,
+  settings: ExperimentCheckpointSettings,
+  now = Date.now(),
+): ExperimentCheckpoint {
   return {
-    version: 1,
+    version: 2,
     runId: `run_${now.toString(36)}_${configFingerprint}`,
     configFingerprint,
     createdAt: now,
     total,
+    settings: {
+      ...settings,
+      conditions: [...settings.conditions],
+    },
   }
 }
 
 export function loadCheckpoint(storage: Pick<Storage, 'getItem'> = localStorage): ExperimentCheckpoint | null {
   try {
     const value = JSON.parse(storage.getItem(CHECKPOINT_KEY) ?? 'null') as Partial<ExperimentCheckpoint> | null
-    if (!value || value.version !== 1 || typeof value.runId !== 'string' || typeof value.configFingerprint !== 'string') return null
+    if (!value || value.version !== 2 || typeof value.runId !== 'string' || typeof value.configFingerprint !== 'string') return null
     if (!Number.isFinite(value.createdAt) || !Number.isInteger(value.total) || (value.total ?? 0) < 1) return null
+    const settings = value.settings
+    const validConditions = new Set<Condition>(['baseline', 'vector', 'graph', 'vector_budget', 'hybrid', 'graph_no_edges'])
+    if (
+      !settings ||
+      (settings.retrieval !== 'tfidf' && settings.retrieval !== 'dense') ||
+      !Array.isArray(settings.conditions) ||
+      settings.conditions.length < 1 ||
+      new Set(settings.conditions).size !== settings.conditions.length ||
+      settings.conditions.some((condition) => !validConditions.has(condition)) ||
+      !Number.isInteger(settings.repetitions) || settings.repetitions < 1 || settings.repetitions > 10 ||
+      !Number.isInteger(settings.seed) || settings.seed < 0 || settings.seed > 4_294_967_295
+    ) return null
     return value as ExperimentCheckpoint
   } catch {
     return null

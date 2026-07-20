@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AppCtx } from '../App'
 import type { Condition, Score, TrialResult } from '../data/types'
 import { vibrate } from '../components/effects'
 import OllamaLabPanel from '../components/OllamaLabPanel'
+import { BASE_GRAPH } from '../data/graph'
 import { CATEGORY_LABELS, QUESTIONS } from '../data/questions'
 import {
   ALL_CONDITIONS,
@@ -22,6 +23,7 @@ import {
   type ExperimentCheckpoint,
 } from '../engine/experimentResume'
 import { OllamaEngine } from '../engine/ollama'
+import { getDenseIndex, loadDenseModel } from '../engine/embeddings'
 import { captureExecutionEnvironment } from '../engine/store'
 
 const SCORES: Score[] = ['korrekt', 'teilweise', 'falsch', 'enthaltung']
@@ -31,13 +33,32 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
   const nativePilotEngine = ctx.engine.id.startsWith('native:')
   const ollamaReady = ctx.engine instanceof OllamaEngine && Boolean(ctx.engine.getProvenance())
   const progress = ctx.experimentStatus
-  const [conditions, setConditions] = useState<Condition[]>([...CORE_CONDITIONS])
-  const [repetitions, setRepetitions] = useState(3)
-  const [seed, setSeed] = useState(20260616)
-  const [lastRunId, setLastRunId] = useState<string | null>(null)
   const [checkpoint, setCheckpoint] = useState<ExperimentCheckpoint | null>(() => loadCheckpoint())
+  const [conditions, setConditions] = useState<Condition[]>(() => checkpoint?.settings.conditions ?? [...CORE_CONDITIONS])
+  const [repetitions, setRepetitions] = useState(() => checkpoint?.settings.repetitions ?? 3)
+  const [seed, setSeed] = useState(() => checkpoint?.settings.seed ?? 20260616)
+  const [lastRunId, setLastRunId] = useState<string | null>(null)
   const [runError, setRunError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('alle')
+  const checkpointSettingsRestored = useRef(false)
+
+  useEffect(() => {
+    if (checkpointSettingsRestored.current || !checkpoint) return
+    checkpointSettingsRestored.current = true
+    ctx.setRetrieval(checkpoint.settings.retrieval)
+  }, [checkpoint, ctx])
+
+  const currentFingerprint = ollamaReady && ctx.engine instanceof OllamaEngine
+    ? experimentConfigFingerprint({
+        engineId: ctx.engine.id,
+        modelProvenance: ctx.engine.getProvenance(),
+        retrieval: ctx.retrieval,
+        conditions,
+        repetitions,
+        seed: normalizeExperimentSeed(seed),
+      })
+    : null
+  const checkpointCompatible = Boolean(checkpoint && currentFingerprint === checkpoint.configFingerprint)
 
   const resultFor = (qid: string, c: Condition) =>
     [...ctx.results].reverse().find((r) => r.questionId === qid && r.condition === c && r.engine === ctx.engine.id && r.retrieval === ctx.retrieval)
@@ -45,14 +66,6 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
   async function runAll() {
     if (running || !ollamaReady || !(ctx.engine instanceof OllamaEngine)) return
     setRunError(null)
-    try {
-      // Unmittelbar vor der ersten Messung nochmals prüfen und vorwärmen. Bei
-      // einem Fehler wird der Lauf nicht begonnen und niemals still ersetzt.
-      await ctx.engine.load()
-    } catch (err) {
-      setRunError(err instanceof Error ? err.message : String(err))
-      return
-    }
     const normalizedSeed = normalizeExperimentSeed(seed)
     const schedule = buildTrialSchedule(QUESTIONS, conditions, repetitions, normalizedSeed)
     const fingerprint = experimentConfigFingerprint({
@@ -65,21 +78,47 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
     })
     const activeCheckpoint = checkpoint?.configFingerprint === fingerprint
       ? checkpoint
-      : newCheckpoint(fingerprint, schedule.length)
+      : newCheckpoint(fingerprint, schedule.length, {
+          retrieval: ctx.retrieval,
+          conditions,
+          repetitions,
+          seed: normalizedSeed,
+        })
     if (activeCheckpoint !== checkpoint) {
       saveCheckpoint(activeCheckpoint)
       setCheckpoint(activeCheckpoint)
     }
     const runId = activeCheckpoint.runId
     const total = schedule.length
+    setLastRunId(runId)
+    // Die globale Laufmarkierung beginnt bereits bei der Vorprüfung. Dadurch
+    // kann beim Seitenwechsel weder ein zweiter Lauf gestartet noch parallel
+    // in den Ergebnisbestand importiert werden.
+    ctx.beginExperiment(runId, total)
+    try {
+      // Unmittelbar vor der ersten Messung nochmals prüfen und vorwärmen. Bei
+      // einem Fehler wird der Lauf nicht begonnen und niemals still ersetzt.
+      await ctx.engine.load((text) => ctx.updateExperiment(0, text))
+      // Dense-Retrieval muss VOR dem ersten Baseline-Trial vollständig bereit
+      // sein. Sonst würde ein Nachtlauf erst Teilergebnisse erzeugen und beim
+      // ersten Vektor-Trial wegen des fehlenden Embedding-Modells abbrechen.
+      if (ctx.retrieval === 'dense') {
+        await loadDenseModel((text, pct) =>
+          ctx.updateExperiment(0, `${text}${pct > 0 ? ` · ${Math.round(pct * 100)} %` : ''}`),
+        )
+        await getDenseIndex(BASE_GRAPH).ensureBuilt((done, corpusTotal) =>
+          ctx.updateExperiment(0, `Dense-Korpus wird eingebettet · ${done}/${corpusTotal}`),
+        )
+      }
+    } catch (err) {
+      setRunError(err instanceof Error ? err.message : String(err))
+      ctx.finishExperiment('cancelled')
+      return
+    }
     const executionEnvironment = captureExecutionEnvironment()
     const resume = pendingTrials(schedule, ctx.results, activeCheckpoint, ctx.engine.id, ctx.retrieval)
     let done = resume.completed
     let failed = false
-    // Jeder Messlauf wird angehängt. runId + repetitionId halten Wiederholungen auseinander.
-    const next: TrialResult[] = [...ctx.results]
-    setLastRunId(runId)
-    ctx.beginExperiment(runId, total)
     if (done > 0) ctx.updateExperiment(done, `${done} vorhandene Trials übersprungen`)
     for (const trial of resume.pending) {
       if (ctx.experimentCancelled()) break
@@ -100,8 +139,9 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
             orderStrategy: ORDER_STRATEGY,
           },
         })
-        next.push({ ...result, executionEnvironment })
-        ctx.setResults([...next])
+        // Funktionales Anhängen verhindert, dass parallel vorgenommene
+        // manuelle Bewertungen durch eine alte Lauf-Closure verloren gehen.
+        ctx.setResults((current) => [...current, { ...result, executionEnvironment }])
       } catch (err) {
         console.error(err)
         failed = true
@@ -125,7 +165,7 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
   }
 
   function setManual(id: string, s: Score | '') {
-    ctx.setResults(ctx.results.map((r) => (r.id === id ? { ...r, manualScore: s === '' ? undefined : s } : r)))
+    ctx.setResults((current) => current.map((r) => (r.id === id ? { ...r, manualScore: s === '' ? undefined : s } : r)))
   }
 
   const shown = QUESTIONS.filter((q) => filter === 'alle' || q.category === filter)
@@ -212,7 +252,7 @@ export default function Experiment({ ctx }: { ctx: AppCtx }) {
         </label>
         {!running ? (
           <button className="btn primary" onClick={runAll} disabled={nativePilotEngine || conditions.length === 0 || !ollamaReady || !Number.isFinite(seed)}>
-            ▶ {checkpoint ? 'Durchlauf fortsetzen' : 'Durchlauf starten'}
+            ▶ {checkpointCompatible ? 'Durchlauf fortsetzen' : 'Durchlauf starten'}
           </button>
         ) : (
           <button className="btn" onClick={ctx.cancelExperiment}>

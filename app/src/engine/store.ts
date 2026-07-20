@@ -444,6 +444,10 @@ export function exportSubmissionBundle(results: TrialResult[]): string {
 export function exportResultsCsv(results: TrialResult[]): string {
   const head =
     'id;runId;repetitionId;repetition;order;seed;questionOrder;conditionOrder;orderStrategy;questionId;condition;retrieval;engine;autoScore;manualScore;blindA;blindB;latencyMs;latencyScope;prepareMs;retrievalMs;generationMs;contextChars;evidenceRecall;evidencePrecision;retrievedIds;timestamp;executionEnvironment;generationMetrics;modelProvenance;answer'
+  const csvCell = (value: unknown): string => {
+    const text = String(value ?? '')
+    return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
+  }
   const rows = results.map((r) =>
     [
       r.id,
@@ -473,11 +477,11 @@ export function exportResultsCsv(results: TrialResult[]): string {
       r.evidencePrecision ?? '',
       r.retrievedIds.join('|'),
       r.timestamp,
-      `"${JSON.stringify(r.executionEnvironment ?? null).replace(/"/g, '""')}"`,
-      `"${JSON.stringify(r.generationMetrics ?? null).replace(/"/g, '""')}"`,
-      `"${JSON.stringify(r.modelProvenance ?? null).replace(/"/g, '""')}"`,
-      '"' + r.answer.replace(/"/g, '""').replace(/\n/g, ' ') + '"',
-    ].join(';'),
+      JSON.stringify(r.executionEnvironment ?? null),
+      JSON.stringify(r.generationMetrics ?? null),
+      JSON.stringify(r.modelProvenance ?? null),
+      r.answer,
+    ].map(csvCell).join(';'),
   )
   return [head, ...rows].join('\n')
 }

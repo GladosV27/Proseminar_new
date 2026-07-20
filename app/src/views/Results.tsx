@@ -3,7 +3,7 @@ import type { AppCtx } from '../App'
 import { exportChartPng } from '../components/exportPng'
 import { CATEGORY_LABELS, QUESTIONS } from '../data/questions'
 import { BASE_GRAPH } from '../data/graph'
-import { aggregate, ALL_CONDITIONS, CONDITION_INFO, cohensKappa, effectiveScore, pairedComparison } from '../engine/experiment'
+import { aggregate, ALL_CONDITIONS, CONDITION_INFO, cohensKappa, effectiveScore, pairedComparison, questionClusterSummary } from '../engine/experiment'
 import { exportResultsCsv, exportResultsJson, exportSubmissionBundle } from '../engine/store'
 import {
   RESULTS_IMPORT_MAX_BYTES,
@@ -70,13 +70,25 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
     [ctx.results, run, retrieval, latestRunId],
   )
   const comparison = useMemo(() => {
-    const models = [...new Set(comparisonResults.map((r) => r.engine))]
-    return models.flatMap((model) => ALL_CONDITIONS.filter((condition) => comparisonResults.some((r) => r.engine === model && r.condition === condition)).map((condition) => {
-      const rs = comparisonResults.filter((r) => r.engine === model && r.condition === condition)
-      const correct = rs.filter((r) => effectiveScore(r) === 'korrekt').length
-      const [lo, hi] = wilson(correct, rs.length)
-      return { model, condition, n: rs.length, correct, accuracy: correct / rs.length, lo, hi }
-    }))
+    const groups = new Map<string, typeof comparisonResults>()
+    for (const result of comparisonResults) {
+      const key = `${result.engine}\u001f${result.retrieval}\u001f${result.condition}`
+      const rows = groups.get(key) ?? []
+      rows.push(result)
+      groups.set(key, rows)
+    }
+    return [...groups.values()].map((rs) => {
+      const summary = questionClusterSummary(rs)
+      const [lo, hi] = wilson(summary.correct, summary.n)
+      return {
+        model: rs[0].engine,
+        retrieval: rs[0].retrieval,
+        condition: rs[0].condition,
+        ...summary,
+        lo,
+        hi,
+      }
+    })
   }, [comparisonResults])
   const paired = useMemo(() => [
     pairedComparison(comparisonResults, 'graph', 'vector'),
@@ -99,15 +111,21 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
           const qids = new Set(QUESTIONS.filter((q) => q.category === cat).map((q) => q.id))
           const rs = results.filter((r) => r.condition === c && qids.has(r.questionId))
           if (!rs.length) return 0
-          return rs.filter((r) => effectiveScore(r) === 'korrekt').length / rs.length
+          return questionClusterSummary(rs).accuracy
         }),
       })),
+    [results, conds],
+  )
+
+  const clusterByCondition = useMemo(
+    () => new Map(conds.map((condition) => [condition, questionClusterSummary(results.filter((result) => result.condition === condition))])),
     [results, conds],
   )
 
   const empty = results.length === 0
 
   function clearAllResults() {
+    if (ctx.experimentStatus.state === 'running') return
     if (
       window.confirm(
         'Alle lokal gespeicherten Messdaten werden dauerhaft gelöscht. Exportiere vorher JSON oder CSV, wenn du die Testdaten behalten möchtest.',
@@ -288,7 +306,13 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
             <button className="btn sm" onClick={() => setShowTable(!showTable)}>
               {showTable ? 'Tabelle ausblenden' : 'Als Tabelle anzeigen'}
             </button>
-            <button className="btn sm" style={{ color: 'var(--bad)' }} onClick={clearAllResults}>
+            <button
+              className="btn sm"
+              style={{ color: 'var(--bad)' }}
+              disabled={ctx.experimentStatus.state === 'running'}
+              title={ctx.experimentStatus.state === 'running' ? 'Erst den laufenden Messlauf beenden oder abbrechen.' : ''}
+              onClick={clearAllResults}
+            >
               Alle Messdaten löschen
             </button>
             {kappa.kappa !== null && <span className="chip">Bewertung: κ = {kappa.kappa.toFixed(2)} (n = {kappa.n})</span>}
@@ -303,13 +327,16 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
 
           {comparison.length > 0 && (
             <>
-              <h2>Direkter Modellvergleich</h2>
+              <h2>Primäre Genauigkeit auf Frageebene</h2>
               <div className="card table-wrap">
                 <table>
-                  <thead><tr><th>Modell</th><th>Bedingung</th><th className="num">n</th><th className="num">korrekt</th><th className="num">95%-Intervall</th></tr></thead>
-                  <tbody>{comparison.map((row) => <tr key={`${row.model}-${row.condition}`}><td className="mono" style={{ fontSize: 11.5 }}>{row.model}</td><td>{CONDITION_INFO[row.condition].short}</td><td className="num">{row.n}</td><td className="num"><strong>{Math.round(row.accuracy * 100)}%</strong></td><td className="num">[{Math.round(row.lo * 100)}–{Math.round(row.hi * 100)}%]</td></tr>)}</tbody>
+                  <thead><tr><th>Modell</th><th>Retrieval</th><th>Bedingung</th><th className="num">Fragen n</th><th className="num">korrekt</th><th className="num">95%-Intervall</th><th className="num">Trials</th></tr></thead>
+                  <tbody>{comparison.map((row) => <tr key={`${row.model}-${row.retrieval}-${row.condition}`}><td className="mono" style={{ fontSize: 11.5 }}>{row.model}</td><td>{row.retrieval === 'dense' ? 'Dense' : 'TF-IDF'}</td><td>{CONDITION_INFO[row.condition].short}</td><td className="num">{row.n}{row.ties ? ` (+${row.ties} Gleichstand)` : ''}</td><td className="num"><strong>{row.correct}/{row.n} = {Math.round(row.accuracy * 100)}%</strong></td><td className="num">[{Math.round(row.lo * 100)}–{Math.round(row.hi * 100)}%]</td><td className="num">{row.trials}</td></tr>)}</tbody>
                 </table>
-                <p className="hint" style={{ margin: '10px 0 0' }}>Das Intervall zeigt die Unsicherheit des Anteils korrekter Antworten. Bei kleinen n sind Prozentwerte nur vorläufig interpretierbar.</p>
+                <p className="hint" style={{ margin: '10px 0 0' }}>
+                  Primäre Einheit ist die einzigartige Frage: Wiederholungen werden je Run, Engine und Retrieval per Mehrheit
+                  zusammengefasst. Das Wilson-Intervall verwendet deshalb die Fragecluster; die Trial-Zahl bleibt deskriptiv.
+                </p>
               </div>
             </>
           )}
@@ -318,26 +345,30 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
             <>
               <h2>Gepaarte Effektanalyse</h2>
               <div className="card table-wrap">
-                <table><thead><tr><th>Vergleich</th><th className="num">Paare</th><th className="num">Δ Genauigkeit</th><th className="num">nur Graph korrekt</th><th className="num">nur Vergleich korrekt</th><th className="num">McNemar p</th></tr></thead><tbody>{paired.map((row) => <tr key={`${row.a}-${row.b}`}><td>{CONDITION_INFO[row.a].short} vs. {CONDITION_INFO[row.b].short}</td><td className="num">{row.pairs}</td><td className="num"><strong>{row.delta >= 0 ? '+' : ''}{Math.round(row.delta * 100)} Prozentpunkte</strong></td><td className="num">{row.aOnlyCorrect}</td><td className="num">{row.bOnlyCorrect}</td><td className="num">{row.mcnemarExactP === null ? '–' : row.mcnemarExactP.toFixed(4)}</td></tr>)}</tbody></table>
-                <p className="hint" style={{ margin: '10px 0 0' }}>Gepaart wird ausschließlich dieselbe Frage in derselben Wiederholung, Engine und Retrieval-Konfiguration. p-Werte sind ergänzend; maßgeblich bleiben Effektgröße, Intervall und Fehleranalyse.</p>
+                <table><thead><tr><th>Vergleich</th><th className="num">Fragepaare</th><th className="num">Trialpaare</th><th className="num">Δ Genauigkeit</th><th className="num">nur Graph korrekt</th><th className="num">nur Vergleich korrekt</th><th className="num">McNemar p</th></tr></thead><tbody>{paired.map((row) => <tr key={`${row.a}-${row.b}`}><td>{CONDITION_INFO[row.a].short} vs. {CONDITION_INFO[row.b].short}</td><td className="num">{row.pairs}{row.excludedTies ? ` (+${row.excludedTies} Gleichstand)` : ''}</td><td className="num">{row.trialPairs}</td><td className="num"><strong>{row.delta >= 0 ? '+' : ''}{Math.round(row.delta * 100)} Prozentpunkte</strong></td><td className="num">{row.aOnlyCorrect}</td><td className="num">{row.bOnlyCorrect}</td><td className="num">{row.mcnemarExactP === null ? '–' : row.mcnemarExactP.toFixed(4)}</td></tr>)}</tbody></table>
+                <p className="hint" style={{ margin: '10px 0 0' }}>
+                  McNemar und Genauigkeitsdifferenz verwenden gepaarte Fragecluster, nicht die deterministisch wiederholten
+                  Trialzeilen. Trialpaare sind nur deskriptiv beziehungsweise für Laufzeitvergleiche gedacht.
+                </p>
               </div>
             </>
           )}
 
           <div className="grid cols-3">
-            {agg.map((a) => (
-              <div className="card stat" key={a.condition}>
+            {agg.map((a) => {
+              const clusters = clusterByCondition.get(a.condition)
+              return <div className="card stat" key={a.condition}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span className="sw" style={{ width: 11, height: 11, borderRadius: 3, background: CONDITION_INFO[a.condition].color, display: 'inline-block' }} />
                   <strong>{CONDITION_INFO[a.condition].short}</strong>
                 </div>
-                <div className="num">{Math.round(a.accuracy * 100)}%</div>
+                <div className="num">{Math.round((clusters?.accuracy ?? 0) * 100)}%</div>
                 <div className="cap">
-                  korrekt ({a.korrekt}/{a.n}) · E2E p50/p95 {a.latencyN ? `${a.medianLatency}/${a.p95Latency} ms` : '–'} · ⌀ Kontext{' '}
+                  Fragecluster ({clusters?.correct ?? 0}/{clusters?.n ?? 0}) · Trials deskriptiv ({a.korrekt}/{a.n}) · E2E p50/p95 {a.latencyN ? `${a.medianLatency}/${a.p95Latency} ms` : '–'} · ⌀ Kontext{' '}
                   {a.meanContext} Zeichen
                 </div>
               </div>
-            ))}
+            })}
           </div>
 
           <h2>Genauigkeit nach Fragetyp</h2>
@@ -350,7 +381,8 @@ export default function Results({ ctx }: { ctx: AppCtx }) {
             />
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
               <p className="hint" style={{ margin: 0, flex: 1, minWidth: 260 }}>
-                Bei »Unbeantwortbar« zählt die korrekte Enthaltung als Treffer – das misst Halluzinationsresistenz.
+                Kategorien verwenden ebenfalls die Mehrheitsentscheidung je Fragecluster. Bei »Unbeantwortbar« zählt die
+                korrekte Enthaltung als Treffer – das misst Halluzinationsresistenz.
               </p>
               <button
                 className="btn sm"

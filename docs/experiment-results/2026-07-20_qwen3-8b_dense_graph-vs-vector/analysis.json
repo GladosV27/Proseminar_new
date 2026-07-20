@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "file": "raw-results.json",
+    "exportedAt": "2026-07-20T03:12:29.584Z",
+    "runId": "run_mrsmtfho_e43f3c5f",
+    "engine": "ollama:qwen3:8b",
+    "retrieval": "dense"
+  },
+  "validation": {
+    "validatedTrials": 400,
+    "uniqueQuestions": 40,
+    "graphTrials": 200,
+    "vectorTrials": 200,
+    "missingQuestionPairs": 0,
+    "missingTrialPairs": 0,
+    "manualScores": 0,
+    "automaticScores": 400,
+    "unstableScoreClusters": 0
+  },
+  "methodology": {
+    "primaryAccuracyUnit": "unique-question-cluster",
+    "clusterRule": "Mehrheit der Wiederholungen je Frage und Bedingung; Gleichstände werden ausgeschlossen",
+    "primaryIndependentN": 40,
+    "trialRowsPerCondition": 200,
+    "trialRowsUse": "nur deskriptive Laufzeit-, Retrieval- und Stabilitätsanalyse",
+    "pseudoreplicationWarning": "Wiederholungen derselben Frage sind keine unabhängigen Gütebeobachtungen.",
+    "scoring": "vollautomatisch; keine manuelle oder doppelblinde Bewertung"
+  },
+  "analyses": [
+    {
+      "runId": "run_mrsmtfho_e43f3c5f",
+      "engine": "ollama:qwen3:8b",
+      "retrieval": "dense",
+      "graph": {
+        "n": 200,
+        "correct": 185,
+        "accuracy": 0.925,
+        "answerAbstentions": 30,
+        "abstentionRate": 0.15,
+        "scoredAbstentions": 10,
+        "scoredAbstentionRate": 0.05,
+        "evidenceRecallN": 180,
+        "evidenceRecall": 0.9305555555555556,
+        "evidencePrecisionN": 180,
+        "evidencePrecision": 0.22074730824730812,
+        "e2eMs": {
+          "n": 200,
+          "median": 4359.469999999999,
+          "q1": 3502.8075,
+          "q3": 4804.875,
+          "iqr": 1302.0675
+        },
+        "ttftMs": {
+          "n": 200,
+          "median": 4025.8500000000004,
+          "q1": 3040.225,
+          "q3": 4386.85,
+          "iqr": 1346.6250000000005
+        },
+        "tokensPerSecond": {
+          "n": 200,
+          "median": 76.7,
+          "q1": 76.2,
+          "q3": 78.025,
+          "iqr": 1.8250000000000028
+        }
+      },
+      "vector": {
+        "n": 200,
+        "correct": 150,
+        "accuracy": 0.75,
+        "answerAbstentions": 40,
+        "abstentionRate": 0.2,
+        "scoredAbstentions": 20,
+        "scoredAbstentionRate": 0.1,
+        "evidenceRecallN": 180,
+        "evidenceRecall": 0.4930555555555557,
+        "evidencePrecisionN": 180,
+        "evidencePrecision": 0.3402777777777778,
+        "e2eMs": {
+          "n": 200,
+          "median": 1098.8400000000001,
+          "q1": 900.9000000000001,
+          "q3": 1310.0725,
+          "iqr": 409.1724999999999
+        },
+        "ttftMs": {
+          "n": 200,
+          "median": 707.75,
+          "q1": 611.3,
+          "q3": 786.925,
+          "iqr": 175.625
+        },
+        "tokensPerSecond": {
+          "n": 200,
+          "median": 80.6,
+          "q1": 79.7,
+          "q3": 81.7,
+          "iqr": 2
+        }
+      },
+      "uniqueQuestions": 40,
+      "repetitions": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "expectedPairs": 200,
+      "missingPairs": 0,
+      "paired": {
+        "n": 200,
+        "accuracyDelta": 0.175,
+        "abstentionDelta": -0.05,
+        "graphOnlyCorrect": 45,
+        "vectorOnlyCorrect": 10,
+        "evidenceRecallDelta": 0.4375,
+        "evidencePrecisionDelta": -0.11953046953046965,
+        "e2eMsDelta": {
+          "n": 200,
+          "median": 3242.89,
+          "q1": 2507.265,
+          "q3": 3700.1050000000005,
+          "iqr": 1192.8400000000006
+        },
+        "ttftMsDelta": {
+          "n": 200,
+          "median": 3364.25,
+          "q1": 2400.625,
+          "q3": 3664.8250000000003,
+          "iqr": 1264.2000000000003
+        },
+        "tokensPerSecondDelta": {
+          "n": 200,
+          "median": -3.799999999999997,
+          "q1": -4.699999999999989,
+          "q3": -2.9000000000000057,
+          "iqr": 1.799999999999983
+        }
+      },
+      "questionLevel": {
+        "graph": {
+          "clusters": 40,
+          "n": 40,
+          "correct": 37,
+          "accuracy": 0.925,
+          "interval95": {
+            "low": 0.8013546984090248,
+            "high": 0.9741644432281419
+          },
+          "ties": 0,
+          "trials": 200
+        },
+        "vector": {
+          "clusters": 40,
+          "n": 40,
+          "correct": 30,
+          "accuracy": 0.75,
+          "interval95": {
+            "low": 0.598057409330299,
+            "high": 0.8581303210445048
+          },
+          "ties": 0,
+          "trials": 200
+        },
+        "expectedPairs": 40,
+        "missingPairs": 0,
+        "paired": {
+          "n": 40,
+          "excludedTies": 0,
+          "graphCorrect": 37,
+          "vectorCorrect": 30,
+          "accuracyDelta": 0.175,
+          "graphOnlyCorrect": 9,
+          "vectorOnlyCorrect": 2,
+          "mcnemarExactP": 0.0654296875
+        }
+      }
+    }
+  ]
+}

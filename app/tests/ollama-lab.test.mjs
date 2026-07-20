@@ -13,6 +13,8 @@ async function loadTs(path) {
 
 const ollama = await loadTs('../src/engine/ollama.ts')
 const resume = await loadTs('../src/engine/experimentResume.ts')
+const experimentSource = fs.readFileSync(new URL('../src/views/Experiment.tsx', import.meta.url), 'utf8')
+const resultsSource = fs.readFileSync(new URL('../src/views/Results.tsx', import.meta.url), 'utf8')
 
 function jsonResponse(value, status = 200) {
   return new Response(JSON.stringify(value), {
@@ -135,7 +137,9 @@ test('Checkpoint überspringt nur bereits erfolgreiche Trials derselben Run-, En
     engineId: 'ollama:qwen3:8b', modelProvenance: provenance, retrieval: 'dense',
     conditions: ['baseline', 'graph'], repetitions: 1, seed: 42,
   })
-  const checkpoint = resume.newCheckpoint(fingerprint, 2, 1_000)
+  const checkpoint = resume.newCheckpoint(fingerprint, 2, {
+    retrieval: 'dense', conditions: ['baseline', 'graph'], repetitions: 1, seed: 42,
+  }, 1_000)
   const schedule = [
     { repetition: 1, condition: 'baseline', question: { id: 'q01' } },
     { repetition: 1, condition: 'graph', question: { id: 'q01' } },
@@ -153,4 +157,29 @@ test('Checkpoint überspringt nur bereits erfolgreiche Trials derselben Run-, En
     conditions: ['baseline', 'graph'], repetitions: 1, seed: 42,
   })
   assert.notEqual(changed, fingerprint)
+})
+
+test('Checkpoint speichert die komplette Dense-Laufkonfiguration für einen Reload', () => {
+  const settings = {
+    retrieval: 'dense', conditions: ['baseline', 'vector', 'graph'], repetitions: 3, seed: 20260616,
+  }
+  const checkpoint = resume.newCheckpoint('abc12345', 1596, settings, 1_000)
+  const storage = {
+    getItem: () => JSON.stringify(checkpoint),
+  }
+  assert.deepEqual(resume.loadCheckpoint(storage).settings, settings)
+})
+
+test('Nachtlauf prüft Dense vor dem ersten Trial und hängt Ergebnisse atomar an', () => {
+  const denseLoad = experimentSource.indexOf('await loadDenseModel(')
+  const denseIndex = experimentSource.indexOf('await getDenseIndex(BASE_GRAPH).ensureBuilt(')
+  const firstTrial = experimentSource.indexOf('await ctx.baseRunner.run(')
+  assert.ok(denseLoad > 0 && denseLoad < firstTrial)
+  assert.ok(denseIndex > denseLoad && denseIndex < firstTrial)
+  assert.match(experimentSource, /ctx\.setResults\(\(current\) => \[\.\.\.current, \{ \.\.\.result, executionEnvironment \}\]\)/)
+})
+
+test('Messdaten können während eines laufenden Nachtlaufs nicht gelöscht werden', () => {
+  assert.match(resultsSource, /if \(ctx\.experimentStatus\.state === 'running'\) return/)
+  assert.match(resultsSource, /disabled=\{ctx\.experimentStatus\.state === 'running'\}/)
 })

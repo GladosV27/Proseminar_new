@@ -51,6 +51,7 @@ test('Native App zeigt genau Chat, Wissen, Graph und Einstellungen', () => {
   for (const hidden of ['Experiment', 'Ergebnisse', 'Arena', 'Bewerten']) assert.doesNotMatch(nativeNav, new RegExp(hidden))
   assert.match(appSource, /nativeApp \? NATIVE_NAV/)
   assert.match(appSource, /nativeApp \? <MobileSettings ctx=\{ctx\} \/>/)
+  assert.match(appSource, /nativeApp \? 'chat' : localLab/)
 })
 
 test('Mobile Einrichtung wählt das Geräte-Modell mit einem Hauptknopf', () => {

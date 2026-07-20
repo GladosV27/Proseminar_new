@@ -48,19 +48,19 @@ export default function Rate({ ctx }: { ctx: AppCtx }) {
   }, [kappa])
 
   function setBlind(id: string, r: Rater, s: Score) {
-    ctx.setResults(ctx.results.map((t) => (t.id === id ? { ...t, blind: { ...t.blind, [r]: s } } : t)))
+    ctx.setResults((current) => current.map((t) => (t.id === id ? { ...t, blind: { ...t.blind, [r]: s } } : t)))
   }
 
   function applyConsensus() {
-    ctx.setResults(
-      ctx.results.map((t) =>
+    ctx.setResults((current) =>
+      current.map((t) =>
         t.blind?.A && t.blind?.B && t.blind.A === t.blind.B ? { ...t, manualScore: t.blind.A } : t,
       ),
     )
   }
 
   function resolveConflict(t: TrialResult, s: Score) {
-    ctx.setResults(ctx.results.map((x) => (x.id === t.id ? { ...x, manualScore: s } : x)))
+    ctx.setResults((current) => current.map((x) => (x.id === t.id ? { ...x, manualScore: s } : x)))
   }
 
   if (ctx.results.length === 0) {
